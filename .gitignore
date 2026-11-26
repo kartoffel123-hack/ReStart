@@ -1,0 +1,64 @@
+# ReStart — ignore build, dependency, and tooling artifacts only.
+# Everything under assets/ is a provided challenge input and is never ignored (see bottom).
+
+# ---- Node / dependencies ----
+node_modules/
+.npm/
+.nvm/
+package-lock.json.*.bak
+
+# ---- Build output ----
+dist/
+dist-ssr/
+.vite/
+*.local
+
+# ---- Generated model staging and caches (plan 02 §1: intermediates stay out of the bundle)
+# Note: the published dataset under public/models/30465/ IS committed on purpose.
+.tmp/
+.staging/
+staging/
+.cache/
+.tools-cache/
+*.tsbuildinfo
+.eslintcache
+
+# ---- Test, coverage and browser artifacts ----
+coverage/
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
+# ---- Logs ----
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ---- Local environment and secrets (never commit) ----
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ---- Editors and OS junk ----
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/launch.json
+*.swp
+*~
+
+# ---- Never ignore anything under assets/ ----
+# CAD, workbooks, PDFs and images there are read-only inputs the importer is
+# fingerprinted against; they must always be visible to git. These negations
+# override every pattern above for that subtree.
+!assets/
+!assets/**

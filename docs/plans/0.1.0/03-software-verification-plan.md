@@ -218,6 +218,14 @@ npm run build
 npm run test:e2e
 ```
 
+> **Addendum, added 2026-11-26 during implementation.** Per
+> [implementation plan §8](02-software-design-implementation-plan.md), every commit is
+> preceded by `npm run progress:screenshot`, which writes the screenshots and `notes.md` for
+> the change into `docs/progress/<yyyy-mm-dd>-<slug>/`. Those captures are a commit-time
+> progress trail, not release evidence: they do not satisfy any V-row below, and no test
+> reads them. A missing capture for a commit that had a visible surface is treated the same
+> as a missing test run — fix it before committing.
+
 During development run one named Vitest file or case before the full suite. A routine code change runs typecheck, fixtures and relevant UI tests. Changes to the importer, graph, review data, solver or geometry run the 70-target batch. Release CI also verifies reproducibility from source, checks the exact shipped bundle, and exercises the real browser. Configure the browser test runner to start the preview server and wait for readiness.
 
 Record build/lockfile revision, source fingerprints, model settings, generated route report, test results, screenshots, device/browser results, physical records and stretch status. Treat any unselectable target, incomplete restoration, stale physical evidence, missing critical asset, or failed hands-on route as a release failure. Record and label searches that found a feasible route without proving the minimum. Use the last passing build while fixing a failing release candidate.

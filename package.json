@@ -18,7 +18,8 @@
     "test:e2e": "playwright test",
     "model:import": "tsx tools/import/run.ts",
     "model:compile": "tsx tools/compile/run.ts",
-    "model:verify": "tsx tools/verify/run.ts"
+    "model:verify": "tsx tools/verify/run.ts",
+    "progress:screenshot": "tsx tools/progress/capture.ts"
   },
   "dependencies": {
     "react": "19.2.6",

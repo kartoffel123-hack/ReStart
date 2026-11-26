@@ -208,6 +208,21 @@ intermediates. Pull requests should state which verification rows (V01–V10) th
 touches, list the commands actually run and any unrun prerequisite, and link the ticket.
 Include screenshots for UI changes — the visual gate is reviewed at 1280×800 and 390×844.
 
+**Capture progress screenshots before every commit**, not only for UI changes
+([implementation plan §8](docs/plans/0.1.0/02-software-design-implementation-plan.md)):
+
+```sh
+npm run progress:screenshot -- --title "<what this commit changes>"
+```
+
+That writes PNGs plus `notes.md` to `docs/progress/<yyyy-mm-dd>-<slug>/`; commit them with
+the change they document so the trail is reviewable without running anything. Add the
+scenario that shows the newly introduced behaviour to `tools/progress/scenarios.ts` — the
+capture is meant to highlight the change, not to re-shoot the same screen. Nothing under
+`docs/progress/` is read by a test, and a capture is never release evidence for a V-row. If a
+commit's surface does not exist yet, say so in `notes.md` and name the ticket that makes it
+capturable.
+
 ## Hackathon constraints
 
 Five people, ~48 elapsed hours (≈240 person-hours), a working prototype demonstrated on the

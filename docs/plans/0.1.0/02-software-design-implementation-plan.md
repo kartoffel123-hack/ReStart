@@ -210,3 +210,33 @@ Qwen delivers a usable first design and a gallery where Astra can revise it quic
 ## Handoff at each integration point
 
 Give the next engineer the changed interface, the smallest failing/passing fixture, the commands run and the remaining unresolved target IDs. Ship the tested dataset and code as one release. For any selected piece the release report must show what moves, why it moves, how it goes back, and what evidence supports that exact manual.
+
+## 8. Progress evidence: capture screenshots before every commit
+
+> **Addendum, added 2026-11-26 during implementation.** This section was not part of the
+> handoff at planning time. It adds a working agreement; it does not change any measured
+> baseline, ticket boundary or acceptance gate above.
+
+Every commit captures what the change made visible, under `docs/progress/`. The point is a
+reviewable trail of the build: someone opening the repository the morning after should see
+the newly introduced behaviour without running anything.
+
+1. Run the capture **before** `git commit`, after the change's own tests are green:
+   `npm run progress:screenshot -- --title "<what this commit changes>"`.
+2. Output goes to `docs/progress/<yyyy-mm-dd>-<slug>/`: one PNG per scenario per viewport,
+   plus `notes.md` recording the date, `HEAD`, the changed files, the commands actually run,
+   the verification rows touched, and one line per screenshot saying what it highlights.
+3. Scenarios come from `tools/progress/scenarios.ts`. Add the scenario that shows *this*
+   commit's behaviour; a commit that changes no visible state still captures the affected
+   screen so the absence of change is itself on record. Use the two gate widths from §5
+   (1280 × 800 and 390 × 844) plus any extra state the change introduces.
+4. Screenshots are committed with the change they document. They are evidence, not
+   fixtures: nothing under `docs/progress/` is read by a test, and regenerating one never
+   justifies a source edit.
+5. A commit that cannot produce a screenshot because the surface does not exist yet says so
+   in `notes.md` and names the ticket that will make it capturable. Pure domain, importer or
+   planner commits capture the closest rendered state plus the command output that proves the
+   change.
+
+This is a commit gate, not a release gate: the V01–V10 rows in the verification plan still
+decide release, and the §5 visual review still uses its own frozen baselines.

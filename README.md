@@ -61,15 +61,29 @@ docs/plans/0.1.0/                        the plan set
   01-software-design-plan.md               product decisions, architecture, evidence meaning
   02-software-design-implementation-plan.md handoff, tickets, 48-hour schedule, commands
   03-software-verification-plan.md         V01–V10 acceptance matrix and run order
+src/                                      the app, bootstrapped at the repository root
+  domain/                                 assembly state, graph, search, replay, evidence — pure TS
+  app/                                    loaders, session controller, view-model selectors, adapters
+  presentation/                           typed view models, screens, `tokens.css`
+  scene/ graph-view/                      Three.js and graph render adapters (IDs back to the app)
+  concept/                                development gallery at `#/concept` over the same screens
+tools/{import,compile,verify}/            build-side STEP + workbook import, batch verification
+data/review/                              versioned crosswalk decisions, motion evidence, bench records
+public/models/30465/                      the published content-hashed dataset (manifest, GLB, graphs, manuals)
+tests/{data,domain,geometry,ui,review,integration,release}/  Vitest suites
 ```
 
-The application is bootstrapped at the repository root and will add `tools/`, `data/review/`,
-`public/models/30465/`, `src/{domain,app,presentation,scene,graph-view,concept}/` and `tests/`.
+Layer boundaries are enforced, not conventional: `domain` imports nothing browser- or
+CAD-side, and planner, storage, fetch, import and renderer calls live in their designated
+adapters. See [AGENTS.md](AGENTS.md).
 
-**Current status:** source assets and the 0.1.0 plan set are committed; implementation is
-not yet bootstrapped. Start with
-[the implementation plan](docs/plans/0.1.0/02-software-design-implementation-plan.md) §1,
-which records the measured STEP-import baseline to reproduce.
+**Current status:** the toolchain from
+[implementation plan §1](docs/plans/0.1.0/02-software-design-implementation-plan.md) is
+bootstrapped and green — pinned dependencies, strict TypeScript, the Vite app shell, the
+instruction-sheet design tokens, and Vitest with a Node default and jsdom for DOM suites.
+The STEP importer, the repair model and planner, the mechanic and reviewer screens, and the
+70-target batch are the open tickets; plan §1 records the measured STEP-import baseline they
+must reproduce.
 
 ## The assembly, as measured
 
@@ -93,15 +107,26 @@ needs no model service, no CAD installation, and no server.
 
 ## Getting started
 
-The Vite/TypeScript entrypoint is created by
-[implementation plan §1](docs/plans/0.1.0/02-software-design-implementation-plan.md) and is
-not committed yet. Once it exists, and with **Node 24** active (pin it with `.nvmrc` and
-`engines` so all five developers and CI match):
+**Node 24.22.3** is the pinned baseline (`.nvmrc` and `engines`). Anything newer resolves
+dependencies differently, so activate it before installing. On macOS with Homebrew,
+`node@24` is keg-only and must go on `PATH` explicitly:
+
+```sh
+brew install node@24
+export PATH="$(brew --prefix node@24)/bin:$PATH"   # add to your shell profile
+node --version                                    # must print v24.22.3
+```
+
+With nvm instead, `nvm install --lts` is the wrong major — use `nvm install 24.22.3 && nvm use`.
+Then install from the committed lockfile and start the app:
 
 ```sh
 npm ci
 npm run dev                  # app; the design concept gallery is at #/concept
 ```
+
+Currently runnable: `npm run dev`, `npm run typecheck`, `npm test`, `npm run build`. The
+`model:*` scripts and `test:e2e` are declared but land with their tickets.
 
 Full release run order:
 

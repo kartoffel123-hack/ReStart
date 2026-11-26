@@ -1,0 +1,42 @@
+/* Design tokens from docs/plans/0.1.0/01-software-design-plan.md · Mechanic experience.
+   Astra revises appearance here and in the screen styles; domain code never reads these. */
+:root {
+    /* Instruction-sheet palette */
+    --rs-build-field: #e6e6e6;
+    --rs-paper: #ffffff;
+    --rs-ink: #172127;
+    --rs-parts-inset: #fff2c4;
+    --rs-motion-arrow: #b92324;
+
+    /* State colours */
+    --rs-focus: #0b57d0;
+    --rs-ok: #14683d;
+    --rs-warn: #8a5a00;
+    --rs-danger: #a3140f;
+    --rs-muted: #5c666d;
+    --rs-hairline: #c9cfd3;
+
+    /* Spacing scale (plan 02 §5: 8/16/24) */
+    --rs-space-1: 8px;
+    --rs-space-2: 16px;
+    --rs-space-3: 24px;
+    --rs-space-4: 32px;
+
+    --rs-min-hit: 44px;
+    --rs-body-size: 16px;
+    --rs-radius: 6px;
+
+    --rs-font-body: 'Atkinson Hyperlegible Next', 'Atkinson Hyperlegible', system-ui,
+        -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --rs-font-numeral: 'Barlow Condensed', 'Oswald', var(--rs-font-body);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    :root {
+        --rs-motion-duration: 0ms;
+    }
+}
+
+:root {
+    --rs-motion-duration: 900ms;
+}

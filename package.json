@@ -1,0 +1,53 @@
+{
+  "name": "restart-manual",
+  "private": true,
+  "version": "0.1.0",
+  "description": "ReStart: AI-based disassembly analysis and repair manual for the LEGO Technic helicopter 30465 (Healthcare Hackathon 2026, Siemens Healthineers challenge).",
+  "type": "module",
+  "engines": {
+    "node": "24.22.3",
+    "npm": ">=11"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.tools.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "model:import": "tsx tools/import/run.ts",
+    "model:compile": "tsx tools/compile/run.ts",
+    "model:verify": "tsx tools/verify/run.ts"
+  },
+  "dependencies": {
+    "react": "19.2.6",
+    "react-dom": "19.2.6",
+    "three": "0.184.0"
+  },
+  "devDependencies": {
+    "@dagrejs/dagre": "3.1.4",
+    "@gltf-transform/core": "4.5.1",
+    "@playwright/test": "1.65.1",
+    "@testing-library/dom": "10.4.2",
+    "@testing-library/jest-dom": "6.10.0",
+    "@testing-library/react": "16.3.3",
+    "@testing-library/user-event": "14.6.13",
+    "@types/node": "24.19.4",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.7",
+    "@types/three": "0.184.1",
+    "@vitejs/plugin-react": "6.0.2",
+    "@xyflow/react": "13.0.3",
+    "exceljs": "4.4.0",
+    "jsdom": "29.1.1",
+    "msw": "2.15.0",
+    "occt-import-js": "0.0.23",
+    "three-mesh-bvh": "0.10.0",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3",
+    "vite": "8.0.14",
+    "vitest": "4.1.7",
+    "zod": "4.6.7"
+  }
+}

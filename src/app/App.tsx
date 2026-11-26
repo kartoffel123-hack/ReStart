@@ -4,10 +4,11 @@
  */
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
+import { PlaceholderScreen, type PlaceholderRoute } from '../presentation/placeholder-screen.js';
 
-export type RouteId = 'manual' | 'review' | 'concept';
+export type RouteId = PlaceholderRoute;
 
-function readRoute(hash: string): RouteId {
+export function readRoute(hash: string): RouteId {
     if (hash.startsWith('#/review')) return 'review';
     if (hash.startsWith('#/concept')) return 'concept';
     return 'manual';
@@ -24,7 +25,7 @@ export function App(): ReactNode {
 
     return (
         <div className="rs-app" data-route={route}>
-            <p className="rs-boot">ReStart repair manual is booting.</p>
+            <PlaceholderScreen route={route} />
         </div>
     );
 }

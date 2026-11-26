@@ -3,6 +3,10 @@
  * (implementation plan §8). Add the scenario that shows the behaviour a commit
  * introduces — the capture should highlight the change, not re-shoot a screen
  * that already looked like this.
+ *
+ * `waitFor` is not decoration: it asserts the page reached the state the
+ * scenario claims, so a route that silently renders the same placeholder as
+ * every other route fails the capture instead of producing a misleading PNG.
  */
 export type Viewport = Readonly<{ name: string; width: number; height: number }>;
 
@@ -17,7 +21,7 @@ export type Scenario = Readonly<{
     label: string;
     /** Hash route to open, e.g. `#/` or `#/concept?state=buried-step`. */
     route: string;
-    /** What the reviewer should look at in the resulting PNG. */
+    /** What the reviewer should be able to see in the resulting PNG. */
     highlights: string;
     /** Selector that must exist before capturing; keeps captures deterministic. */
     waitFor?: string;
@@ -27,21 +31,24 @@ export type Scenario = Readonly<{
 
 export const SCENARIOS: readonly Scenario[] = [
     {
-        id: 'boot',
-        label: 'Production host mounts',
+        id: 'manual-route',
+        label: 'Mechanic manual route',
         route: '#/',
-        highlights: 'The production shell renders and owns the hash route.'
+        highlights: 'The manual route renders its own screen, not a shared placeholder.',
+        waitFor: '[data-route="manual"]'
     },
     {
         id: 'review-route',
-        label: 'Reviewer route resolves',
+        label: 'Reviewer route',
         route: '#/review',
-        highlights: 'The static hash router resolves the reviewer route on a hard refresh.'
+        highlights: 'A hard refresh on #/review resolves the reviewer screen on a static host.',
+        waitFor: '[data-route="review"]'
     },
     {
         id: 'concept-route',
-        label: 'Concept gallery route resolves',
+        label: 'Concept gallery route',
         route: '#/concept',
-        highlights: 'The development-only gallery route is reachable at #/concept.'
+        highlights: 'The development-only gallery is reachable at #/concept.',
+        waitFor: '[data-route="concept"]'
     }
 ];

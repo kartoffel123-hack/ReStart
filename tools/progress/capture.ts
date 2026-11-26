@@ -7,7 +7,7 @@
 import { createServer } from 'vite';
 import { chromium, type Page } from '@playwright/test';
 import { createHash } from 'node:crypto';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { resolve } from 'node:path';
 import { GATE_VIEWPORTS, SCENARIOS, type Scenario, type Viewport } from './scenarios.js';
@@ -96,7 +96,7 @@ async function main(): Promise<void> {
     const address = listener.resolvedUrls?.local[0] ?? 'http://localhost:5173/';
     const browser = await chromium.launch();
 
-    const written: { file: string; scenario: Scenario; viewport: Viewport }[] = [];
+    const written: { file: string; scenario: Scenario; viewport: Viewport; digest: string }[] = [];
     try {
         const context = await browser.newContext({ reducedMotion: 'reduce' });
         const page = await context.newPage();
@@ -104,7 +104,10 @@ async function main(): Promise<void> {
             for (const viewport of scenario.viewports ?? GATE_VIEWPORTS) {
                 const file = `${scenario.id}--${viewport.name}.png`;
                 await capture(page, address, scenario, viewport, resolve(directory, file));
-                written.push({ file, scenario, viewport });
+                const digest = createHash('sha256')
+                    .update(readFileSync(resolve(directory, file)))
+                    .digest('hex');
+                written.push({ file, scenario, viewport, digest });
             }
         }
         await context.close();
@@ -115,7 +118,17 @@ async function main(): Promise<void> {
 
     const changed = git(['status', '--porcelain']);
     const head = git(['rev-parse', '--short', 'HEAD']);
-    const digest = createHash('sha256').update(written.map((entry) => entry.file).join('\n')).digest('hex');
+    const setDigest = createHash('sha256').update(written.map((entry) => entry.digest).join('\n')).digest('hex');
+
+    // Identical pixels across scenarios mean the capture proves nothing about
+    // the difference the scenario claims. Say so loudly instead of hiding it.
+    const byDigest = new Map<string, string[]>();
+    for (const entry of written) {
+        const bucket = byDigest.get(entry.digest);
+        if (bucket === undefined) byDigest.set(entry.digest, [entry.file]);
+        else bucket.push(entry.file);
+    }
+    const duplicates = [...byDigest.values()].filter((files) => files.length > 1);
 
     const lines: string[] = [
         `# ${args.title}`,
@@ -123,7 +136,7 @@ async function main(): Promise<void> {
         `- Captured: ${new Date().toISOString()}`,
         `- HEAD at capture: \`${head || 'unknown'}\` (commit this folder with the change it documents)`,
         `- Server: Vite dev server at ${address}`,
-        `- Capture set digest: \`${digest.slice(0, 16)}\``,
+        `- Capture set digest: \`${setDigest.slice(0, 16)}\``,
         '',
         '## Verification rows touched',
         '',
@@ -141,6 +154,17 @@ async function main(): Promise<void> {
         '| --- | --- | --- |',
         ...written.map((entry) => `| \`${entry.file}\` | ${entry.viewport.name} | ${entry.scenario.highlights} |`),
         '',
+        '## Identical captures',
+        '',
+        duplicates.length === 0
+            ? 'Every capture is visually distinct.'
+            : [
+                  'These PNGs are byte-identical, so they cannot show the difference their scenario claims.',
+                  'Either the surface really is unchanged (say so in the Note) or the scenarios need distinct content.',
+                  '',
+                  ...duplicates.map((files) => `- identical: ${files.map((f) => `\`${f}\``).join(', ')}`)
+              ].join('\n'),
+        '',
         '## Working tree at capture',
         '',
         '```',
@@ -154,6 +178,12 @@ async function main(): Promise<void> {
 
     writeFileSync(resolve(directory, 'notes.md'), `${lines.join('\n')}\n`);
     console.log(`captured ${written.length} screenshot(s) -> ${directory}`);
+    if (duplicates.length > 0) {
+        console.warn(
+            `warning: ${duplicates.length} group(s) of captures are byte-identical:`
+        );
+        for (const files of duplicates) console.warn(`  ${files.join(' == ')}`);
+    }
 }
 
 await main();

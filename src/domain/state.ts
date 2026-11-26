@@ -27,7 +27,7 @@ export type AssemblyState = Readonly<{
     disturbedIds: readonly string[];
     /** target slot id -> what is fitted there now */
     fitted: Readonly<Record<string, 'original' | 'replacement'>>;
-    /** outward operations whose paired return has not run yet */
+    /** ids of paired return operations that are owed but have not run yet */
     outstandingReturns: readonly string[];
     /** operations applied in order, for replay and hashing */
     history: readonly string[];
@@ -166,22 +166,16 @@ export function enablement(
         }
     }
 
+    // A return is offered only against an obligation the job actually owes.
     if (operation.isReturn && !state.outstandingReturns.includes(operation.id)) {
-        // Returns are only offered against an obligation that is actually owed.
-        const owed = state.outstandingReturns.some((outwardId) => {
-            const outward = model.operations.find((candidate) => candidate.id === outwardId);
-            return outward?.returnOperationId === operation.id;
+        unmet.push({
+            id: `return:${operation.id}`,
+            subject: { kind: 'occurrence', id: operation.members[0] ?? operation.id },
+            acceptable: ['owed'],
+            role: 'support',
+            reason: `${operation.id} has no outstanding return obligation`,
+            evidence: { tier: 'generated', source: 'operation.isReturn' }
         });
-        if (!owed) {
-            unmet.push({
-                id: `return:${operation.id}`,
-                subject: { kind: 'occurrence', id: operation.members[0] ?? operation.id },
-                acceptable: ['owed'],
-                role: 'support',
-                reason: `${operation.id} has no outstanding return obligation`,
-                evidence: { tier: 'generated', source: 'operation.isReturn' }
-            });
-        }
     }
 
     return { enabled: unmet.length === 0, unmet: unmet.slice() };
@@ -246,13 +240,10 @@ export function applyOperation(
         fitted[operation.fitsReplacementOf] = 'replacement';
     }
 
+    // outstandingReturns holds the ids of the return operations still owed.
     let outstandingReturns = state.outstandingReturns;
     if (operation.isReturn) {
-        outstandingReturns = outstandingReturns.filter(
-            (outwardId) =>
-                model.operations.find((candidate) => candidate.id === outwardId)?.returnOperationId !==
-                operation.id
-        );
+        outstandingReturns = outstandingReturns.filter((owedId) => owedId !== operation.id);
     } else if (operation.returnOperationId !== undefined && operation.phase === 'remove') {
         if (!outstandingReturns.includes(operation.returnOperationId)) {
             outstandingReturns = sortedIds([...outstandingReturns, operation.returnOperationId]);

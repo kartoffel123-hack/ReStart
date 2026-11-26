@@ -27,11 +27,13 @@ function parseArgs(argv: readonly string[]): Args {
         return index >= 0 ? argv[index + 1] : undefined;
     };
     const title = read('--title') ?? 'progress capture';
-    const derived = title
+    const normalised = title
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '')
-        .slice(0, 60);
+        .replace(/^-+|-+$/g, '');
+    // Trim on a word boundary so folder names stay readable.
+    const clipped = normalised.slice(0, 48);
+    const derived = normalised.length <= 48 ? normalised : clipped.replace(/-+$/, '');
     const slug = read('--slug') ?? (derived.length > 0 ? derived : 'progress-capture');
     const list = (flag: string): string[] =>
         (read(flag) ?? '')

@@ -238,8 +238,8 @@ export function partialAxleFixture(): AssemblyModel {
                     needsPose(
                         'spare-needs-axle-off',
                         'axle',
-                        ['axle/retracted-4mm', 'axle/installed'],
-                        'the spare needs the axle clear, then supported',
+                        ['axle/retracted-4mm'],
+                        'the spare gear only slips on while the axle is held off its seat',
                         'support'
                     )
                 ]

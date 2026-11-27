@@ -13,6 +13,13 @@ Disassembly Analysis for MedTech"* by Siemens Healthineers
 
 ## The idea
 
+**Runnable pilot:** `npm ci && npm run dev` on Node 24.22.3. At `#/`, search or pick one of
+70 real pieces. **12 single-target procedures** currently replay against the model. Try
+`30465/NAUO21` (large bush): park the bevel gear, exchange the bush, reseat the gear, then
+confirm the fit check. `#/review` lets you inspect the assembly, edit a specific move and
+rehearse a local draft. See the [pilot and release handoff](docs/pilot-handoff.md) for the
+exact coverage, remaining work, and kit worksheet. No physical trials are recorded.
+
 A mechanic selects **the particular physical piece** that needs replacing — one of 70
 occurrences, including an internal gear or one of several identical pins. ReStart shows which
 parts obstruct it, plays an animated manual through **removal → replacement → restoration →
@@ -109,24 +116,35 @@ trusting the sample grid: a 0.4 mm obstruction sitting between 1 mm samples is s
 a hit, while a stroke through the empty corner of a concave neighbour is still clear — the two
 failure modes that would respectively delete a step from a manual or tell a mechanic to strip
 healthy parts for nothing.
-Not built yet: the move and constraint generator that consumes it, the real scene and the
-inventory loader, the reviewer, and the 70-target `model:compile` / `model:verify` batch.
+The compiler surveys 166 directional options and checks supported direct and single-blocker
+jobs. The 70-target verifier reopens the serialized meshes and manuals; it currently reports
+12 modeled candidates awaiting review and 58 missing motions. These are not release approvals.
 Plan §1 records the measured STEP-import baseline the remaining tickets must reproduce.
 
 **Which screens are real, and how the trail keeps that honest.** The mechanic screen is built
 (`src/presentation/manual-screen.tsx`) and the development gallery at `#/concept` renders it with
 its production props against three named states, so the design review sees what the mechanic will
-get. `#/` still shows a placeholder until Ticket 7 wires the real loader — there is no published
-dataset to load yet — and `#/review` does until Ticket 8.
+get: `#/concept`, `#/concept?state=buried-ready` and `#/concept?state=restore` — the blocked step,
+the same step once it can be taken, and a restoration. The state is named in the address, so a
+review link and a screenshot can ask for one instead of always getting the first card. `#/` loads
+the mechanic pilot; `#/review` loads the editable graph and its worker preview.
 
-Three routes rendering one shared placeholder with different wording used to make the screenshots
-look like three screens while the application was one card. Each capture now records the *layout
+Earlier captures of two of the three routes look alike because they rendered one shared
+`PlaceholderScreen` with different wording. Each capture records the *layout
 identity* of the screen it rendered and whether that screen is still a placeholder, so a set made
 entirely of placeholders is refused rather than filed as progress
-([plan §8.2](docs/plans/0.1.0/02-software-design-implementation-plan.md)).
+([plan §8.2](docs/plans/0.1.0/02-software-design-implementation-plan.md)). What was actually wrong
+was underneath the sameness, and §8.5 and §8.6 close it from two sides: the placeholder's promise
+is tested, because the words are all a stub capture says, and a screen with several states is
+captured in every state, because one screen photographed in one condition repeats forever.
 A commit with nothing to render photographs its own measured output into an evidence panel
 instead, and a placeholder capture that merely repeats the last commit's is dropped rather than
-committed ([plan §8.3](docs/plans/0.1.0/02-software-design-implementation-plan.md)).
+committed ([plan §8.3, §8.4](docs/plans/0.1.0/02-software-design-implementation-plan.md)). Because
+the stub routes look alike by design, the words on a placeholder are the only content its capture
+has, so those words are tested: the placeholder names the ticket that still blocks it and must not
+name one already delivered (§8.5). And a screen with several states is captured in **each** of them
+(§8.6) — until that was added, every folder in the trail held one photograph of the gallery's first
+card, and the two states nobody could link to had never been reviewed as an image.
 
 ## The assembly, as measured
 
@@ -178,14 +196,16 @@ Then install from the committed lockfile and start the app:
 ```sh
 npm ci
 npm run dev                  # app; the design concept gallery is at #/concept
+                             # one gallery state directly: #/concept?state=restore
 ```
 
 Currently runnable: `npm run dev`, `npm run typecheck`, `npm test`, `npm run build`,
 `npm run progress:screenshot`, and `npm run model:import` — the last one verifies the source
 revision, expands the 70 pieces, proves their identity and stages a content-hashed GLB under
-`.tmp/import/`. It publishes nothing: `public/models/30465/` is promoted only once
-`model:verify` has replayed all 70 repairs. `model:compile`, `model:verify` and `test:e2e`
-land with their tickets.
+`.tmp/import/`. `model:compile` writes versioned candidates under `.staging/30465/`;
+`model:verify` exits nonzero for an incomplete dataset. `model:worklist` writes a prioritized
+kit worksheet. `test:e2e` exercises the pilot against the production build. The generated
+pilot stays out of Git; clean development, test and static builds prepare it automatically.
 
 Full release run order:
 

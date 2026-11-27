@@ -43,19 +43,29 @@ highlight per capture, and the working tree at capture time.
   committed as progress several times running.
 - Captures run against the Vite dev server in a real Chromium with reduced motion, so
   `#/concept` states are reachable. Animation time and camera are pinned by the scenario.
+- **A screen with several states is captured in each of them**
+  ([plan §8.6](../plans/0.1.0/02-software-design-implementation-plan.md)). The gallery's state is
+  named in the address (`#/concept?state=restore`) and each scenario waits for the state it asked
+  for, so a capture that silently fell back to the default card fails instead of filing the same
+  picture as three captures. Before that, every folder in this trail held one photograph of the
+  gallery's first card and the other two states had never been reviewed as an image.
 ## Which captures show a real screen
 
-Three routes are captured, and for most of the build **they genuinely are the same page**.
-That is not a bug in the capture tool and not a reason to trust a screenshot: `#/` and
-`#/review` render one `PlaceholderScreen` with different words, so all three share the layout
-identity `11d980a1d2e7` that `notes.md` prints. Plan §8.1 requires exactly this — a stub
-relabelled with new copy must not pass a pixel comparison as a new screen.
+The early `#/` and `#/review` captures shared a placeholder layout. The current captures
+show the real mechanic and reviewer. The three concept scenarios intentionally share a
+layout: they are one production component in three fixture states.
 
 | Route | What its PNG really shows | Why |
 | --- | --- | --- |
-| `#/` `manual-route` | the shared placeholder | The screen exists and is reviewed at `#/concept`, but the route has no live assembly view (ticket 7) and no compiled dataset to load (ticket 9). `public/models/30465/` is empty until ticket 9. |
-| `#/review` `review-route` | the shared placeholder | The reviewer screen is ticket 8. |
-| `#/concept` `concept-route` | **a real screen** | The development gallery mounts the production `ManualScreen` with real props in three named states, so a change here is a change the mechanic would see. |
+| `#/` `manual-route` | Real inventory and helicopter | Raycast or select a specific occurrence; only modeled targets offer a manual. |
+| `#/` `buried-pin-step` | Live pin withdrawal | Confirms parking the cap, then captures the blue pin, its start ghost, arrow and part inset. |
+| `#/review` `review-route` | Local reviewer | Loaded occurrence relationships and move-specific editor. |
+| `#/review` `review-diff` | Changed route | An added blocker forces a six-step detour; the capture waits for the new worker result. |
+| `#/concept?state=buried-blocked` `concept-route` | **a real screen** | Gallery state 1 of 3: the piece is hidden and its blocker is still fitted, so confirm is disabled and the screen says why. |
+| `#/concept?state=buried-ready` `concept-ready-route` | **a real screen** | Gallery state 2 of 3: the same piece once its blocker is off — the step the mechanic actually acts on, with the one move and its stop condition. |
+| `#/concept?state=restore` `concept-restore-route` | **a real screen** | Gallery state 3 of 3: a step that puts a piece back. Reads differently from removal, so restoration is not assumed from it. |
+
+The concept rows use `ManualScreen` with fixture props; the buried-pin row drives the real session.
 
 Two consequences for anyone reading the trail:
 

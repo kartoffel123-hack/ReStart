@@ -4,27 +4,46 @@
  * still ONE screen with different words. The marker below says so in the DOM, because a
  * renamed stub otherwise passes a pixel comparison as a new screen
  * (implementation plan §8.1).
+ *
+ * Because the routes look alike by design, the copy is the only thing a reader of
+ * `docs/progress/` can read, so it has to stay true: it names the ticket that is still
+ * outstanding for that route, not the one whose deliverable already landed. A placeholder
+ * that promises an already-built screen tells the trail the wrong thing, so
+ * `tests/integration/bootstrap.test.tsx` pins these promises.
  */
 import type { ReactNode } from 'react';
 import './placeholder-screen.css';
 
 export type PlaceholderRoute = 'manual' | 'review' | 'concept';
 
-const COPY: Record<PlaceholderRoute, Readonly<{ heading: string; ticket: string; detail: string }>> = {
+type Promise = Readonly<{ heading: string; lead: string; ticket: string; detail: string }>;
+
+const COPY: Record<PlaceholderRoute, Promise> = {
+    // The screen landed with ticket 4 and is reviewed at #/concept. What this route still
+    // lacks is the live scene and the dataset to load into it, so it names tickets 7 and 9.
     manual: {
         heading: 'Mechanic manual',
-        ticket: 'Ticket 4 · tests/ui/manual-screen.test.tsx',
-        detail: 'Searchable inventory beside the assembled helicopter, then one step at a time.'
+        lead: 'Waiting on',
+        ticket: 'Ticket 7 · tests/ui/repair-session.test.tsx',
+        detail:
+            'The screen is built and reviewed at #/concept. This route still has no live ' +
+            'assembly view and no compiled dataset to fill it (tickets 7 and 9).'
     },
     review: {
         heading: 'Reviewer',
+        lead: 'Arrives with',
         ticket: 'Ticket 8 · tests/review/preview.test.tsx',
         detail: 'The full dependency graph, accept/reject on a generated relation, and a before/after route preview.'
     },
+    // Not a promise about the future: the gallery is built, and a production build simply
+    // does not ship it.
     concept: {
         heading: 'Concept gallery',
-        ticket: 'Ticket 4 · src/concept',
-        detail: 'Development-only gallery rendering the production screens against named fixture states.'
+        lead: 'Not shipped ·',
+        ticket: 'src/concept/gallery.tsx',
+        detail:
+            'The gallery is development only, so a production build serves this page instead ' +
+            'of shipping the design-review states.'
     }
 };
 
@@ -43,7 +62,7 @@ export function PlaceholderScreen({ route }: Readonly<{ route: PlaceholderRoute 
             </h1>
             <p className="rs-placeholder__detail">{copy.detail}</p>
             <p className="rs-placeholder__ticket">
-                Arrives with <strong>{copy.ticket}</strong>
+                {copy.lead} <strong>{copy.ticket}</strong>
             </p>
         </section>
     );

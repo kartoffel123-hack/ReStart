@@ -218,7 +218,7 @@ npm run progress:screenshot -- --title "<what this commit changes>" --rows V04 \
 ```
 
 The PNGs and `notes.md` land in `docs/progress/<yyyy-mm-dd>-<slug>/` and are committed with the
-change they document. A capture has to *highlight the newly introduced change*, and four
+change they document. A capture has to *highlight the newly introduced change*, and five
 addenda make that checkable rather than a matter of judgement:
 
 - **§8.1** compares each capture's pixels against the same scenario in the previous commit; at
@@ -232,6 +232,9 @@ addenda make that checkable rather than a matter of judgement:
   witness or hash that shows they are right, then what still needs review and its ticket.
 - **§8.4** drops a placeholder capture that repeats the previous commit's, once a fresh panel
   carries the change. The route stays recorded in `notes.md`; the identical PNG is not committed.
+- **§8.5** tests a placeholder's own copy. Because routes that are stubs by design look alike,
+  the sentence beside them is the only content the trail carries, so it must not promise a screen
+  that already landed. `docs/progress/README.md` states which route shows a real screen and why.
 
 `--note` explains a capture set in `notes.md`; it no longer excuses one that shows nothing new.
 Nothing under `docs/progress/` is read by a test, and captures satisfy no V-row — the frozen

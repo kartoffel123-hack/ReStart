@@ -2,6 +2,7 @@
 import { describe, expect, it, afterEach } from 'vitest';
 import { cleanup, render, screen } from '@testing-library/react';
 import { App } from '../../src/app/App.js';
+import { PlaceholderScreen } from '../../src/presentation/placeholder-screen.js';
 
 afterEach(cleanup);
 
@@ -28,5 +29,31 @@ describe('bootstrap shell', () => {
         expect(screen.getByRole('heading', { name: /concept gallery/i })).toBeInTheDocument();
         expect(document.querySelector('[data-placeholder]')).toBeNull();
         expect(document.querySelector('[data-screen="manual"]')).not.toBeNull();
+    });
+});
+
+describe('placeholder honesty', () => {
+    // A placeholder promises a screen that does not exist yet. Once the screen lands, the
+    // promise becomes false, and a reader of docs/progress is told the wrong thing about
+    // which ticket is outstanding. Ticket 4 delivered ManualScreen and the concept gallery,
+    // so the manual route must stop claiming ticket 4: what it still lacks is the live scene
+    // (ticket 7) and the compiled dataset that feeds it (ticket 9).
+    it('names the ticket that still blocks the mechanic route', () => {
+        // The hash survives cleanup, and an earlier test in this file sets it to #/concept.
+        window.location.hash = '#/';
+        render(<App />);
+        const promise = document.querySelector('.rs-placeholder__ticket');
+        expect(promise?.textContent).toMatch(/ticket 7/i);
+        expect(promise?.textContent).not.toMatch(/ticket 4/i);
+    });
+
+    it('says the gallery is development-only rather than naming an unbuilt ticket', () => {
+        // The gallery itself is built, so this route's placeholder is not a promise about a
+        // ticket: it is what a production build serves because the gallery is not shipped.
+        // Asserted on the component directly, because under Vitest DEV is true and the host
+        // renders the gallery.
+        render(<PlaceholderScreen route="concept" />);
+        expect(document.querySelector('[data-placeholder]')).not.toBeNull();
+        expect(document.body.textContent).toMatch(/development only/i);
     });
 });

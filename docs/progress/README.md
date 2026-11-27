@@ -43,6 +43,30 @@ highlight per capture, and the working tree at capture time.
   committed as progress several times running.
 - Captures run against the Vite dev server in a real Chromium with reduced motion, so
   `#/concept` states are reachable. Animation time and camera are pinned by the scenario.
+## Which captures show a real screen
+
+Three routes are captured, and for most of the build **they genuinely are the same page**.
+That is not a bug in the capture tool and not a reason to trust a screenshot: `#/` and
+`#/review` render one `PlaceholderScreen` with different words, so all three share the layout
+identity `11d980a1d2e7` that `notes.md` prints. Plan §8.1 requires exactly this — a stub
+relabelled with new copy must not pass a pixel comparison as a new screen.
+
+| Route | What its PNG really shows | Why |
+| --- | --- | --- |
+| `#/` `manual-route` | the shared placeholder | The screen exists and is reviewed at `#/concept`, but the route has no live assembly view (ticket 7) and no compiled dataset to load (ticket 9). `public/models/30465/` is empty until ticket 9. |
+| `#/review` `review-route` | the shared placeholder | The reviewer screen is ticket 8. |
+| `#/concept` `concept-route` | **a real screen** | The development gallery mounts the production `ManualScreen` with real props in three named states, so a change here is a change the mechanic would see. |
+
+Two consequences for anyone reading the trail:
+
+- A `manual-route` or `review-route` PNG that looks identical to the previous commit's is
+  telling the truth, not hiding work. Read the **Evidence panel** section of `notes.md` for
+  what the commit actually did; since §8.4 those repeated stub captures are deleted from the
+  folder rather than re-committed when a fresh panel carries the change.
+- Older folders still contain repeated stub PNGs committed before §8.4 landed. They are left
+  in place because each folder's `notes.md` names them as placeholders and references them;
+  deleting them would break the trail they belong to.
+
 - Nothing under `docs/progress/` is read by a test. These are a progress trail, not release
   evidence, and they satisfy no V-row in the verification plan. The frozen visual baselines
   for the design review stay with Playwright, not here.

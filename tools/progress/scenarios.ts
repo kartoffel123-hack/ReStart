@@ -34,21 +34,28 @@ export const SCENARIOS: readonly Scenario[] = [
         id: 'manual-route',
         label: 'Mechanic manual route',
         route: '#/',
-        highlights: '#/ resolves to the mechanic route; its screen is still the shared placeholder (Ticket 4).',
+        highlights:
+            '#/ resolves to the mechanic route. ManualScreen is built and reviewed at '
+            + '#/concept; this route still shows the shared placeholder, because it has no live '
+            + 'assembly view (ticket 7) and no compiled dataset to load (ticket 9).',
         waitFor: '[data-route="manual"]'
     },
     {
         id: 'review-route',
         label: 'Reviewer route',
         route: '#/review',
-        highlights: '#/review survives a hard refresh on a static host; its screen is still the shared placeholder (Ticket 8).',
+        highlights:
+            '#/review survives a hard refresh on a static host; its screen is still the shared '
+            + 'placeholder (ticket 8).',
         waitFor: '[data-route="review"]'
     },
     {
         id: 'concept-route',
         label: 'Concept gallery route',
         route: '#/concept',
-        highlights: '#/concept is reachable in development; the gallery has no states until the screens exist (Ticket 4).',
+        highlights:
+            '#/concept is the development gallery: three named states of the real ManualScreen, '
+            + 'so a change captured here is a change the mechanic would see.',
         waitFor: '[data-route="concept"]'
     }
 ];

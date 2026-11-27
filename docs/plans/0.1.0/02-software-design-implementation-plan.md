@@ -395,6 +395,34 @@ The real fix for "every capture is a placeholder" is not in the capture tool: it
 (the mechanic screen) and ticket 8 (the reviewer screen). Until they land, the evidence panel is
 the image that highlights the change, and this addendum keeps the stubs from crowding it out.
 
+### 8.5 A placeholder's promise is tested, because it is the only thing a capture says in words
+
+> **Sixth addendum to §8, added 2026-11-27 during implementation.** A reader opened
+> `docs/progress/` and asked whether three identical screens were intentional. They were: `#/` and
+> `#/review` render one `PlaceholderScreen`, so all three share the layout identity §8.1 prints,
+> and a stub wearing new words must not pass a pixel comparison as a new screen. The sameness is
+> the requirement, not the defect. The defect was underneath it — the copy still promised
+> ticket 4, whose screen had already landed, so the trail was stating an outstanding ticket that
+> was not outstanding.
+
+Because the routes look alike by design, **the copy is the only content of a placeholder capture**.
+It therefore has the same right to be tested as any other contract, and it is pinned in
+`tests/integration/bootstrap.test.tsx`:
+
+- The mechanic route's placeholder names the ticket that still blocks it (ticket 7, the live
+  scene, with the dataset behind ticket 9), and must not name a ticket whose deliverable is
+  committed.
+- The concept route's placeholder states that the gallery is development only. That page is not a
+  promise about the future: the gallery is built, and a production build serves the placeholder
+  because it does not ship the gallery.
+- `tools/progress/scenarios.ts` prints the same sentences as each PNG's highlight in `notes.md`,
+  so it is corrected in the same diff as the copy.
+
+`docs/progress/README.md` gains a short table of which route shows a real screen and why, so the
+question is answered where it is asked. Two consequences are recorded there: a repeated stub PNG
+states the truth rather than hiding work, and folders written before §8.4 still hold identical
+stub captures and are left intact, because each folder's `notes.md` names and references them.
+
 ## Addendum to §4.7: what the search report promises
 
 > **Recorded 2026-11-27 during implementation (Ticket 6), after an advisor consultation.**

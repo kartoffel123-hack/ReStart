@@ -5,7 +5,7 @@ export const pilotSchema = z.object({
     geometry: z.string().regex(/^geometry-[0-9a-f]{64}\.glb$/),
     target: z.string(), pin: z.string(), signedRadialGapMm: z.number().optional(),evidence:z.record(z.string(),evidenceStatusSchema).optional(),
     paths: z.record(z.string(), z.tuple([vec3Schema, vec3Schema])),
-    inventory:z.array(z.object({id:z.string(),name:z.string(),elementId:z.string(),color:z.string()})),
+    inventory:z.array(z.object({id:z.string(),name:z.string(),elementId:z.string(),designNo:z.string().optional(),color:z.string()})),
     repair: repairSchema
     ,alternatives:repairSchema.array(), jointRepair:repairSchema, movers:z.record(z.string(),z.string())
 });

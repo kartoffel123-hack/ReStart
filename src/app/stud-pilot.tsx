@@ -25,6 +25,14 @@ export function StudPilot() {
     const [joint,setJoint]=useState(false);
     const [pick,select]=useState(''), [query,search]=useState(''), [isolate,setIsolate]=useState(false), [explode,setExplode]=useState(0);
     const colors=useMemo(()=>new Map(data?.inventory.map(p=>[p.id,p.color])),[data]);
+    const groups=useMemo(()=>{
+        const result=new Map<string,NonNullable<typeof data>['inventory']>();
+        for(const p of data?.inventory ?? []) {
+            if(![p.name,p.elementId,p.designNo,p.id,p.color].join(' ').toLowerCase().includes(query.trim().toLowerCase()) && p.id!==pick && p.id!==(!pick && data?.target)) continue;
+            result.set(p.name,[...(result.get(p.name) ?? []),p]);
+        }
+        return [...result];
+    },[data,pick,query]);
     useEffect(() => {
         const abort = new AbortController();
         let url:string | undefined;
@@ -97,12 +105,12 @@ export function StudPilot() {
             <p>Choose a piece on the helicopter or find its occurrence below.</p>
             {data ? <><label>Search pieces <input value={query} onChange={e=>search(e.target.value)} placeholder="Part name, element ID or usage ID"/></label>
                 <label>Occurrence <select value={target} onChange={e=>select(e.target.value)}>
-                    {data.inventory.filter(p=>[p.name,p.elementId,p.id].join(' ').toLowerCase().includes(query.toLowerCase()) || p.id===target).map(p=>
-                        <option key={p.id} value={p.id}>{p.name} — {p.id}</option>)}</select></label>
+                    {groups.map(([name,items])=><optgroup key={name} label={`${name} (${items.length})`}>{items.map(p=>
+                        <option key={p.id} value={p.id}>{p.name} — {p.id}</option>)}</optgroup>)}</select></label>
                 <label><input type="checkbox" checked={isolate} onChange={e=>setIsolate(e.target.checked)}/> Isolate selected piece</label>
                 <label>Exploded view <input type="range" min="0" max="1" step="0.05" value={explode} onChange={e=>setExplode(Number(e.target.value))}/></label>
                 <DescriptionPicker data={data} select={select}/>
-                <p><code>{target}</code></p>{job ? <button onClick={()=>begin(target!)}>Select {label.toLowerCase()}</button> : <p>No modeled repair available for this occurrence.</p>}
+                <p><code>{target}</code></p>{job ? <button onClick={()=>begin(target!)}>Select {label.toLowerCase()}</button> : <p>No modeled repair available for this occurrence. <a href={`#/review?piece=${encodeURIComponent(target!)}`}>Inspect its candidate exits</a></p>}
                 {(target===data.pin || target===data.target) && <button onClick={()=>begin(data.pin,true)}>Replace pin and light stud together</button>}
                 <p>{stage==='pilot'?'Generated model routes':'Reviewed model routes'} · {jobs.length} of {data.inventory.length} targets available.</p></> :
                 error ? <button onClick={() => retry(n => n+1)}>Retry loading repair</button> : <p>Loading repair…</p>}

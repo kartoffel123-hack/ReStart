@@ -7,4 +7,5 @@
 .reviewer button { margin:.25rem; }
 .review-scene { display:flex; height:14rem; }
 .review-scene .stud-scene { min-height:0; }
+.draft-banner { padding:1rem; background:var(--rs-parts-inset); font-family:var(--rs-font-body); }
 @media(max-width:48rem){ .reviewer { grid-template-columns:minmax(0,1fr); } }

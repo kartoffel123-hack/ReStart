@@ -134,6 +134,15 @@
 
 /* --- center ------------------------------------------------------------- */
 .rs-graph-center { display: grid; grid-template-rows: auto minmax(0, 1fr) minmax(0, 1fr); min-width: 0; min-height: 0; gap: var(--rs-space-1); }
+.rs-graph-modes { display: flex; gap: var(--rs-space-1); flex-wrap: wrap; }
+.rs-graph-modes button { font: inherit; color: var(--rs-ink); background: var(--rs-paper); border: 1px solid var(--rs-hairline); border-radius: var(--rs-radius); min-height: var(--rs-min-hit); padding-inline: var(--rs-space-2); cursor: pointer; }
+.rs-graph-modes button[aria-pressed="true"] { background: var(--rs-ink); color: var(--rs-paper); }
+.rs-graph-sequence { overflow: auto; min-height: 0; background: var(--rs-paper); border: 1px solid var(--rs-hairline); border-radius: var(--rs-radius); padding: var(--rs-space-2); }
+.rs-graph-sequence h2 { margin: 0 0 var(--rs-space-1); font-size: 1rem; }
+.rs-graph-sequence summary { padding-block: .45rem; border-top: 1px solid var(--rs-hairline); cursor: pointer; font-weight: 600; }
+.rs-graph-sequence summary span { display: inline-block; min-width: 3rem; font-variant-numeric: tabular-nums; color: var(--rs-muted); }
+.rs-graph-sequence ol { margin-block: 0 var(--rs-space-2); font-size: .875rem; line-height: 1.6; }
+.rs-graph-sequence p { margin: var(--rs-space-1) 0 0; padding: var(--rs-space-1); background: var(--rs-parts-inset); }
 .rs-graph-statsbar {
     display: flex;
     flex-wrap: wrap;

@@ -144,6 +144,10 @@ async function capture(
         for (let i = 0; i < 14; i++) await page.getByRole('button', {name:'Confirm this step'}).click();
         await page.getByRole('region', {name:'This step'}).getByText(/slide the cross block sideways/i).first().waitFor();
     }
+    if (scenario.setup === 'expand-nauo56-sequence') {
+        const sequence = page.getByRole('region', { name: 'Reparaturablauf' });
+        for (const summary of await sequence.locator('summary').all()) await summary.click();
+    }
     if(scenario.setup==='buried-pin') {
         await page.evaluate(()=>sessionStorage.clear());await page.reload();
         await page.getByRole('combobox',{name:'Occurrence'}).selectOption('30465/NAUO33/NAUO38');

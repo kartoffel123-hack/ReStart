@@ -25,12 +25,21 @@ export type Scenario = Readonly<{
     highlights: string;
     /** Selector that must exist before capturing; keeps captures deterministic. */
     waitFor?: string;
-    setup?: 'blocked-preview' | 'buried-pin' | 'cross-block';
+    setup?: 'blocked-preview' | 'buried-pin' | 'cross-block' | 'expand-nauo56-sequence';
     viewports?: readonly Viewport[];
     fullPage?: boolean;
 }>;
 
 export const SCENARIOS: readonly Scenario[] = [
+    {
+        id: 'nauo56-repair-sequence',
+        label: 'NAUO56 repair sequence and helicopter',
+        route: '#/graph?piece=30465%2FNAUO17%2FNAUO56',
+        highlights: 'The grouped removal sequence for replacing NAUO56 is shown beside the 3D assembly; NAUO57 remains installed.',
+        waitFor: '[data-route="graph"] [aria-label="Reparaturablauf"]',
+        setup: 'expand-nauo56-sequence',
+        viewports: [GATE_VIEWPORTS[0]!]
+    },
     {
         id: 'dependency-graph',
         label: 'Dependency graph workspace',

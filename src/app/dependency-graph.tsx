@@ -18,6 +18,7 @@ import {
 } from '../graph-view/dependency-tree-diagram.js';
 import { StudScene } from '../scene/stud-scene.js';
 import { exportJson } from './export-json.js';
+import { crossBlockOverview } from './cross-block-overview.js';
 import { loadPackage } from './package-loader.js';
 import { pilotBase, type PilotData } from './pilot-data.js';
 import '../presentation/dependency-graph.css';
@@ -86,6 +87,7 @@ export function DependencyGraphScreen() {
     const [includeContains, setIncludeContains] = useState(false);
     const [direction, setDirection] = useState<TreeDirection>('TB');
     const [maxDepth, setMaxDepth] = useState(8);
+    const [exploreAll, setExploreAll] = useState(false);
 
     useEffect(() => {
         const abort = new AbortController();
@@ -154,6 +156,8 @@ export function DependencyGraphScreen() {
     }, [model, pilot, query, onlyModeled, repairsByTarget]);
 
     const activeRepair = repairsByTarget.get(rootId);
+    const overview = useMemo(() => crossBlockOverview(model, activeRepair), [model, activeRepair]);
+    const compact = !!overview && !exploreAll;
 
     const tree = useMemo(() => {
         if (!model || !rootId) return undefined;
@@ -186,7 +190,7 @@ export function DependencyGraphScreen() {
     const sceneColors = useMemo(() => {
         const map = new Map<string, string>();
         if (!model || !tree) return map;
-        const releasedSet = new Set(tree.plan.releasedPieceIds);
+        const releasedSet = new Set(compact ? activeRepair?.disturbedIds : tree.plan.releasedPieceIds);
         const indirectRemovalSet = new Set(
             tree.nodes.filter((node) => node.isIndirectRemoval).map((node) => node.id)
         );
@@ -197,14 +201,14 @@ export function DependencyGraphScreen() {
             } else if (releasedSet.has(occ.id)) {
                 map.set(
                     occ.id,
-                    indirectRemovalSet.has(occ.id) ? '#fff0ae' : '#f5c518'
+                    !compact && indirectRemovalSet.has(occ.id) ? '#fff0ae' : '#f5c518'
                 ); // Helles Gelb: indirekt nötiges Zusatzteil; Gelb: direkt bewegt
             } else {
                 map.set(occ.id, '#1f9d55'); // Grün: nicht einzeln gelöst (bleibt zusammen)
             }
         }
         return map;
-    }, [model, tree]);
+    }, [model, tree, compact, activeRepair]);
 
     if (!model || !pilot || !tree) {
         return (
@@ -238,6 +242,7 @@ export function DependencyGraphScreen() {
     const inspectedCandidates = candidates.filter((c) => c.piece === inspectedOcc.id);
 
     const selectRoot = (pieceId: string): void => {
+        setExploreAll(false);
         setRootId(pieceId);
         setInspectedId(pieceId);
         if (panel !== 'overview') overviewButton.current?.focus();
@@ -414,6 +419,11 @@ export function DependencyGraphScreen() {
 
                 <section className="rs-graph-center">
                     <div className="rs-graph-statsbar">
+                        {overview && <div className="rs-graph-modes" role="group" aria-label="Graphansicht">
+                            <button type="button" aria-pressed={compact} onClick={() => setExploreAll(false)}>Diese Reparatur</button>
+                            <button type="button" aria-pressed={!compact} onClick={() => setExploreAll(true)}>Alle Abhängigkeiten</button>
+                        </div>}
+                        {!compact && <>
                         <div>
                             <strong>{tree.plan.releasedConnections.length}</strong> Verbindungen lösen ·{' '}
                             {tree.plan.removalOrder.some((step) => step.actionKind === 'slide') ? (
@@ -467,9 +477,20 @@ export function DependencyGraphScreen() {
                             </span>
                             <button type="button" popoverTarget="graph-relations" popoverTargetAction="hide">Schließen</button>
                         </div>
+                        </>}
                     </div>
 
-                    <DependencyTreeDiagram
+                    {compact && overview ? <section className="rs-graph-sequence" aria-label="Reparaturablauf">
+                        <h2>Ausbaufolge für NAUO56</h2>
+                        {overview.groups.map(({title, moves}) => <details key={title}>
+                            <summary><span>{moves[0]!.step.ordinal}–{moves.at(-1)!.step.ordinal}</span> {title}</summary>
+                            <ol start={moves[0]!.step.ordinal}>{moves.map(({piece, step, stroke}) => <li key={step.stepId}>
+                                {step.partLabel} <code>{piece!.split('/').at(-1)}</code> · {stroke} mm
+                                <div>{step.directionLabel}</div>
+                            </li>)}</ol>
+                        </details>)}
+                        <p><strong>NAUO56 austauschen</strong> · {overview.exchange.stroke} mm seitlich abziehen. Die kurze Achse NAUO57 bleibt eingebaut.</p>
+                    </section> : <DependencyTreeDiagram
                         tree={tree}
                         direction={direction}
                         highlightedId={inspectedId}
@@ -479,7 +500,7 @@ export function DependencyGraphScreen() {
                                 selectRoot(id);
                             }
                         }}
-                    />
+                    />}
 
                     {geometryUrl && (
                         <div className="rs-graph-visual" aria-label="3D-Übersicht Ausbau vs. Verbleib">
@@ -491,15 +512,15 @@ export function DependencyGraphScreen() {
                                     </span>
                                     <span className="rs-graph-legend__item">
                                         <span className="rs-graph-dot rs-graph-dot--remove" />
-                                        Direkt bewegen ({directRemovalCount})
+                                        {compact ? `Bewegt (${activeRepair!.disturbedCount})` : `Direkt bewegen (${directRemovalCount})`}
                                     </span>
-                                    <span className="rs-graph-legend__item">
+                                    {!compact && <span className="rs-graph-legend__item">
                                         <span className="rs-graph-dot rs-graph-dot--remove-indirect" />
                                         Indirekt bewegen ({indirectRemovalCount})
-                                    </span>
+                                    </span>}
                                     <span className="rs-graph-legend__item">
                                         <span className="rs-graph-dot rs-graph-dot--stay" />
-                                        Bleibt ({Math.max(0, 70 - 1 - tree.plan.releasedPieceIds.length)})
+                                        Bleibt ({Math.max(0, 70 - 1 - (compact ? activeRepair!.disturbedCount : tree.plan.releasedPieceIds.length))})
                                     </span>
                                 </div>
                                 <label className="rs-graph-explode">
@@ -543,7 +564,7 @@ export function DependencyGraphScreen() {
                 <aside className="rs-graph-inspector">
                     <h2>Ausbau &amp; Wiedereinbau</h2>
 
-                    <div className="rs-graph-card">
+                    {!compact && <div className="rs-graph-card">
                         <h3>
                             {tree.plan.releasedConnections.length} Verbindungen lösen ·{' '}
                             {tree.plan.releasedPieceIds.length === 0
@@ -667,7 +688,7 @@ export function DependencyGraphScreen() {
                                 ))}
                             </ol>
                         </details>
-                    </div>
+                    </div>}
 
                     {activeRepair && (
                         <div className="rs-graph-card">
@@ -716,7 +737,7 @@ export function DependencyGraphScreen() {
                         <p>
                             <code>{inspectedOcc.id}</code>
                         </p>
-                        {inspectedNode && (
+                        {!compact && inspectedNode && (
                             <p>
                                 Rolle: <strong>{inspectedNode.role}</strong> · Tiefe:{' '}
                                 <strong>{inspectedNode.depth}</strong> · Evidenz:{' '}

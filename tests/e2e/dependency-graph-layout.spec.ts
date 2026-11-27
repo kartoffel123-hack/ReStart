@@ -1,6 +1,23 @@
 import { expect, test } from '@playwright/test';
 
 for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 }]) {
+    test(`NAUO56 opens on its repair sequence at ${viewport.width}px`, async ({page}) => {
+        await page.setViewportSize(viewport);
+        await page.goto('/#/graph?piece=30465%2FNAUO17%2FNAUO56');
+        const repair = page.getByRole('region', {name:'Reparaturablauf'});
+        await expect(repair).toBeVisible();
+        await expect(repair.locator('details')).toHaveCount(3);
+        await expect(repair).toContainText('NAUO57 bleibt eingebaut');
+        await expect(page.getByTestId('dependency-tree-diagram')).toHaveCount(0);
+        for (const group of await repair.locator('summary').all()) await group.click();
+        const movers = await repair.locator('li code').allTextContents();
+        expect(new Set(movers).size).toBe(14);
+        expect(movers).not.toContain('NAUO57');
+        await page.getByRole('button', {name:'Alle Abhängigkeiten'}).click();
+        await expect(page.getByTestId('dependency-tree-diagram')).toBeVisible();
+        await page.getByRole('button', {name:'Diese Reparatur'}).click();
+        await expect(repair).toBeVisible();
+    });
     test(`the graph and helicopter share the viewport at ${viewport.width}px`, async ({ page }) => {
         await page.setViewportSize(viewport);
         await page.goto('/#/graph?piece=30465%2FNAUO9');

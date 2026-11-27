@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowHelper, Box3, Color, DirectionalLight, DoubleSide, EdgesGeometry, Group, HemisphereLight, LineBasicMaterial, LineSegments, Mesh, MeshStandardMaterial, MeshBasicMaterial, OrthographicCamera, Raycaster, Scene, ShaderMaterial, Vector2, Vector3, WebGLRenderer } from 'three';
+import { ArrowHelper, Box3, Color, DirectionalLight, DoubleSide, EdgesGeometry, Group, HemisphereLight, LineBasicMaterial, LineSegments, Mesh, MeshStandardMaterial, MeshBasicMaterial, Object3D, OrthographicCamera, Raycaster, Scene, ShaderMaterial, Vector2, Vector3, WebGLRenderer } from 'three';
 import { partInset } from './part-inset.js';
 import { xrManual,type XrStep } from './xr-manual.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -10,6 +10,9 @@ type Props = {
     url: string; target: string; start: Vec3; end: Vec3; focus: boolean;
     replay: number; reset: number; onPick: (id:string) => void;
     colors?:ReadonlyMap<string,string>; explode?:number; isolate?:boolean;
+    hiddenIds?:ReadonlySet<string>;
+    highlightIds?:ReadonlySet<string>;
+    onHover?:(id:string|null)=>void;
     idleAutoRotate?:boolean;
     highlight?:string;
     offsets?:Readonly<Record<string,Vec3>>;
@@ -76,9 +79,9 @@ export function StudScene(props: Props) {
             if (/^#[0-9a-f]{6}$/i.test(value)) return Number.parseInt(value.slice(1), 16);
             return null;
         };
-        const meshPoses=new Map<Mesh,{pose:Vector3; explode:Vector3;neutral:MeshStandardMaterial;center:Vector3}>();
+        const meshPoses=new Map<Mesh,{pose:Vector3; explode:Vector3;neutral:MeshStandardMaterial;center:Vector3;parent:Object3D}>();
         const inset=partInset();
-        let hoverOutline:LineSegments<EdgesGeometry,LineBasicMaterial>|undefined;
+        const hoverOutlines=new Map<string,LineSegments<EdgesGeometry,LineBasicMaterial>>();
         let selectedOutline:LineSegments<EdgesGeometry,LineBasicMaterial>|undefined;
         let selectedHatch:Mesh|undefined;
         const componentOutlines:LineSegments<EdgesGeometry,LineBasicMaterial>[]=[];
@@ -163,7 +166,7 @@ void main() {
                 n.add(outline);
                 componentOutlines.push(outline);
                 const position = new Box3().setFromObject(n).getCenter(new Vector3());
-                meshPoses.set(n,{pose:n.position.clone(),center:position.clone(),neutral:n.material,explode:position.sub(new Vector3(0,0.012,0)).multiplyScalar(0.7)});
+                meshPoses.set(n,{pose:n.position.clone(),center:position.clone(),neutral:n.material,explode:position.sub(new Vector3(0,0.012,0)).multiplyScalar(0.7),parent:n.parent!});
             });
         }, undefined, () => { if (!disposed) setError(true); });
         const resize = new ResizeObserver(() => {
@@ -183,6 +186,18 @@ void main() {
             if(typeof object?.userData.instanceId==='string') latest.current.onPick(object.userData.instanceId);
         };
         el.addEventListener('click',pick);
+        let lastHover: string | null = null;
+        const hover = (event: MouseEvent) => {
+            if (!model) return;
+            const rect=el.getBoundingClientRect(),ray=new Raycaster();
+            ray.setFromCamera(new Vector2(2*(event.clientX-rect.left)/rect.width-1,1-2*(event.clientY-rect.top)/rect.height),camera);
+            const object=ray.intersectObjects([...meshPoses.keys()].filter(n=>n.visible),false)[0]?.object;
+            const id=typeof object?.userData.instanceId==='string' ? object.userData.instanceId : null;
+            if(id!==lastHover){lastHover=id;latest.current.onHover?.(id);}
+        };
+        const leave = () => {lastHover=null;latest.current.onHover?.(null);};
+        el.addEventListener('mousemove',hover);
+        el.addEventListener('mouseleave',leave);
         let previous: Props | undefined, began = 0, lastTime=0;
         const a = new Vector3(), b = new Vector3(), displacement = new Vector3();
         renderer.setAnimationLoop((now: number) => {
@@ -211,12 +226,15 @@ void main() {
             }
             if(!stud)return;
             if (!previous || previous.reset !== p.reset || previous.focus !== p.focus || previous.start!==p.start || previous.end!==p.end) {frameCamera();xr.current?.recenter();}
-            if (previous?.highlight !== p.highlight) {
-                if (hoverOutline) {hoverOutline.removeFromParent();hoverOutline.geometry.dispose();hoverOutline.material.dispose();hoverOutline=undefined;}
-                const hoveredMesh=[...meshPoses.keys()].find(m=>m.userData.instanceId===p.highlight);
-                if (hoveredMesh) {
-                    hoverOutline=new LineSegments(new EdgesGeometry(hoveredMesh.geometry,32),new LineBasicMaterial({color:0xffb000,linewidth:2}));
-                    hoveredMesh.add(hoverOutline);
+            if (previous?.highlightIds !== p.highlightIds || previous?.highlight !== p.highlight) {
+                for(const outline of hoverOutlines.values()){outline.removeFromParent();outline.geometry.dispose();outline.material.dispose();}
+                hoverOutlines.clear();
+                const ids=p.highlightIds ?? (p.highlight ? new Set([p.highlight]) : new Set<string>());
+                for(const id of ids){
+                    const hoveredMesh=[...meshPoses.keys()].find(m=>m.userData.instanceId===id);
+                    if(!hoveredMesh || p.hiddenIds?.has(id))continue;
+                    const outline=new LineSegments(new EdgesGeometry(hoveredMesh.geometry,32),new LineBasicMaterial({color:id===p.highlight?0xffb000:0x168aad,linewidth:2}));
+                    hoveredMesh.add(outline);hoverOutlines.set(id,outline);
                 }
             }
             if (previous?.start !== p.start || previous.end !== p.end || previous.replay !== p.replay) {
@@ -243,11 +261,22 @@ void main() {
             }
             if(previous?.explode!==p.explode || previous?.isolate!==p.isolate || previous?.offsets!==p.offsets || !previous) {
                 for(const [mesh,entry] of meshPoses) {
-                    mesh.visible=!p.isolate || mesh===stud;
                     mesh.position.copy(entry.pose).addScaledVector(entry.explode,p.explode ?? 0);
                     const offset=p.offsets?.[String(mesh.userData.instanceId)];
                     if(offset) mesh.position.addScaledVector(new Vector3(...offset),0.001);
                 }
+            }
+            // Reconcile visibility every frame so confirmed removals cannot reappear
+            // through later pose, focus, or camera updates.
+            for(const [mesh,entry] of meshPoses) {
+                const removed=p.hiddenIds?.has(String(mesh.userData.instanceId)) ?? false;
+                if(removed){
+                    mesh.visible=false;
+                    mesh.removeFromParent();
+                    continue;
+                }
+                if(mesh.parent!==entry.parent)entry.parent.add(mesh);
+                mesh.visible=!p.isolate || mesh===stud;
             }
             previous = p;
             if(pausedRef.current) began+=now-lastTime;
@@ -264,21 +293,36 @@ void main() {
         });
         return () => {
             disposed = true; resize.disconnect(); el.removeEventListener('click',pick);
+            el.removeEventListener('mouseleave',leave);
             if (resumeRotation) clearTimeout(resumeRotation);
             controls.removeEventListener('start', pauseForInteraction);
             controls.removeEventListener('end', resumeAfterInteraction);
-            renderer.setAnimationLoop(null); controls.dispose(); if (model) dropModel(model);
+            renderer.setAnimationLoop(null); controls.dispose();
+            if (model) {
+                for(const [mesh,entry] of meshPoses)if(mesh.parent!==entry.parent)entry.parent.add(mesh);
+                dropModel(model);
+            }
             xr.current?.dispose();xr.current=null;ghostMaterial.dispose();meshPoses.forEach(v=>v.neutral.dispose());
             componentOutlines.forEach(outline=>outline.geometry.dispose());
             selectedOutline?.geometry.dispose();
             componentOutlineMaterial.dispose();selectedOutlineMaterial.dispose();hatchMaterial.dispose();
             arrow.dispose(); neutral.dispose(); renderer.dispose(); renderer.domElement.remove();
-            hoverOutline?.geometry.dispose();hoverOutline?.material.dispose();
+            el.removeEventListener('mousemove',hover);
+            for(const outline of hoverOutlines.values()){outline.geometry.dispose();outline.material.dispose();}
         };
     }, [props.url,retry]);
     return <div className="stud-scene" ref={host} aria-label="Helicopter with selected piece highlighted">
         {error && <p role="status">3D view unavailable. Follow the written direction and stop landmark. <button onClick={()=>setRetry(n=>n+1)}>Retry 3D view</button></p>}
-        {props.focus && !error && <div className="scene-tools"><button onClick={()=>{pausedRef.current=!pausedRef.current;pause(pausedRef.current);}}>{paused?'Continue animation':'Pause animation'}</button>
+        {props.focus && !error && <div className="scene-tools"><button
+            className="scene-tool-icon"
+            type="button"
+            onClick={()=>{pausedRef.current=!pausedRef.current;pause(pausedRef.current);}}
+            aria-label={paused?'Continue animation':'Pause animation'}
+            title={paused?'Continue animation':'Pause animation'}
+        >{paused
+            ? <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7z" /></svg>
+            : <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zM15 5h4v14h-4z" /></svg>
+        }</button>
             {props.xrStep && modes.map(mode=><button key={mode} onClick={()=>{xr.current?.enter(mode).catch(()=>setXrError('Headset session unavailable. Continue on this screen.'));}}>Open {mode==='immersive-ar'?'AR':'VR'} twin</button>)}{xrError}</div>}
     </div>;
 }

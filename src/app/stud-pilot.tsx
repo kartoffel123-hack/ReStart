@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
+import scavangerGraphUrl from '../../scavanger-dependency-graph.json?url';
+import { z } from 'zod';
 import { ManualScreen } from '../presentation/manual-screen.js';
 import { PiecePickerScreen } from '../presentation/piece-picker-screen.js';
 import { toStepViewModel } from '../presentation/manual-contract.js';
@@ -16,10 +18,33 @@ import { exportJson } from './export-json.js';
 import { DescriptionPicker } from './description-picker.js';
 
 const zero: Vec3 = [0,0,0];
+const scavangerGraphSchema = z.object({
+    schema: z.literal('restart.scavanger-dependency-graph/1'),
+    graphRevision: z.string(),
+    datasetRevision: z.string(),
+    semantics: z.string(),
+    nodes: z.array(z.object({
+        id: z.string(),
+        label: z.string(),
+        location: z.string(),
+        turn: z.number(),
+        outcome: z.enum(['removed', 'retained'])
+    })),
+    edges: z.array(z.object({
+        from: z.string(),
+        to: z.string(),
+        fromTurn: z.number(),
+        toTurn: z.number(),
+        relation: z.literal('removed-before'),
+        evidence: z.literal('player-classified-turn-order-candidate')
+    }))
+});
+
 export function StudPilot() {
     const [data, setData] = useState<PilotData>();
     const [model, setModel] = useState<AssemblyModel>();
     const [candidates, setCandidates] = useState<MotionCandidateSummary[]>([]);
+    const [scavangerGraph, setScavangerGraph] = useState<z.infer<typeof scavangerGraphSchema>>();
     const [geometryUrl,setGeometryUrl]=useState('');
     const [stage,setStage]=useState<'pilot'|'release'>('pilot');
     const [session, setSession] = useState<ManualSession>();
@@ -53,6 +78,25 @@ export function StudPilot() {
                 setModel(bundle.model);
                 setCandidates(Array.isArray(bundle.candidates) ? (bundle.candidates as MotionCandidateSummary[]) : []);
                 setStage(bundle.stage);
+                fetch(scavangerGraphUrl, { signal: abort.signal })
+                    .then((response) => {
+                        if (!response.ok) throw new Error('Could not load Scavanger turn-order candidates');
+                        return response.json();
+                    })
+                    .then((value: unknown) => {
+                        const graph = scavangerGraphSchema.parse(value);
+                        const occurrenceIds = new Set(bundle.model.occurrences.map((occurrence) => occurrence.id));
+                        if (graph.graphRevision !== bundle.model.graphRevision
+                            || graph.datasetRevision !== bundle.model.source.datasetRevision
+                            || graph.nodes.some((node) => !occurrenceIds.has(node.id))
+                            || graph.edges.some((edge) => !occurrenceIds.has(edge.from) || !occurrenceIds.has(edge.to))) {
+                            return;
+                        }
+                        setScavangerGraph(graph);
+                    })
+                    .catch(() => {
+                        // The modeled manual remains available if the optional player graph is stale.
+                    });
             }
         })().catch(() => { if (!abort.signal.aborted) setError(true); });
         return () => {abort.abort();if(url) URL.revokeObjectURL(url);};
@@ -128,18 +172,34 @@ export function StudPilot() {
         {session.confirmedCount>0 && <details className="stud-check"><summary>Confirmed steps</summary>
             {session.steps.slice(0,session.confirmedCount).map((s,i)=><button key={s.stepId} onClick={()=>setHistory(i)}>{s.ordinal}. {s.instruction}</button>)}</details>}
         {manualTree && <details className="rs-manual-graph-bg">
-            <summary>Dependency-Graph (Hintergrund zur Anleitung · {manualTree.stats.pieceCount} Teile, Tiefe {manualTree.stats.maxDepth})</summary>
+            <summary>Dependency graph (manual model · {manualTree.stats.pieceCount} parts, depth {manualTree.stats.maxDepth})</summary>
             <div className="rs-manual-graph-bg__head">
                 <span>Aktueller Schritt: <strong>{step.ordinal}. {step.partLabel}</strong></span>
                 <a href={`#/graph?piece=${encodeURIComponent(target!)}`}>Vollständigen Dependency-Graph öffnen</a>
             </div>
             <DependencyTreeDiagram tree={manualTree} direction="TB" activeStepPieceId={data?.movers[step.operationId] ?? target!} compact={true} />
+            {scavangerGraph && <section aria-label="Scavanger repair order">
+                <h3>Scavanger repair order</h3>
+                <p>Authoritative recorded order for which pieces precede this target. These links describe sequence, not physical blockers. The reviewed route above remains authoritative for motions, replacement, and restoration.</p>
+                {(() => {
+                    const earlier = scavangerGraph.edges
+                        .filter((edge) => edge.to === target)
+                        .sort((a, b) => a.fromTurn - b.fromTurn || a.from.localeCompare(b.from));
+                    return earlier.length
+                        ? <ul>{earlier.map((edge) => {
+                            const node = scavangerGraph.nodes.find((item) => item.id === edge.from);
+                            return <li key={`${edge.from}:${edge.to}`}>Turn {edge.fromTurn}: {node?.label ?? edge.from} ({edge.from}) precedes this target’s turn {edge.toTurn}</li>;
+                        })}</ul>
+                        : <p>No earlier pieces are recorded before this target.</p>;
+                })()}
+            </section>}
         </details>}
     </>;
     return <PiecePickerScreen edition={stage === 'pilot' ? 'Single-target pilot' : 'Released manual'} scene={scene} headerLinks={<>
         <a href={`#/graph?piece=${encodeURIComponent(target ?? '')}`}>Dependency-Graph</a>
         <a href="#/dof">DOF &amp; Zeiten</a>
         <a href="#/review">Inspect the repair graph</a>
+        <a href="#/scavanger">Scavanger</a>
     </>} viewControls={<>
         <label><input type="checkbox" checked={isolate} onChange={e=>setIsolate(e.target.checked)}/> Isolate selected piece</label>
         <label>Exploded view <input type="range" min="0" max="1" step="0.05" value={explode} onChange={e=>setExplode(Number(e.target.value))}/></label>

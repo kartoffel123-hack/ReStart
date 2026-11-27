@@ -116,6 +116,7 @@ export function Reviewer() {
             <nav className="reviewer__header-links">
                 <a href="#/">Mechanic manual</a>
                 <a href={`#/graph?piece=${encodeURIComponent(selected)}`}>Dependency graph</a>
+                <a href="#/scavanger">Scavanger</a>
             </nav>
         </header>
         <p>Inspect a connection, then test what happens if a move needs it released.</p>

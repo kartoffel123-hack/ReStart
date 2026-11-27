@@ -25,6 +25,7 @@
     "model:import": "tsx tools/import/run.ts",
     "model:dof": "tsx tools/dof/run.ts",
     "model:compile": "tsx tools/compile/run.ts",
+    "model:instruction-graph": "tsx tools/compile/instruction-graph.ts",
     "model:verify": "tsx tools/verify/run.ts",
     "model:publish": "tsx tools/verify/promote.ts",
     "model:worklist": "tsx tools/verify/worklist.ts",

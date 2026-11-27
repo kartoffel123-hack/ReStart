@@ -32,6 +32,14 @@ export type Scenario = Readonly<{
 
 export const SCENARIOS: readonly Scenario[] = [
     {
+        id: 'dependency-graph',
+        label: 'Dependency graph workspace',
+        route: '#/graph',
+        highlights: 'The dependency tree and helicopter are visible together before scrolling or searching for a part.',
+        waitFor: '[data-route="graph"] canvas[data-target-point]',
+        fullPage: false
+    },
+    {
         id: 'manual-route',
         label: 'Mechanic manual route',
         route: '#/',

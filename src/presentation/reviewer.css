@@ -142,7 +142,8 @@
 
 /* --- scene + graph ----------------------------------------------------- */
 .review-scene { height: 14rem; border-radius: var(--rs-radius); overflow: hidden; background: var(--rs-build-field); }
-.review-scene .stud-scene { min-height: 0; }
+.review-scene .stud-scene { position: relative; width: 100%; height: 100%; min-height: 0; }
+.review-scene .stud-scene canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
 .assembly-diagram { border-radius: var(--rs-radius); overflow: hidden; border: 1px solid var(--rs-hairline); }
 
 /* --- status band ------------------------------------------------------- */

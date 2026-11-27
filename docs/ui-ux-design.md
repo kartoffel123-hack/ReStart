@@ -133,6 +133,8 @@ Until that is fixed the page renders in the system sans on most machines.
 
 ## 5. Layout
 
+At `#/graph`, the dependency tree and helicopter share the drawing area. On a laptop the parts list and repair details scroll inside separate side panels. At widths up to 60 rem, **Teile**, **Graph & 3D**, and **Details** switch between panels in the same viewport. Selecting a part returns to the drawing; the header identifies the target by name and occurrence ID.
+
 ### 5.1 Mechanic manual (a step is open)
 
 ```

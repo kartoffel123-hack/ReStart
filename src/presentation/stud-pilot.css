@@ -116,6 +116,14 @@
 .stud-scene canvas { position:absolute; inset:0; width:100%; height:100%; }
 .scene-tools { position:absolute; z-index:1; top:8px; right:8px; }
 .scene-tools button { min-height:44px; }
+.scene-tools .scene-tool-icon {
+    display:grid;
+    width:44px;
+    min-width:44px;
+    place-items:center;
+    padding:10px;
+}
+.scene-tool-icon svg { width:20px; height:20px; fill:currentColor; }
 .stud-scene p { position:relative; z-index:1; }
 @media (max-width: 48rem) {
     .stud-picker {

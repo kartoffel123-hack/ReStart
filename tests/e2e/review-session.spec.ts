@@ -22,6 +22,17 @@ test('blocking one exit shows the remaining detour, blocking both reports no rou
     await expect(page.locator('[data-phase="remove"]')).toBeVisible();
 });
 
+test('selected piece scene fills its reviewer panel',async ({page})=>{
+    await page.goto('/#/review');
+    const scene=page.locator('.review-scene');
+    await expect(scene).toBeVisible();
+    const panel=await scene.boundingBox();
+    const canvas=await scene.locator('canvas').boundingBox();
+    expect(panel?.height).toBeGreaterThan(0);
+    expect(canvas?.height).toBeGreaterThan(0);
+    expect(canvas?.width).toBeGreaterThan(0);
+});
+
 test('refresh asks about the kit before resuming a confirmed operation',async ({page})=>{
     await page.goto('/');
     await page.getByRole('button',{name:/select light stud/i}).click();

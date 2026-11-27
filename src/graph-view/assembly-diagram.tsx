@@ -4,12 +4,17 @@ import { graphlib,layout } from '@dagrejs/dagre';
 import { useMemo } from 'react';
 import type { AssemblyModel } from '../domain/schema.js';
 
+/* Node/edge labels sit on white nodes, so keep them dark even under a dark OS theme
+   (ReactFlow's default --xy-node-color becomes near-white in that case). */
+const varInk = 'var(--rs-ink)';
+
 /** Local neighbourhood of the selected occurrence; every occurrence remains addressable in the list. */
 export function AssemblyDiagram({model,id,select}:{model:AssemblyModel;id:string;select:(id:string)=>void}) {
     const {nodes,edges}=useMemo(()=>{
     const edges: Edge[] = [];
     const edge = (from:string,to:string,label:string,style:string) => edges.push({
-        id:JSON.stringify([from,to,label]),source:from,target:to,label,style:{strokeDasharray:style}
+        id:JSON.stringify([from,to,label]),source:from,target:to,label,style:{strokeDasharray:style},
+        labelStyle:{fill:varInk,fontWeight:500},labelBgStyle:{fill:'#ffffff',fillOpacity:0.9},labelBgPadding:[4,2] as [number,number]
     });
     const selected = model.occurrences.find(o=>o.id===id);
     if (selected?.parent) edge(selected.parent,id,'contains','6 3');
@@ -27,7 +32,7 @@ export function AssemblyDiagram({model,id,select}:{model:AssemblyModel;id:string
     ids.forEach(key=>graph.setNode(key,{width:170,height:48}));edges.forEach(e=>graph.setEdge(e.source,e.target));layout(graph);
     const nodes = ids.map(key=>({id:key,position:{x:graph.node(key).x-85,y:graph.node(key).y-24},
         data:{label:model.occurrences.find(o=>o.id===key)?.commonName ?? model.operations.find(o=>o.id===key)?.phase ?? key},
-        style:{background:key===id?'#fff2c4':'white'}}));
+        style:{background:key===id?'#fff2c4':'white',color:varInk}}));
     return {nodes,edges};},[id,model]);
     return <div style={{height:350}}><ReactFlow key={id} nodes={nodes} edges={edges} fitView nodesDraggable={false}
         onNodeClick={(_,n)=>{if(model.occurrences.some(p=>p.id===n.id)) select(n.id);}}>

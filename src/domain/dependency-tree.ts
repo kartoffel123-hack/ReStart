@@ -170,7 +170,7 @@ type CandidateBlockerEntry = Readonly<{
     sourceKey: string;
 }>;
 
-function extractCandidateBlockers(
+export function extractCandidateBlockers(
     cand: MotionCandidateSummary,
     connectionById: ReadonlyMap<string, AssemblyModel['connections'][number]>,
     dofConnections?: readonly ConnectionDof[],

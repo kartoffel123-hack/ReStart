@@ -17,12 +17,27 @@ import { STEP_SHA256, buildAssemblyTree, type AssemblyTree } from '../lib/step-t
 import { tessellateStep, reachableMeshes, TESSERATION_OPTIONS, type TessellationOptions } from '../lib/step-meshes.js';
 import { buildCrosswalk, type Crosswalk } from '../lib/crosswalk.js';
 import { buildAssemblyGlb, inspectAssemblyGlb, type GlbReport } from '../lib/glb.js';
+import {
+    joinSources,
+    readBillOfMaterials,
+    readInventory,
+    readTimingLookup,
+    MATERIAL_PROVENANCE,
+    TIMING_PROVENANCE
+} from '../lib/workbooks.js';
 
 /** Expected physical pieces on the pinned revision (plan 02 §1, BoM row count). */
 export const EXPECTED_OCCURRENCES = 70;
 
+/** Supplied workbooks, read build-side only (plan 02 §1). */
+export const WORKBOOK_PATHS = Object.freeze({
+    components: 'assets/siemens-provided/Components.xlsx',
+    bom: 'assets/siemens-provided/BoM_Helicopter_LEGO.xlsx',
+    mtm: 'assets/siemens-provided/MTM_Mapping_Connection_V3.xlsx'
+});
+
 export type ImportReport = Readonly<{
-    schema: 'restart.import-report/1';
+    schema: 'restart.import-report/2';
     generatedAt: string;
     source: Readonly<{ file: string; sha256: string; expectedSha256: string }>;
     runtime: Readonly<{ node: string; occtImportJs: string }>;
@@ -52,6 +67,24 @@ export type ImportReport = Readonly<{
         issues: ReadonlyArray<Readonly<{ code: string; message: string; occurrenceId?: string }>>;
     }>;
     glb: Readonly<{ sha256: string; bytes: number; instances: number; problems: readonly string[] }>;
+    /** Ticket 2: type catalog, row references, candidate units and timing coverage. */
+    sources: Readonly<{
+        types: number;
+        quantityTotal: number;
+        declaredTotal: number | null;
+        unmatchedInventory: readonly string[];
+        unmatchedOccurrences: readonly string[];
+        bomRows: number;
+        /** BoM rows whose type matches the occurrence at the same index; low by design. */
+        positionalAgreement: number;
+        uniqueRows: number;
+        ambiguousRows: number;
+        functionalUnitsNeedReview: boolean;
+        timingRows: number;
+        timingCrossChecks: number;
+        notices: readonly string[];
+        provenance: Readonly<{ materials: string; timing: string }>;
+    }>;
 }>;
 
 export type ImportPackage = Readonly<{ report: ImportReport; glb: Uint8Array<ArrayBufferLike> }>;
@@ -111,10 +144,27 @@ export async function buildImportPackage(
         throw new Error(`GLB failed inspection:\n  ${inspection.problems.join('\n  ')}`);
     }
 
+    const inventory = await readInventory(WORKBOOK_PATHS.components);
+    const bom = await readBillOfMaterials(WORKBOOK_PATHS.bom);
+    const timing = await readTimingLookup(WORKBOOK_PATHS.mtm);
+    const joined = joinSources({ inventory, bom, occurrences: tree.occurrences });
+    if (joined.issues.length > 0) {
+        throw new Error(
+            `workbook join reported ${joined.issues.length} issue(s):\n` +
+                joined.issues.map((message) => `  ${message}`).join('\n')
+        );
+    }
+    if (timing.crossCheckIssues.length > 0) {
+        throw new Error(
+            `MTM English and German sheets disagree:\n` +
+                timing.crossCheckIssues.map((message) => `  ${message}`).join('\n')
+        );
+    }
+
     const scores = crosswalk.entries.map((entry) => entry.score);
     const margins = crosswalk.entries.map((entry) => entry.margin);
     const report: ImportReport = {
-        schema: 'restart.import-report/1',
+        schema: 'restart.import-report/2',
         generatedAt: new Date().toISOString(),
         source: { file: stepPath, sha256: digest, expectedSha256: STEP_SHA256 },
         runtime: {
@@ -154,6 +204,22 @@ export async function buildImportPackage(
             bytes: glb.byteLength,
             instances: inspection.instances.length,
             problems: inspection.problems
+        },
+        sources: {
+            types: joined.types.length,
+            quantityTotal: inventory.rows.reduce((total, row) => total + row.quantity, 0),
+            declaredTotal: inventory.declaredTotal,
+            unmatchedInventory: joined.unmatchedInventory,
+            unmatchedOccurrences: joined.unmatchedOccurrences,
+            bomRows: bom.rows.length,
+            positionalAgreement: joined.positionalAgreement,
+            uniqueRows: joined.uniqueRows,
+            ambiguousRows: joined.ambiguousRows,
+            functionalUnitsNeedReview: joined.functionalUnitsNeedReview,
+            timingRows: timing.rows.length,
+            timingCrossChecks: timing.crossCheckIssues.length,
+            notices: joined.notices,
+            provenance: { materials: MATERIAL_PROVENANCE, timing: TIMING_PROVENANCE }
         }
     };
     return { report, glb };

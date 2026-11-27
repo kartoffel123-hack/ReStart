@@ -106,6 +106,9 @@ Plan §1 records the measured STEP-import baseline the remaining tickets must re
 | Shipped geometry | one GLB node per occurrence ID, source axes preserved, mm → m at build time |
 | Identity check | usage paths matched to transformed B-rep vertices: **70/70**, lowest winning vertex-match fraction 0.9912 |
 | Witnesses | Stage 1 axle `NAUO1/NAUO79` bounds centre ≈ `[0, 0, 32]` mm; both rotor blades centre at Y ≈ 47.5 mm |
+| Inventory | 31 part types whose quantities sum to the sheet's own total of 70, matched to STEP names 31/31 ([RV-002](data/review/source-joins.md)) |
+| Bill of materials | 70 rows, same multiset of pieces as the assembly but only 7 positions aligned, so 54 rows join at type level and are marked ambiguous |
+| Timing lookup | 62 connection classes, English and German sheets agree by `Row_ID`; the times are **fictitious** challenge data |
 
 ## Stack
 

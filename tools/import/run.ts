@@ -40,6 +40,16 @@ async function main(): Promise<void> {
         `${report.crosswalk.matched}/${report.tree.occurrences} matched, lowest score ${report.crosswalk.lowestScore.toFixed(4)}, smallest margin ${report.crosswalk.smallestMargin.toFixed(4)}`
     );
     row('glb', `${report.glb.bytes} bytes, ${report.glb.instances} pickable instances, sha256 ${report.glb.sha256.slice(0, 16)}`);
+    row(
+        'type catalog',
+        `${report.sources.types} types, quantity ${report.sources.quantityTotal} (sheet declares ${report.sources.declaredTotal}), all traced to occurrences`
+    );
+    row(
+        'bill of materials',
+        `${report.sources.bomRows} rows, ${report.sources.positionalAgreement} positionally aligned, ${report.sources.uniqueRows} unique / ${report.sources.ambiguousRows} ambiguous row links`
+    );
+    row('timing lookup', `${report.sources.timingRows} connection rows, ${report.sources.timingCrossChecks} cross-check issues`);
+    for (const notice of report.sources.notices) row('notice', notice);
     console.log(`wrote ${STAGING}/${glbName} and ${STAGING}/import-report.json in ${((Date.now() - started) / 1000).toFixed(1)} s`);
     console.log(`not published: public/models/30465/ is promoted by model:verify (plan 02 §6)`);
 }

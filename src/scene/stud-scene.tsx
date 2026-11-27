@@ -12,6 +12,7 @@ type Props = {
     colors?:ReadonlyMap<string,string>; explode?:number; isolate?:boolean;
     idleAutoRotate?:boolean;
     highlight?:string;
+    selectionActive?:boolean;
     offsets?:Readonly<Record<string,Vec3>>;
     removed?:ReadonlySet<string>;
     xrStep?:XrStep|undefined;
@@ -126,7 +127,7 @@ void main() {
         // Orthographic projection: world units map to the same number of pixels on every
         // axis, so the assembly is never foreshortened by depth. The frustum is the fit
         // quantity now — there is no FOV, and camera distance only has to clear clipping.
-        let aspect = 1, fitRadius = 0.125;
+        let aspect = 1, fitRadius = 0.08;
         const applyFrustum = () => {
             const halfHeight = fitRadius / Math.min(1, aspect);
             camera.left = -halfHeight * aspect;
@@ -142,12 +143,12 @@ void main() {
             const halfStroke=new Vector3(...p.start).distanceTo(new Vector3(...p.end))*0.0005;
             // 0.125 m half-height reproduces the picker framing of the old 0.36 m @ 38° view;
             // 0.014 m is the floor that a 40 mm minimum camera distance used to give a small part.
-            fitRadius = focused ? Math.max(0.014,1.3*(targetRadius+halfStroke)) : 0.125;
+            fitRadius = focused ? Math.max(0.014,1.3*(targetRadius+halfStroke)) : 0.08;
             camera.zoom = 1;
             applyFrustum();
-            // A true isometric axis (35.26° elevation, 45° azimuth) in the corner the view
-            // already looked from. Distance is fixed because orthographic scale ignores it.
-            camera.position.copy(controls.target).add(new Vector3(-1,1,-1).normalize().multiplyScalar(0.4));
+            // Keep the canopy-facing three-quarter view: a lower angle than the
+            // isometric framing makes the nose and cockpit area easier to read.
+            camera.position.copy(controls.target).add(new Vector3(-0.6,0.65,-1).normalize().multiplyScalar(0.4));
             controls.update();
         };
         new GLTFLoader().load(props.url, gltf => {
@@ -176,13 +177,27 @@ void main() {
             applyFrustum();
         });
         resize.observe(el);
+        let pointerOrigin: { x: number; y: number } | undefined;
+        let pointerDragged = false;
+        const pointerDown = (event: PointerEvent) => {
+            pointerOrigin = { x: event.clientX, y: event.clientY };
+            pointerDragged = false;
+        };
+        const pointerMove = (event: PointerEvent) => {
+            if (!pointerOrigin || pointerDragged) return;
+            pointerDragged = Math.hypot(event.clientX-pointerOrigin.x,event.clientY-pointerOrigin.y)>5;
+        };
         const pick = (event: MouseEvent) => {
+            if(pointerDragged) { pointerOrigin=undefined;pointerDragged=false;return; }
+            pointerOrigin=undefined;
             if (!model) return;
             const rect = el.getBoundingClientRect(), ray = new Raycaster();
             ray.setFromCamera(new Vector2(2*(event.clientX-rect.left)/rect.width-1,1-2*(event.clientY-rect.top)/rect.height),camera);
             const object=ray.intersectObjects([...meshPoses.keys()].filter(n=>n.visible),false)[0]?.object;
             if(typeof object?.userData.instanceId==='string') latest.current.onPick(object.userData.instanceId);
         };
+        el.addEventListener('pointerdown',pointerDown);
+        el.addEventListener('pointermove',pointerMove);
         el.addEventListener('click',pick);
         let previous: Props | undefined, began = 0, lastTime=0;
         const a = new Vector3(), b = new Vector3(), displacement = new Vector3();
@@ -191,7 +206,7 @@ void main() {
             const p = latest.current;
             if (!userInteracting) controls.autoRotate = (p.idleAutoRotate ?? false)
                 && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-            if(previous?.target!==p.target){
+            if(previous?.target!==p.target || previous?.selectionActive!==p.selectionActive){
                 selectedOutline?.removeFromParent();
                 selectedOutline?.geometry.dispose();
                 selectedOutline=undefined;
@@ -201,12 +216,14 @@ void main() {
                 if(!stud){setError(true);return;}
                 installed.copy(meshPoses.get(stud)!.pose);center.copy(meshPoses.get(stud)!.center);
                 targetRadius=new Box3().setFromObject(stud).getSize(new Vector3()).length()/2;
-                selectedHatch=new Mesh(stud.geometry,hatchMaterial);
-                selectedHatch.renderOrder=1;
-                stud.add(selectedHatch);
-                selectedOutline=new LineSegments(new EdgesGeometry(stud.geometry,32),selectedOutlineMaterial);
-                selectedOutline.renderOrder=2;
-                stud.add(selectedOutline);
+                if(p.selectionActive!==false){
+                    selectedHatch=new Mesh(stud.geometry,hatchMaterial);
+                    selectedHatch.renderOrder=1;
+                    stud.add(selectedHatch);
+                    selectedOutline=new LineSegments(new EdgesGeometry(stud.geometry,32),selectedOutlineMaterial);
+                    selectedOutline.renderOrder=2;
+                    stud.add(selectedOutline);
+                }
                 inset.select(stud);
                 if(ghost) display.remove(ghost);ghost=new Mesh(stud.geometry,ghostMaterial);ghost.quaternion.copy(stud.quaternion);ghost.visible=false;display.add(ghost);
             }
@@ -264,7 +281,8 @@ void main() {
             }
         });
         return () => {
-            disposed = true; resize.disconnect(); el.removeEventListener('click',pick);
+            disposed = true; resize.disconnect();
+            el.removeEventListener('pointerdown',pointerDown);el.removeEventListener('pointermove',pointerMove);el.removeEventListener('click',pick);
             if (resumeRotation) clearTimeout(resumeRotation);
             controls.removeEventListener('start', pauseForInteraction);
             controls.removeEventListener('end', resumeAfterInteraction);

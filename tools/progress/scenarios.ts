@@ -50,11 +50,11 @@ export const SCENARIOS: readonly Scenario[] = [
     },
     {
         id: 'manual-route',
-        label: 'Mechanic manual route',
+        label: 'Mechanic manual landing, awaiting a piece selection',
         route: '#/',
         highlights:
-            'The real assembly picker highlights the light stud, the first playable target.',
-        waitFor: '[data-route="manual"] canvas[data-target-point]'
+            'The full assembly is presented in the default three-quarter view with no piece selected; the selection panel prompts the mechanic to click a piece.',
+        waitFor: '[data-route="manual"] .stud-picker__selection--empty'
     },
     {
         id: 'review-route',

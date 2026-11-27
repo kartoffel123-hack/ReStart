@@ -48,15 +48,15 @@ describe('bootstrap shell', () => {
 describe('placeholder honesty', () => {
     // A placeholder promises a screen that does not exist yet. Once the screen lands, the
     // promise becomes false, and a reader of docs/progress is told the wrong thing about
-    // which ticket is outstanding. Ticket 4 delivered ManualScreen and the concept gallery,
-    // so the manual route must stop claiming ticket 4: what it still lacks is the live scene
-    // (ticket 7) and the compiled dataset that feeds it (ticket 9).
-    it('opens the single-target pilot on the mechanic route', () => {
+    // which ticket is outstanding. The picker is now a real screen, so assert its current
+    // landing identity instead of the pilot-edition label no longer shown to mechanics.
+    it('opens the mechanic manual landing page on the mechanic route', () => {
         // The hash survives cleanup, and an earlier test in this file sets it to #/concept.
         window.location.hash = '#/';
         render(<App />);
         expect(document.querySelector('[data-placeholder]')).toBeNull();
-        expect(screen.getByText(/single-target pilot/i)).toBeInTheDocument();
+        expect(screen.getByRole('heading', { name: 'Re-Start' })).toBeInTheDocument();
+        expect(screen.getByRole('heading', { name: 'Mechanic Manual' })).toBeInTheDocument();
     });
 
     it('says the gallery is development-only rather than naming an unbuilt ticket', () => {

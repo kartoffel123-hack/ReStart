@@ -18,13 +18,17 @@ test('blocking one exit shows the remaining detour, blocking both reports no rou
     await page.getByLabel('Import draft').setInputFiles(file!);
     await expect(page.getByRole('status')).toContainText('no-feasible-route');
     await page.getByRole('link',{name:'Mechanic manual'}).click();
-    await page.getByRole('button',{name:/select light stud/i}).click();
+    await page.getByText('Advanced Parameters').click();
+    await page.getByRole('combobox',{name:'Occurrence'}).selectOption('30465/NAUO33/NAUO39');
+    await page.getByRole('button',{name:/replace light stud/i}).click();
     await expect(page.locator('[data-phase="remove"]')).toBeVisible();
 });
 
 test('refresh asks about the kit before resuming a confirmed operation',async ({page})=>{
     await page.goto('/');
-    await page.getByRole('button',{name:/select light stud/i}).click();
+    await page.getByText('Advanced Parameters').click();
+    await page.getByRole('combobox',{name:'Occurrence'}).selectOption('30465/NAUO33/NAUO39');
+    await page.getByRole('button',{name:/replace light stud/i}).click();
     await page.getByRole('button',{name:'Confirm this step'}).click();
     await page.reload();
     await expect(page.getByText(/one confirmed step|1 confirmed step/i)).toBeVisible();

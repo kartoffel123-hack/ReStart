@@ -2,8 +2,9 @@ import { expect, test } from '@playwright/test';
 
 test('exchange only NAUO56, return the rotor shaft and finish the fit check', async ({page}) => {
     await page.goto('/');
+    await page.getByText('Advanced Parameters').click();
     await page.getByRole('combobox', {name:'Occurrence'}).selectOption('30465/NAUO17/NAUO56');
-    await page.getByRole('button', {name:/select cross block/i}).click();
+    await page.getByRole('button', {name:/replace cross block/i}).click();
     const manual = page.locator('[data-screen="manual"]');
     const step = page.getByRole('region', {name:'This step'});
     const confirm = page.getByRole('button', {name:'Confirm this step'});

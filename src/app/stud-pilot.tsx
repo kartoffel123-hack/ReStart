@@ -15,6 +15,7 @@ const zero: Vec3 = [0,0,0];
 export function StudPilot() {
     const [data, setData] = useState<PilotData>();
     const [geometryUrl,setGeometryUrl]=useState('');
+    const [stage,setStage]=useState<'pilot'|'release'>('pilot');
     const [session, setSession] = useState<ManualSession>();
     const [error, setError] = useState(false), [attempt, retry] = useState(0);
     const [replay, play] = useState(0), [reset, resetCamera] = useState(0);
@@ -30,7 +31,7 @@ export function StudPilot() {
         setError(false);
         (async () => {
             const bundle=await loadPackage(pilotBase,abort.signal);
-            if (!abort.signal.aborted) {url=URL.createObjectURL(bundle.geometry);setGeometryUrl(url);setData(bundle.pilot);}
+            if (!abort.signal.aborted) {url=URL.createObjectURL(bundle.geometry);setGeometryUrl(url);setData(bundle.pilot);setStage(bundle.stage);}
         })().catch(() => { if (!abort.signal.aborted) setError(true); });
         return () => {abort.abort();if(url) URL.revokeObjectURL(url);};
     }, [attempt]);
@@ -63,17 +64,17 @@ export function StudPilot() {
             <button onClick={()=>begin(saved?.targetIds[0] ?? data.target,(saved?.targetIds.length ?? 0)>1)}>Kit is fully assembled — restart</button></main>;
     }
     if (session && !step && data && job) return <main className="stud-summary">
-        <p>ReStart · 30465 / Single-target pilot</p><h1>Repair complete</h1>
+        <p>ReStart · 30465 / {stage==='pilot'?'Single-target pilot':'Released manual'}</p><h1>Repair complete</h1>
         <p>{joint?'Pin and light stud':label} · {job.targetIds.join(', ')}</p><p>{job.disturbedCount} healthy {job.disturbedCount===1?'piece':'pieces'} disturbed in the modeled route.</p>
-        <p>Fit check confirmed by you. Modeled release and return replayed; no independent physical trial recorded.</p>
+        <p>Fit check confirmed by you. Modeled release and return replayed. {(!joint && data.evidence?.[target!]?.physicallyVerified) ? `Physical trial: ${data.evidence[target!]!.benchRecordId}` : 'No independent physical trial recorded for this procedure.'}</p>
         <p>Disassembly timing: {job.timing.timedActions} of {job.timing.totalActions} actions mapped. {job.timing.estimatedSeconds===null?'Duration unknown.':`${job.timing.estimatedSeconds} s (challenge estimate).`}</p>
         <p>{job.preservedUnits.length ? job.preservedUnits.map(u=>`${u.name}: ${u.outcome}`).join('; '):'Functional-unit membership has not been reviewed.'}</p>
         <details><summary>How this transfers to equipment service</summary><p>In a hypothetical equipment enclosure, a cover is a piece, its fasteners are connections and screwdriver access is a prerequisite. A fan cartridge can move intact while the housing stays installed. A real device needs its own service constraints and validated return path.</p></details>
-        {job.targetIds.some(id=>id===data.target || id===data.pin) && <p>Stud fit allowance: 0.06 mm. Modeled radial interference: {(-data.signedRadialGapMm).toFixed(3)} mm.</p>}
+        {data.signedRadialGapMm!==undefined && job.targetIds.some(id=>id===data.target || id===data.pin) && <p>Stud fit allowance: 0.06 mm. Modeled radial interference: {(-data.signedRadialGapMm).toFixed(3)} mm.</p>}
         <p>Finger access and support have not been verified on the kit.</p>
         {target===data.pin && <p>The pin route assumes the split shank compresses inside the cross-block bore.</p>}
         <p>Procedure: <code>{job.procedureFingerprint}</code></p>
-        <button onClick={()=>exportJson('repair-report.json',{target,repair:job,check:'operator-confirmed',physicallyVerified:false})}>Export repair report</button>
+        <button onClick={()=>exportJson('repair-report.json',{targetIds:job.targetIds,repair:job,check:'operator-confirmed',evidence:!joint && data.evidence?.[target!] || {replayedAgainstModel:true,physicallyVerified:false}})}>Export repair report</button>
         <button onClick={() => {setJoint(false);setSession(undefined);}}>Back to target selection</button>
     </main>;
     if (step && session) return <>
@@ -91,7 +92,7 @@ export function StudPilot() {
             {session.steps.slice(0,session.confirmedCount).map((s,i)=><button key={s.stepId} onClick={()=>setHistory(i)}>{s.ordinal}. {s.instruction}</button>)}</details>}
     </>;
     return <main className="stud-picker">
-        <section><p>ReStart · 30465 / Single-target pilot</p><h1>Mechanic manual</h1>
+        <section><p>ReStart · 30465 / {stage==='pilot'?'Single-target pilot':'Released manual'}</p><h1>Mechanic manual</h1>
             <a href="#/review">Inspect the repair graph</a>
             <p>Choose a piece on the helicopter or find its occurrence below.</p>
             {data ? <><label>Search pieces <input value={query} onChange={e=>search(e.target.value)} placeholder="Part name, element ID or usage ID"/></label>
@@ -103,7 +104,7 @@ export function StudPilot() {
                 <DescriptionPicker data={data} select={select}/>
                 <p><code>{target}</code></p>{job ? <button onClick={()=>begin(target!)}>Select {label.toLowerCase()}</button> : <p>No modeled repair available for this occurrence.</p>}
                 {(target===data.pin || target===data.target) && <button onClick={()=>begin(data.pin,true)}>Replace pin and light stud together</button>}
-                <p>Generated model routes · {jobs.length} of {data.inventory.length} targets available · no physical trial recorded.</p></> :
+                <p>{stage==='pilot'?'Generated model routes':'Reviewed model routes'} · {jobs.length} of {data.inventory.length} targets available.</p></> :
                 error ? <button onClick={() => retry(n => n+1)}>Retry loading repair</button> : <p>Loading repair…</p>}
         </section>{scene}
     </main>;

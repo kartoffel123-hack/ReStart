@@ -24,6 +24,7 @@
     "model:import": "tsx tools/import/run.ts",
     "model:compile": "tsx tools/compile/run.ts",
     "model:verify": "tsx tools/verify/run.ts",
+    "model:publish": "tsx tools/verify/promote.ts",
     "progress:screenshot": "tsx tools/progress/capture.ts"
   },
   "dependencies": {

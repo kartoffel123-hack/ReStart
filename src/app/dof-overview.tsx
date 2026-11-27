@@ -180,7 +180,7 @@ export function DofOverviewScreen() {
                         <h1>Freiheitsgrade &amp; Verbindungszeiten · 30465</h1>
                     </div>
                     <nav className="rs-dof-nav">
-                        <a href="#/">Mechanic manual</a>
+                        <a href="#/helicopter">Mechanic manual</a>
                         <a href="#/graph">Dependency Graph</a>
                         <a href="#/review">Repair reviewer</a>
                     </nav>
@@ -217,7 +217,7 @@ export function DofOverviewScreen() {
                     </div>
                 </div>
                 <nav className="rs-dof-nav">
-                    <a href="#/">Mechanic manual</a>
+                    <a href="#/helicopter">Mechanic manual</a>
                     <a href="#/graph">Dependency Graph</a>
                     <a href="#/review">Repair reviewer</a>
                     <button

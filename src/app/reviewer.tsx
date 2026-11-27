@@ -114,7 +114,7 @@ export function Reviewer() {
                 <h1>Repair reviewer</h1>
             </div>
             <nav className="reviewer__header-links">
-                <a href="#/">Mechanic manual</a>
+                <a href="#/helicopter">Mechanic manual</a>
                 <a href={`#/graph?piece=${encodeURIComponent(selected)}`}>Dependency graph</a>
             </nav>
         </header>

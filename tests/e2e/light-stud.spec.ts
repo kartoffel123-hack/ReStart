@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 test('a mechanic exchanges the light stud, reseats it and checks the fit', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/#/helicopter');
     // The list and raycast must identify the same instance; drive the harder input.
     await expect(page.getByRole('button', { name: /select light stud/i })).toBeVisible();
     const canvas = page.locator('canvas[data-target-point]');

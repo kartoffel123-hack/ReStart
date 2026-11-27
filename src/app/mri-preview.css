@@ -1,0 +1,160 @@
+.mri-preview {
+    min-height: 100vh;
+    padding: clamp(20px, 4vw, 56px);
+    color: #1c282d;
+    background: #f4f4f1;
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+}
+
+.mri-preview__header {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 24px;
+    max-width: 1440px;
+    margin: 0 auto 24px;
+}
+
+.mri-preview__eyebrow {
+    margin: 0 0 8px;
+    color: #5d6b70;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+}
+
+.mri-preview__header h1 {
+    margin: 0;
+    font-size: clamp(34px, 5vw, 58px);
+    letter-spacing: -.045em;
+}
+
+.mri-preview__subhead {
+    margin: 8px 0 0;
+    color: #526168;
+}
+
+.mri-preview__badge {
+    border: 1px solid #c89c45;
+    border-radius: 999px;
+    padding: 10px 14px;
+    color: #61490f;
+    background: #fff2ce;
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.mri-preview__content {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
+    gap: 18px;
+    max-width: 1440px;
+    min-height: min(72vh, 760px);
+    margin: auto;
+}
+
+.mri-preview__viewport {
+    position: relative;
+    min-height: 480px;
+    overflow: hidden;
+    border: 1px solid #d1d5d2;
+    border-radius: 8px;
+    background: #e8e9e6;
+}
+
+.mri-preview__canvas {
+    position: absolute;
+    inset: 0;
+}
+
+.mri-preview__canvas canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.mri-preview__hint {
+    position: absolute;
+    bottom: 12px;
+    left: 16px;
+    margin: 0;
+    color: #48565c;
+    font-size: 13px;
+    pointer-events: none;
+}
+
+.mri-preview__error {
+    position: absolute;
+    inset: 20px auto auto 20px;
+    max-width: 460px;
+    padding: 12px;
+    color: #812327;
+    background: #fff;
+}
+
+.mri-preview__info {
+    align-self: start;
+    padding: 24px;
+    border: 1px solid #d1d5d2;
+    border-radius: 8px;
+    background: #fff;
+}
+
+.mri-preview__info h2 {
+    margin: 0 0 12px;
+    font-size: 22px;
+}
+
+.mri-preview__info p:not(.mri-preview__eyebrow) {
+    color: #4d5b60;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.mri-preview__info dl {
+    margin: 24px 0;
+}
+
+.mri-preview__info dl div {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid #e5e7e4;
+    font-size: 13px;
+}
+
+.mri-preview__info dt {
+    color: #5d6b70;
+}
+
+.mri-preview__info dd {
+    margin: 0;
+    text-align: right;
+    font-weight: 650;
+}
+
+.mri-preview__info a {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    color: #155a70;
+    font-weight: 700;
+}
+
+@media (max-width: 760px) {
+    .mri-preview__header {
+        align-items: start;
+        flex-direction: column;
+    }
+
+    .mri-preview__content {
+        grid-template-columns: 1fr;
+    }
+
+    .mri-preview__viewport {
+        min-height: 54vh;
+    }
+}

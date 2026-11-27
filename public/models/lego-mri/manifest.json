@@ -1,0 +1,24 @@
+{
+  "schema": "restart.geometry-preview/1",
+  "model": "LEGO MRI",
+  "source": "assets/LEGO_MRI.step",
+  "sourceSha256": "88740a3882f24ad03e9182fb8c29aca74fe7b3cc15445c45856adfa515b6f63d",
+  "geometry": "geometry-61170875027a6040870ecad3f8648569694d6fc9a3ede12202760d99de9aa481.glb",
+  "geometrySha256": "61170875027a6040870ecad3f8648569694d6fc9a3ede12202760d99de9aa481",
+  "units": "metres",
+  "triangles": 461636,
+  "vertices": 413332,
+  "boundsMm": {
+    "min": [
+      255.99989318847656,
+      -99.19999694824219,
+      20.78820037841797
+    ],
+    "max": [
+      552.00439453125,
+      3.200000047683716,
+      158.22779846191406
+    ]
+  },
+  "note": "Geometry preview only. This STEP contains no component assembly or repair evidence."
+}

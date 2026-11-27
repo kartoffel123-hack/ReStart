@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 test('the mechanic can read reviewed access sequences before their motions are modeled', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/#/helicopter');
     const occurrence = page.getByRole('combobox', { name: 'Occurrence' });
     await occurrence.selectOption('30465/NAUO9');
     const plan = page.getByRole('region', { name: 'Reviewed access plan' });

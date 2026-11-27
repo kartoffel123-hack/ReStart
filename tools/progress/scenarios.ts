@@ -33,10 +33,18 @@ export type Scenario = Readonly<{
 export const SCENARIOS: readonly Scenario[] = [
     {
         id: 'manual-route',
-        label: 'Mechanic manual route',
+        label: 'Default MRI geometry preview',
         route: '#/',
         highlights:
-            'The real assembly picker highlights the light stud, the first playable target.',
+            'The default route shows the hash-verified MRI geometry and clearly labels it as a preview without repair data.',
+        waitFor: '[data-route="mri"] .mri-preview__canvas[data-model-loaded="true"]'
+    },
+    {
+        id: 'helicopter-pilot',
+        label: 'Helicopter repair pilot',
+        route: '#/helicopter',
+        highlights:
+            'The original helicopter mechanic manual remains available as a separate route.',
         waitFor: '[data-route="manual"] canvas[data-target-point]'
     },
     {

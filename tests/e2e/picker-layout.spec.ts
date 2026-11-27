@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 }]) {
     test(`the mechanic can see the helicopter before searching at ${viewport.width}px`, async ({ page }) => {
         await page.setViewportSize(viewport);
-        await page.goto('/');
+        await page.goto('/#/helicopter');
         const search = page.getByLabel('Search pieces');
         const assembly = page.getByRole('region', { name: 'Assembly view' });
         await expect(search).toBeVisible();

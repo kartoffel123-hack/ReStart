@@ -10,15 +10,17 @@ import type { ReactNode } from 'react';
 import { PlaceholderScreen, type PlaceholderRoute } from '../presentation/placeholder-screen.js';
 import { ConceptGallery } from '../concept/gallery.js';
 import { StudPilot } from './stud-pilot.js';
+import { MriPreview } from './mri-preview.js';
 
-export type RouteId = PlaceholderRoute | 'graph' | 'dof';
+export type RouteId = PlaceholderRoute | 'graph' | 'dof' | 'mri';
 
 export function readRoute(hash: string): RouteId {
+    if (hash.startsWith('#/helicopter')) return 'manual';
     if (hash.startsWith('#/dof')) return 'dof';
     if (hash.startsWith('#/graph')) return 'graph';
     if (hash.startsWith('#/review')) return 'review';
     if (hash.startsWith('#/concept')) return 'concept';
-    return 'manual';
+    return 'mri';
 }
 
 const DEV_ONLY = import.meta.env.DEV;
@@ -39,6 +41,7 @@ export function App(): ReactNode {
         return () => window.removeEventListener('hashchange', onHashChange);
     }, []);
 
+    if (route === 'mri') return <div data-route="mri"><MriPreview /></div>;
     if (route === 'manual') return <div data-route="manual"><StudPilot /></div>;
     if (route === 'dof') return <Suspense fallback={<p>Loading DOF &amp; timing table…</p>}><DofOverview /></Suspense>;
     if (route === 'graph') return <Suspense fallback={<p>Loading dependency graph…</p>}><DependencyGraph /></Suspense>;

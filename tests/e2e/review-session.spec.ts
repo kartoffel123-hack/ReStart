@@ -23,7 +23,7 @@ test('blocking one exit shows the remaining detour, blocking both reports no rou
 });
 
 test('refresh asks about the kit before resuming a confirmed operation',async ({page})=>{
-    await page.goto('/');
+    await page.goto('/#/helicopter');
     await page.getByRole('button',{name:/select light stud/i}).click();
     await page.getByRole('button',{name:'Confirm this step'}).click();
     await page.reload();

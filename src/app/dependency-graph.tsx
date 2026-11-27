@@ -203,7 +203,7 @@ export function DependencyGraphScreen() {
                         <h1>Dependency Graph</h1>
                     </div>
                     <nav className="rs-graph-header__nav">
-                        <a href="#/">Mechanic manual</a>
+                        <a href="#/helicopter">Mechanic manual</a>
                         <a href="#/review">Repair reviewer</a>
                     </nav>
                 </header>
@@ -241,7 +241,7 @@ export function DependencyGraphScreen() {
                     <span>Vollständiger transitiver Baum für jedes Teil</span>
                 </div>
                 <nav className="rs-graph-header__nav">
-                    <a href="#/">Mechanic manual</a>
+                    <a href="#/helicopter">Mechanic manual</a>
                     <a href="#/dof">DOF &amp; Zeiten (Tabelle)</a>
                     <a href={`#/review?piece=${encodeURIComponent(rootId)}`}>Repair reviewer</a>
                     <button

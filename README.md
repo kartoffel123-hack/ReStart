@@ -1,7 +1,7 @@
 # ReStart
 
-**Repair, don't recycle it twice.** A browser repair manual for the LEGO Technic helicopter
-30465 that finds the *least destructive* way to replace one specific piece — and shows its work.
+**Repair, don't recycle it twice.** ReStart opens with an interactive geometry preview of
+`assets/LEGO_MRI.step`. The helicopter repair pilot remains available at `#/helicopter`.
 
 Built for the **Healthcare Hackathon 2026**, challenge *"From CAD to Circular: AI-Based
 Disassembly Analysis for MedTech"* by Siemens Healthineers
@@ -11,19 +11,23 @@ Disassembly Analysis for MedTech"* by Siemens Healthineers
   <img src="assets/lego-helicopter-30465-1.snapshot.9/thumbnail.png" alt="LEGO Technic helicopter 30465" width="420">
 </p>
 
-## The idea
+## Current model
 
-**Runnable pilot:** `npm ci && npm run dev` on Node 24.22.3. At `#/`, search or pick one of
-70 real pieces. **12 single-target procedures** currently replay against the model. Try
-`30465/NAUO21` (large bush): park the bevel gear, exchange the bush, reseat the gear, then
-confirm the fit check. `#/review` lets you inspect the assembly, edit a specific move and
-rehearse a local draft. See the [pilot and release handoff](docs/pilot-handoff.md) for the
-exact coverage, remaining work, and kit worksheet. No physical trials are recorded.
+**MRI geometry preview:** `npm ci && npm run dev` on Node 24.22.3. The default route displays
+the supplied STEP as one tessellated solid (413,332 vertices, 461,636 triangles). It is a
+geometry-only preview: the file contains no individual LEGO part hierarchy, BOM, repair
+procedures, or physical verification. `npm run model:mri:import` verifies the source hash and
+rebuilds the content-hashed GLB under `public/models/lego-mri/`.
 
-A mechanic selects **the particular physical piece** that needs replacing — one of 70
-occurrences, including an internal gear or one of several identical pins. ReStart shows which
-parts obstruct it, plays an animated manual through **removal → replacement → restoration →
-function check**, and reports what evidence backs that exact procedure.
+The original helicopter pilot remains at `#/helicopter`: it includes 70 pieces and 12
+single-target procedures that replay against the helicopter model. `#/review` still refers to
+that helicopter dataset. No physical trials are recorded.
+
+A mechanic using the helicopter repair pilot selects **the particular physical piece** that
+needs replacing — one of 70 occurrences, including an internal gear or one of several
+identical pins. ReStart shows which parts obstruct it, plays an animated manual through
+**removal → replacement → restoration → function check**, and reports what evidence backs
+that exact procedure. These capabilities do not yet apply to the MRI geometry preview.
 
 The product loop is the reason to *minimize* disassembly. A successful repair returns a
 working assembly to service and documents which healthy pieces and functional units it

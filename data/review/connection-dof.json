@@ -1,0 +1,8101 @@
+{
+  "schema": "restart.connection-dof/1",
+  "sourceStepSha256": "e15deb431d0ece9baf411cec7612f00d1a49e3e536ea183893b6792f6dfc7588",
+  "generatedFrom": "assets/lego-helicopter-30465-1.snapshot.9/STEP File Assembly - Lego Helicopter - 30465.STEP",
+  "units": "mm",
+  "axisParallelTolerance": 0.995,
+  "connections": [
+    {
+      "connectionId": "jnt:30465/NAUO1/NAUO78:30465/NAUO1/NAUO80:0",
+      "pieces": [
+        "30465/NAUO1/NAUO78",
+        "30465/NAUO1/NAUO80"
+      ],
+      "pieceNames": [
+        "Friction Pin with Bore - 30465",
+        "Corner Beam - 7x4x3 - 30465"
+      ],
+      "kind": "pin-hole",
+      "kinematicType": "cylindrical",
+      "axis": [
+        1,
+        0,
+        0
+      ],
+      "origin": [
+        0,
+        0,
+        0
+      ],
+      "releaseDirections": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          -1,
+          0,
+          0
+        ]
+      ],
+      "dof": {
+        "total": 2,
+        "translational": 1,
+        "rotational": 1,
+        "translationAxes": [
+          [
+            1,
+            0,
+            0
+          ]
+        ],
+        "rotationAxes": [
+          [
+            1,
+            0,
+            0
+          ]
+        ]
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": true,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 5.35,
+      "spanMm": [
+        -10.6,
+        -5.25
+      ],
+      "holderSpanMm": [
+        -10.6,
+        -5.25
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#24256",
+        "#25985",
+        "#26454",
+        "#36192",
+        "#47710",
+        "#79180"
+      ],
+      "note": "Cylindrical pin/bore fit: 1 translational DOF and 1 rotational DOF along axis."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO1/NAUO78:30465/NAUO1/NAUO81:0",
+      "pieces": [
+        "30465/NAUO1/NAUO78",
+        "30465/NAUO1/NAUO81"
+      ],
+      "pieceNames": [
+        "Friction Pin with Bore - 30465",
+        "Friction Pin - 30465"
+      ],
+      "kind": "pin-hole",
+      "kinematicType": "cylindrical",
+      "axis": [
+        0,
+        1,
+        3.4914813388431334e-15
+      ],
+      "origin": [
+        4.529787229198776e-32,
+        0,
+        -1.5777218104420236e-30
+      ],
+      "releaseDirections": [
+        [
+          0,
+          1,
+          3.4914813388431334e-15
+        ],
+        [
+          0,
+          -1,
+          -3.4914813388431334e-15
+        ]
+      ],
+      "dof": {
+        "total": 2,
+        "translational": 1,
+        "rotational": 1,
+        "translationAxes": [
+          [
+            0,
+            1,
+            3.4914813388431334e-15
+          ]
+        ],
+        "rotationAxes": [
+          [
+            0,
+            1,
+            3.4914813388431334e-15
+          ]
+        ]
+      },
+      "globalAxes": {
+        "tx": false,
+        "ty": true,
+        "tz": false,
+        "rx": false,
+        "ry": true,
+        "rz": false
+      },
+      "engagementMm": 6.3,
+      "spanMm": [
+        -3.15,
+        3.15
+      ],
+      "holderSpanMm": [
+        -3.15,
+        3.15
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#33570",
+        "#55644",
+        "#59599",
+        "#6642",
+        "#7410",
+        "#86108"
+      ],
+      "note": "Cylindrical pin/bore fit: 1 translational DOF and 1 rotational DOF along axis."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO1/NAUO78:30465/NAUO23:0",
+      "pieces": [
+        "30465/NAUO1/NAUO78",
+        "30465/NAUO23"
+      ],
+      "pieceNames": [
+        "Friction Pin with Bore - 30465",
+        "Corner Beam - 7x4x3 - 30465"
+      ],
+      "kind": "pin-hole",
+      "kinematicType": "cylindrical",
+      "axis": [
+        1,
+        0,
+        0
+      ],
+      "origin": [
+        0,
+        0,
+        0
+      ],
+      "releaseDirections": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          -1,
+          0,
+          0
+        ]
+      ],
+      "dof": {
+        "total": 2,
+        "translational": 1,
+        "rotational": 1,
+        "translationAxes": [
+          [
+            1,
+            0,
+            0
+          ]
+        ],
+        "rotationAxes": [
+          [
+            1,
+            0,
+            0
+          ]
+        ]
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": true,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 5.35,
+      "spanMm": [
+        5.25,
+        10.6
+      ],
+      "holderSpanMm": [
+        5.25,
+        10.6
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#24256",
+        "#25985",
+        "#26454",
+        "#36192",
+        "#47710",
+        "#79180"
+      ],
+      "note": "Cylindrical pin/bore fit: 1 translational DOF and 1 rotational DOF along axis."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO1/NAUO79:30465/NAUO1/NAUO80:0",
+      "pieces": [
+        "30465/NAUO1/NAUO79",
+        "30465/NAUO1/NAUO80"
+      ],
+      "pieceNames": [
+        "Axle - 30465_3 - Long",
+        "Corner Beam - 7x4x3 - 30465"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "cylindrical",
+      "axis": [
+        1,
+        1.176613783820849e-16,
+        -3.396171173333732e-17
+      ],
+      "origin": [
+        1.7763568394002505e-15,
+        -1.1512833605459895e-13,
+        32
+      ],
+      "releaseDirections": [
+        [
+          1,
+          1.176613783820849e-16,
+          -3.396171173333732e-17
+        ],
+        [
+          -1,
+          -1.176613783820849e-16,
+          3.396171173333732e-17
+        ]
+      ],
+      "dof": {
+        "total": 2,
+        "translational": 1,
+        "rotational": 1,
+        "translationAxes": [
+          [
+            1,
+            1.176613783820849e-16,
+            -3.396171173333732e-17
+          ]
+        ],
+        "rotationAxes": [
+          [
+            1,
+            1.176613783820849e-16,
+            -3.396171173333732e-17
+          ]
+        ]
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": true,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 7.225,
+      "spanMm": [
+        -11.225,
+        -4
+      ],
+      "holderSpanMm": [
+        -11.85,
+        -4
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#13394",
+        "#19221",
+        "#28774",
+        "#48145",
+        "#51990",
+        "#56203",
+        "#62443",
+        "#8316"
+      ],
+      "note": "Axle in round bore: 1 translational DOF and 1 rotational DOF along axis."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO1/NAUO79:30465/NAUO2/NAUO76:0",
+      "pieces": [
+        "30465/NAUO1/NAUO79",
+        "30465/NAUO2/NAUO76"
+      ],
+      "pieceNames": [
+        "Axle - 30465_3 - Long",
+        "Right Angle Beam - 4x2 - 30465"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "cylindrical",
+      "axis": [
+        1,
+        1.176613783820849e-16,
+        -3.396171173333732e-17
+      ],
+      "origin": [
+        1.7763568394002505e-15,
+        -1.1512833605459895e-13,
+        32
+      ],
+      "releaseDirections": [
+        [
+          1,
+          1.176613783820849e-16,
+          -3.396171173333732e-17
+        ],
+        [
+          -1,
+          -1.176613783820849e-16,
+          3.396171173333732e-17
+        ]
+      ],
+      "dof": {
+        "total": 2,
+        "translational": 1,
+        "rotational": 1,
+        "translationAxes": [
+          [
+            1,
+            1.176613783820849e-16,
+            -3.396171173333732e-17
+          ]
+        ],
+        "rotationAxes": [
+          [
+            1,
+            1.176613783820849e-16,
+            -3.396171173333732e-17
+          ]
+        ]
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": true,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 5.35,
+      "spanMm": [
+        -2.675,
+        2.675
+      ],
+      "holderSpanMm": [
+        -2.675,
+        2.675
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#2269",
+        "#28774",
+        "#48145",
+        "#51990",
+        "#56203",
+        "#76357",
+        "#8316"
+      ],
+      "note": "Axle in round bore: 1 translational DOF and 1 rotational DOF along axis."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO1/NAUO79:30465/NAUO23:0",
+      "pieces": [
+        "30465/NAUO1/NAUO79",
+        "30465/NAUO23"
+      ],
+      "pieceNames": [
+        "Axle - 30465_3 - Long",
+        "Corner Beam - 7x4x3 - 30465"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "cylindrical",
+      "axis": [
+        1,
+        1.176613783820849e-16,
+        -3.396171173333732e-17
+      ],
+      "origin": [
+        1.7763568394002505e-15,
+        -1.1512833605459895e-13,
+        32
+      ],
+      "releaseDirections": [
+        [
+          1,
+          1.176613783820849e-16,
+          -3.396171173333732e-17
+        ],
+        [
+          -1,
+          -1.176613783820849e-16,
+          3.396171173333732e-17
+        ]
+      ],
+      "dof": {
+        "total": 2,
+        "translational": 1,
+        "rotational": 1,
+        "translationAxes": [
+          [
+            1,
+            1.176613783820849e-16,
+            -3.396171173333732e-17
+          ]
+        ],
+        "rotationAxes": [
+          [
+            1,
+            1.176613783820849e-16,
+            -3.396171173333732e-17
+          ]
+        ]
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": true,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 7.225,
+      "spanMm": [
+        4,
+        11.225
+      ],
+      "holderSpanMm": [
+        4,
+        11.85
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#13394",
+        "#19221",
+        "#28774",
+        "#48145",
+        "#51990",
+        "#56203",
+        "#62443",
+        "#8316"
+      ],
+      "note": "Axle in round bore: 1 translational DOF and 1 rotational DOF along axis."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO1/NAUO80:30465/NAUO13/NAUO66:0",
+      "pieces": [
+        "30465/NAUO1/NAUO80",
+        "30465/NAUO13/NAUO66"
+      ],
+      "pieceNames": [
+        "Corner Beam - 7x4x3 - 30465",
+        "Axle - 30465_3 - Long"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "cylindrical",
+      "axis": [
+        1,
+        0,
+        -3.4914813388431334e-15
+      ],
+      "origin": [
+        -1.1191048088221578e-13,
+        32.00000000000018,
+        -31.999999999999886
+      ],
+      "releaseDirections": [
+        [
+          1,
+          0,
+          -3.4914813388431334e-15
+        ],
+        [
+          -1,
+          0,
+          3.4914813388431334e-15
+        ]
+      ],
+      "dof": {
+        "total": 2,
+        "translational": 1,
+        "rotational": 1,
+        "translationAxes": [
+          [
+            1,
+            0,
+            -3.4914813388431334e-15
+          ]
+        ],
+        "rotationAxes": [
+          [
+            1,
+            0,
+            -3.4914813388431334e-15
+          ]
+        ]
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": true,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 7.225,
+      "spanMm": [
+        -11.225,
+        -4
+      ],
+      "holderSpanMm": [
+        -11.85,
+        -4
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#28774",
+        "#48145",
+        "#50946",
+        "#51990",
+        "#56001",
+        "#56203",
+        "#56876",
+        "#8316",
+        "#84206"
+      ],
+      "note": "Axle in round bore: 1 translational DOF and 1 rotational DOF along axis."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO1/NAUO80:30465/NAUO2/NAUO77:0",
+      "pieces": [
+        "30465/NAUO1/NAUO80",
+        "30465/NAUO2/NAUO77"
+      ],
+      "pieceNames": [
+        "Corner Beam - 7x4x3 - 30465",
+        "Axle - 30465_6 - Long"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "cylindrical",
+      "axis": [
+        1,
+        2.1268331981663895e-16,
+        -1.1121731653083113e-16
+      ],
+      "origin": [
+        3.552713678800501e-15,
+        -5.833863547377239e-14,
+        15.999999999999996
+      ],
+      "releaseDirections": [
+        [
+          1,
+          2.1268331981663895e-16,
+          -1.1121731653083113e-16
+        ],
+        [
+          -1,
+          -2.1268331981663895e-16,
+          1.1121731653083113e-16
+        ]
+      ],
+      "dof": {
+        "total": 2,
+        "translational": 1,
+        "rotational": 1,
+        "translationAxes": [
+          [
+            1,
+            2.1268331981663895e-16,
+            -1.1121731653083113e-16
+          ]
+        ],
+        "rotationAxes": [
+          [
+            1,
+            2.1268331981663895e-16,
+            -1.1121731653083113e-16
+          ]
+        ]
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": true,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 5.35,
+      "spanMm": [
+        -10.6,
+        -5.25
+      ],
+      "holderSpanMm": [
+        -10.6,
+        -5.25
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#12267",
+        "#14021",
+        "#32501",
+        "#3377",
+        "#63688",
+        "#77869",
+        "#84935"
+      ],
+      "note": "Axle in round bore: 1 translational DOF and 1 rotational DOF along axis."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO1/NAUO80:30465/NAUO4/NAUO74:0",
+      "pieces": [
+        "30465/NAUO1/NAUO80",
+        "30465/NAUO4/NAUO74"
+      ],
+      "pieceNames": [
+        "Corner Beam - 7x4x3 - 30465",
+        "Axle - 30465_6 - Long"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "cylindrical",
+      "axis": [
+        1,
+        2.203902440112839e-18,
+        2.0990671579799633e-17
+      ],
+      "origin": [
+        0,
+        5.578870698741452e-14,
+        -16
+      ],
+      "releaseDirections": [
+        [
+          1,
+          2.203902440112839e-18,
+          2.0990671579799633e-17
+        ],
+        [
+          -1,
+          -2.203902440112839e-18,
+          -2.0990671579799633e-17
+        ]
+      ],
+      "dof": {
+        "total": 2,
+        "translational": 1,
+        "rotational": 1,
+        "translationAxes": [
+          [
+            1,
+            2.203902440112839e-18,
+            2.0990671579799633e-17
+          ]
+        ],
+        "rotationAxes": [
+          [
+            1,
+            2.203902440112839e-18,
+            2.0990671579799633e-17
+          ]
+        ]
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": true,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 5.35,
+      "spanMm": [
+        -10.6,
+        -5.25
+      ],
+      "holderSpanMm": [
+        -10.6,
+        -5.25
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#12267",
+        "#14021",
+        "#20546",
+        "#3377",
+        "#63688",
+        "#77869",
+        "#83630"
+      ],
+      "note": "Axle in round bore: 1 translational DOF and 1 rotational DOF along axis."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO1/NAUO80:30465/NAUO9:0",
+      "pieces": [
+        "30465/NAUO1/NAUO80",
+        "30465/NAUO9"
+      ],
+      "pieceNames": [
+        "Corner Beam - 7x4x3 - 30465",
+        "Friction Pin with Bore - 30465"
+      ],
+      "kind": "pin-hole",
+      "kinematicType": "cylindrical",
+      "axis": [
+        1,
+        0,
+        0
+      ],
+      "origin": [
+        0,
+        24.00000000000007,
+        -32
+      ],
+      "releaseDirections": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          -1,
+          0,
+          0
+        ]
+      ],
+      "dof": {
+        "total": 2,
+        "translational": 1,
+        "rotational": 1,
+        "translationAxes": [
+          [
+            1,
+            0,
+            0
+          ]
+        ],
+        "rotationAxes": [
+          [
+            1,
+            0,
+            0
+          ]
+        ]
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": true,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 5.35,
+      "spanMm": [
+        -10.6,
+        -5.25
+      ],
+      "holderSpanMm": [
+        -10.6,
+        -5.25
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#24256",
+        "#25985",
+        "#34756",
+        "#47710",
+        "#73112",
+        "#79180"
+      ],
+      "note": "Cylindrical pin/bore fit: 1 translational DOF and 1 rotational DOF along axis."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO1/NAUO81:30465/NAUO6:0",
+      "pieces": [
+        "30465/NAUO1/NAUO81",
+        "30465/NAUO6"
+      ],
+      "pieceNames": [
+        "Friction Pin - 30465",
+        "Beam - 5 Long - 30465"
+      ],
+      "kind": "pin-hole",
+      "kinematicType": "cylindrical",
+      "axis": [
+        0,
+        1,
+        3.4914813388431334e-15
+      ],
+      "origin": [
+        4.529787229198776e-32,
+        0,
+        -1.5777218104420236e-30
+      ],
+      "releaseDirections": [
+        [
+          0,
+          1,
+          3.4914813388431334e-15
+        ],
+        [
+          0,
+          -1,
+          -3.4914813388431334e-15
+        ]
+      ],
+      "dof": {
+        "total": 2,
+        "translational": 1,
+        "rotational": 1,
+        "translationAxes": [
+          [
+            0,
+            1,
+            3.4914813388431334e-15
+          ]
+        ],
+        "rotationAxes": [
+          [
+            0,
+            1,
+            3.4914813388431334e-15
+          ]
+        ]
+      },
+      "globalAxes": {
+        "tx": false,
+        "ty": true,
+        "tz": false,
+        "rx": false,
+        "ry": true,
+        "rz": false
+      },
+      "engagementMm": 5.35,
+      "spanMm": [
+        5.15,
+        10.5
+      ],
+      "holderSpanMm": [
+        5.15,
+        10.5
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#12021",
+        "#55644",
+        "#58059",
+        "#59599",
+        "#6642",
+        "#86108"
+      ],
+      "note": "Cylindrical pin/bore fit: 1 translational DOF and 1 rotational DOF along axis."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO10:30465/NAUO11/NAUO70:0",
+      "pieces": [
+        "30465/NAUO10",
+        "30465/NAUO11/NAUO70"
+      ],
+      "pieceNames": [
+        "One Sided Friction Pin with Bore - 30465",
+        "Axle - 30465_9 - Long"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "cylindrical",
+      "axis": [
+        6.039850435972806e-15,
+        -5.611167812195152e-15,
+        1
+      ],
+      "origin": [
+        -1.5922355728614524e-11,
+        24.000000000000007,
+        1.3500311979441904e-13
+      ],
+      "releaseDirections": [
+        [
+          6.039850435972806e-15,
+          -5.611167812195152e-15,
+          1
+        ],
+        [
+          -6.039850435972806e-15,
+          5.611167812195152e-15,
+          -1
+        ]
+      ],
+      "dof": {
+        "total": 2,
+        "translational": 1,
+        "rotational": 1,
+        "translationAxes": [
+          [
+            6.039850435972806e-15,
+            -5.611167812195152e-15,
+            1
+          ]
+        ],
+        "rotationAxes": [
+          [
+            6.039850435972806e-15,
+            -5.611167812195152e-15,
+            1
+          ]
+        ]
+      },
+      "globalAxes": {
+        "tx": false,
+        "ty": false,
+        "tz": true,
+        "rx": false,
+        "ry": false,
+        "rz": true
+      },
+      "engagementMm": 6.3,
+      "spanMm": [
+        -75.15,
+        -68.85
+      ],
+      "holderSpanMm": [
+        -75.15,
+        -68.85
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#32189",
+        "#35360",
+        "#36384",
+        "#45447",
+        "#65418",
+        "#67727",
+        "#73244"
+      ],
+      "note": "Axle in round bore: 1 translational DOF and 1 rotational DOF along axis."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO10:30465/NAUO7:0",
+      "pieces": [
+        "30465/NAUO10",
+        "30465/NAUO7"
+      ],
+      "pieceNames": [
+        "One Sided Friction Pin with Bore - 30465",
+        "Beam - 7 Long - 30465"
+      ],
+      "kind": "pin-hole",
+      "kinematicType": "cylindrical",
+      "axis": [
+        -3.4914813388431334e-15,
+        1,
+        3.491481338843109e-15
+      ],
+      "origin": [
+        -3.351293148704079e-13,
+        2.5224267119483557e-13,
+        -72.00000000000003
+      ],
+      "releaseDirections": [
+        [
+          -3.4914813388431334e-15,
+          1,
+          3.491481338843109e-15
+        ],
+        [
+          3.4914813388431334e-15,
+          -1,
+          -3.491481338843109e-15
+        ]
+      ],
+      "dof": {
+        "total": 2,
+        "translational": 1,
+        "rotational": 1,
+        "translationAxes": [
+          [
+            -3.4914813388431334e-15,
+            1,
+            3.491481338843109e-15
+          ]
+        ],
+        "rotationAxes": [
+          [
+            -3.4914813388431334e-15,
+            1,
+            3.491481338843109e-15
+          ]
+        ]
+      },
+      "globalAxes": {
+        "tx": false,
+        "ty": true,
+        "tz": false,
+        "rx": false,
+        "ry": true,
+        "rz": false
+      },
+      "engagementMm": 5.35,
+      "spanMm": [
+        13,
+        18.35
+      ],
+      "holderSpanMm": [
+        13,
+        18.35
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#1596",
+        "#32991",
+        "#68907",
+        "#82917"
+      ],
+      "note": "Cylindrical pin/bore fit: 1 translational DOF and 1 rotational DOF along axis."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO11/NAUO70:30465/NAUO11/NAUO71:0",
+      "pieces": [
+        "30465/NAUO11/NAUO70",
+        "30465/NAUO11/NAUO71"
+      ],
+      "pieceNames": [
+        "Axle - 30465_9 - Long",
+        "Bevel Gear - 12 Tooth - 30465"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "prismatic",
+      "axis": [
+        6.039850435972806e-15,
+        -5.611167812195152e-15,
+        1
+      ],
+      "origin": [
+        -1.5922355728614524e-11,
+        24.000000000000007,
+        1.3500311979441904e-13
+      ],
+      "releaseDirections": [
+        [
+          6.039850435972806e-15,
+          -5.611167812195152e-15,
+          1
+        ],
+        [
+          -6.039850435972806e-15,
+          5.611167812195152e-15,
+          -1
+        ]
+      ],
+      "dof": {
+        "total": 1,
+        "translational": 1,
+        "rotational": 0,
+        "translationAxes": [
+          [
+            6.039850435972806e-15,
+            -5.611167812195152e-15,
+            1
+          ]
+        ],
+        "rotationAxes": []
+      },
+      "globalAxes": {
+        "tx": false,
+        "ty": false,
+        "tz": true,
+        "rx": false,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 7.5,
+      "spanMm": [
+        -20.2,
+        -12.7
+      ],
+      "holderSpanMm": [
+        -20.2,
+        -12.2
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#34539",
+        "#35360",
+        "#35604",
+        "#36384",
+        "#45447",
+        "#52147",
+        "#57431",
+        "#57512",
+        "#67727",
+        "#73244"
+      ],
+      "note": "Cross-axle fit: 1 translational DOF along axis, axial rotation locked by cross profile."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO11/NAUO70:30465/NAUO11/NAUO72:0",
+      "pieces": [
+        "30465/NAUO11/NAUO70",
+        "30465/NAUO11/NAUO72"
+      ],
+      "pieceNames": [
+        "Axle - 30465_9 - Long",
+        "Large Bush - 30465"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "prismatic",
+      "axis": [
+        6.039850435972806e-15,
+        -5.611167812195152e-15,
+        1
+      ],
+      "origin": [
+        -1.5922355728614524e-11,
+        24.000000000000007,
+        1.3500311979441904e-13
+      ],
+      "releaseDirections": [
+        [
+          6.039850435972806e-15,
+          -5.611167812195152e-15,
+          1
+        ],
+        [
+          -6.039850435972806e-15,
+          5.611167812195152e-15,
+          -1
+        ]
+      ],
+      "dof": {
+        "total": 1,
+        "translational": 1,
+        "rotational": 0,
+        "translationAxes": [
+          [
+            6.039850435972806e-15,
+            -5.611167812195152e-15,
+            1
+          ]
+        ],
+        "rotationAxes": []
+      },
+      "globalAxes": {
+        "tx": false,
+        "ty": false,
+        "tz": true,
+        "rx": false,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 7.9,
+      "spanMm": [
+        -28.1,
+        -20.2
+      ],
+      "holderSpanMm": [
+        -28.1,
+        -20.2
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#30656",
+        "#32815",
+        "#35360",
+        "#36384",
+        "#45447",
+        "#572",
+        "#67727",
+        "#70978",
+        "#73244",
+        "#75036"
+      ],
+      "note": "Cross-axle fit: 1 translational DOF along axis, axial rotation locked by cross profile."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO11/NAUO70:30465/NAUO12:0",
+      "pieces": [
+        "30465/NAUO11/NAUO70",
+        "30465/NAUO12"
+      ],
+      "pieceNames": [
+        "Axle - 30465_9 - Long",
+        "Bevel Gear - 12 Tooth - 30465"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "prismatic",
+      "axis": [
+        6.039850435972806e-15,
+        -5.611167812195152e-15,
+        1
+      ],
+      "origin": [
+        -1.5922355728614524e-11,
+        24.000000000000007,
+        1.3500311979441904e-13
+      ],
+      "releaseDirections": [
+        [
+          6.039850435972806e-15,
+          -5.611167812195152e-15,
+          1
+        ],
+        [
+          -6.039850435972806e-15,
+          5.611167812195152e-15,
+          -1
+        ]
+      ],
+      "dof": {
+        "total": 1,
+        "translational": 1,
+        "rotational": 0,
+        "translationAxes": [
+          [
+            6.039850435972806e-15,
+            -5.611167812195152e-15,
+            1
+          ]
+        ],
+        "rotationAxes": []
+      },
+      "globalAxes": {
+        "tx": false,
+        "ty": false,
+        "tz": true,
+        "rx": false,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 7.5,
+      "spanMm": [
+        -83.2,
+        -75.7
+      ],
+      "holderSpanMm": [
+        -83.7,
+        -75.7
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#34539",
+        "#35360",
+        "#35604",
+        "#36384",
+        "#45447",
+        "#52147",
+        "#57431",
+        "#57512",
+        "#67727",
+        "#73244"
+      ],
+      "note": "Cross-axle fit: 1 translational DOF along axis, axial rotation locked by cross profile."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO11/NAUO70:30465/NAUO9:0",
+      "pieces": [
+        "30465/NAUO11/NAUO70",
+        "30465/NAUO9"
+      ],
+      "pieceNames": [
+        "Axle - 30465_9 - Long",
+        "Friction Pin with Bore - 30465"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "cylindrical",
+      "axis": [
+        6.039850435972806e-15,
+        -5.611167812195152e-15,
+        1
+      ],
+      "origin": [
+        -1.5922355728614524e-11,
+        24.000000000000007,
+        1.3500311979441904e-13
+      ],
+      "releaseDirections": [
+        [
+          6.039850435972806e-15,
+          -5.611167812195152e-15,
+          1
+        ],
+        [
+          -6.039850435972806e-15,
+          5.611167812195152e-15,
+          -1
+        ]
+      ],
+      "dof": {
+        "total": 2,
+        "translational": 1,
+        "rotational": 1,
+        "translationAxes": [
+          [
+            6.039850435972806e-15,
+            -5.611167812195152e-15,
+            1
+          ]
+        ],
+        "rotationAxes": [
+          [
+            6.039850435972806e-15,
+            -5.611167812195152e-15,
+            1
+          ]
+        ]
+      },
+      "globalAxes": {
+        "tx": false,
+        "ty": false,
+        "tz": true,
+        "rx": false,
+        "ry": false,
+        "rz": true
+      },
+      "engagementMm": 6.3,
+      "spanMm": [
+        -35.15,
+        -28.85
+      ],
+      "holderSpanMm": [
+        -35.15,
+        -28.85
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#33570",
+        "#35360",
+        "#36384",
+        "#45447",
+        "#67727",
+        "#73244",
+        "#7410"
+      ],
+      "note": "Axle in round bore: 1 translational DOF and 1 rotational DOF along axis."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO13/NAUO66:30465/NAUO13/NAUO68:0",
+      "pieces": [
+        "30465/NAUO13/NAUO66",
+        "30465/NAUO13/NAUO68"
+      ],
+      "pieceNames": [
+        "Axle - 30465_3 - Long",
+        "2 Beam with Axle Holes - 30465"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "prismatic",
+      "axis": [
+        1,
+        0,
+        -3.4914813388431334e-15
+      ],
+      "origin": [
+        -1.1191048088221578e-13,
+        32.00000000000018,
+        -31.999999999999886
+      ],
+      "releaseDirections": [
+        [
+          1,
+          0,
+          -3.4914813388431334e-15
+        ],
+        [
+          -1,
+          0,
+          3.4914813388431334e-15
+        ]
+      ],
+      "dof": {
+        "total": 1,
+        "translational": 1,
+        "rotational": 0,
+        "translationAxes": [
+          [
+            1,
+            0,
+            -3.4914813388431334e-15
+          ]
+        ],
+        "rotationAxes": []
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": false,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 4,
+      "spanMm": [
+        -4,
+        0
+      ],
+      "holderSpanMm": [
+        -4,
+        0
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#28774",
+        "#34405",
+        "#48145",
+        "#51990",
+        "#56203",
+        "#57873",
+        "#61491",
+        "#62045",
+        "#63779",
+        "#8316"
+      ],
+      "note": "Cross-axle fit: 1 translational DOF along axis, axial rotation locked by cross profile."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO13/NAUO66:30465/NAUO13/NAUO69:0",
+      "pieces": [
+        "30465/NAUO13/NAUO66",
+        "30465/NAUO13/NAUO69"
+      ],
+      "pieceNames": [
+        "Axle - 30465_3 - Long",
+        "2 Beam with Axle Holes - 30465"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "prismatic",
+      "axis": [
+        1,
+        0,
+        -3.4914813388431334e-15
+      ],
+      "origin": [
+        -1.1191048088221578e-13,
+        32.00000000000018,
+        -31.999999999999886
+      ],
+      "releaseDirections": [
+        [
+          1,
+          0,
+          -3.4914813388431334e-15
+        ],
+        [
+          -1,
+          0,
+          3.4914813388431334e-15
+        ]
+      ],
+      "dof": {
+        "total": 1,
+        "translational": 1,
+        "rotational": 0,
+        "translationAxes": [
+          [
+            1,
+            0,
+            -3.4914813388431334e-15
+          ]
+        ],
+        "rotationAxes": []
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": false,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 4,
+      "spanMm": [
+        0,
+        4
+      ],
+      "holderSpanMm": [
+        0,
+        4
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#28774",
+        "#34405",
+        "#48145",
+        "#51990",
+        "#56203",
+        "#57873",
+        "#61491",
+        "#62045",
+        "#63779",
+        "#8316"
+      ],
+      "note": "Cross-axle fit: 1 translational DOF along axis, axial rotation locked by cross profile."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO13/NAUO66:30465/NAUO23:0",
+      "pieces": [
+        "30465/NAUO13/NAUO66",
+        "30465/NAUO23"
+      ],
+      "pieceNames": [
+        "Axle - 30465_3 - Long",
+        "Corner Beam - 7x4x3 - 30465"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "cylindrical",
+      "axis": [
+        1,
+        0,
+        -3.4914813388431334e-15
+      ],
+      "origin": [
+        -1.1191048088221578e-13,
+        32.00000000000018,
+        -31.999999999999886
+      ],
+      "releaseDirections": [
+        [
+          1,
+          0,
+          -3.4914813388431334e-15
+        ],
+        [
+          -1,
+          0,
+          3.4914813388431334e-15
+        ]
+      ],
+      "dof": {
+        "total": 2,
+        "translational": 1,
+        "rotational": 1,
+        "translationAxes": [
+          [
+            1,
+            0,
+            -3.4914813388431334e-15
+          ]
+        ],
+        "rotationAxes": [
+          [
+            1,
+            0,
+            -3.4914813388431334e-15
+          ]
+        ]
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": true,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 7.225,
+      "spanMm": [
+        4,
+        11.225
+      ],
+      "holderSpanMm": [
+        4,
+        11.85
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#28774",
+        "#48145",
+        "#50946",
+        "#51990",
+        "#56001",
+        "#56203",
+        "#56876",
+        "#8316",
+        "#84206"
+      ],
+      "note": "Axle in round bore: 1 translational DOF and 1 rotational DOF along axis."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO13/NAUO67:30465/NAUO13/NAUO68:0",
+      "pieces": [
+        "30465/NAUO13/NAUO67",
+        "30465/NAUO13/NAUO68"
+      ],
+      "pieceNames": [
+        "Axle - 30465_3 - Long",
+        "2 Beam with Axle Holes - 30465"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "prismatic",
+      "axis": [
+        1,
+        0,
+        -3.4914813388431334e-15
+      ],
+      "origin": [
+        -8.348877145181177e-14,
+        32.00000000000018,
+        -23.999999999999886
+      ],
+      "releaseDirections": [
+        [
+          1,
+          0,
+          -3.4914813388431334e-15
+        ],
+        [
+          -1,
+          0,
+          3.4914813388431334e-15
+        ]
+      ],
+      "dof": {
+        "total": 1,
+        "translational": 1,
+        "rotational": 0,
+        "translationAxes": [
+          [
+            1,
+            0,
+            -3.4914813388431334e-15
+          ]
+        ],
+        "rotationAxes": []
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": false,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 4,
+      "spanMm": [
+        -4,
+        0
+      ],
+      "holderSpanMm": [
+        -4,
+        0
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#10977",
+        "#28774",
+        "#37973",
+        "#48145",
+        "#51990",
+        "#52184",
+        "#56203",
+        "#57318",
+        "#76898",
+        "#8316"
+      ],
+      "note": "Cross-axle fit: 1 translational DOF along axis, axial rotation locked by cross profile."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO13/NAUO67:30465/NAUO13/NAUO69:0",
+      "pieces": [
+        "30465/NAUO13/NAUO67",
+        "30465/NAUO13/NAUO69"
+      ],
+      "pieceNames": [
+        "Axle - 30465_3 - Long",
+        "2 Beam with Axle Holes - 30465"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "prismatic",
+      "axis": [
+        1,
+        0,
+        -3.4914813388431334e-15
+      ],
+      "origin": [
+        -8.348877145181177e-14,
+        32.00000000000018,
+        -23.999999999999886
+      ],
+      "releaseDirections": [
+        [
+          1,
+          0,
+          -3.4914813388431334e-15
+        ],
+        [
+          -1,
+          0,
+          3.4914813388431334e-15
+        ]
+      ],
+      "dof": {
+        "total": 1,
+        "translational": 1,
+        "rotational": 0,
+        "translationAxes": [
+          [
+            1,
+            0,
+            -3.4914813388431334e-15
+          ]
+        ],
+        "rotationAxes": []
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": false,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 4,
+      "spanMm": [
+        0,
+        4
+      ],
+      "holderSpanMm": [
+        0,
+        4
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#10977",
+        "#28774",
+        "#37973",
+        "#48145",
+        "#51990",
+        "#52184",
+        "#56203",
+        "#57318",
+        "#76898",
+        "#8316"
+      ],
+      "note": "Cross-axle fit: 1 translational DOF along axis, axial rotation locked by cross profile."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO13/NAUO67:30465/NAUO18:0",
+      "pieces": [
+        "30465/NAUO13/NAUO67",
+        "30465/NAUO18"
+      ],
+      "pieceNames": [
+        "Axle - 30465_3 - Long",
+        "4 Beam with Extension - 30465"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "cylindrical",
+      "axis": [
+        1,
+        0,
+        -3.4914813388431334e-15
+      ],
+      "origin": [
+        -8.348877145181177e-14,
+        32.00000000000018,
+        -23.999999999999886
+      ],
+      "releaseDirections": [
+        [
+          1,
+          0,
+          -3.4914813388431334e-15
+        ],
+        [
+          -1,
+          0,
+          3.4914813388431334e-15
+        ]
+      ],
+      "dof": {
+        "total": 2,
+        "translational": 1,
+        "rotational": 1,
+        "translationAxes": [
+          [
+            1,
+            0,
+            -3.4914813388431334e-15
+          ]
+        ],
+        "rotationAxes": [
+          [
+            1,
+            0,
+            -3.4914813388431334e-15
+          ]
+        ]
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": true,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 3.375,
+      "spanMm": [
+        -11.225,
+        -7.85
+      ],
+      "holderSpanMm": [
+        -11.85,
+        -7.85
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#11535",
+        "#28774",
+        "#48145",
+        "#51990",
+        "#56203",
+        "#6470",
+        "#73312",
+        "#77584",
+        "#8316"
+      ],
+      "note": "Axle in round bore: 1 translational DOF and 1 rotational DOF along axis."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO13/NAUO67:30465/NAUO27:0",
+      "pieces": [
+        "30465/NAUO13/NAUO67",
+        "30465/NAUO27"
+      ],
+      "pieceNames": [
+        "Axle - 30465_3 - Long",
+        "4 Beam with Extension - 30465"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "cylindrical",
+      "axis": [
+        1,
+        0,
+        -3.4914813388431334e-15
+      ],
+      "origin": [
+        -8.348877145181177e-14,
+        32.00000000000018,
+        -23.999999999999886
+      ],
+      "releaseDirections": [
+        [
+          1,
+          0,
+          -3.4914813388431334e-15
+        ],
+        [
+          -1,
+          0,
+          3.4914813388431334e-15
+        ]
+      ],
+      "dof": {
+        "total": 2,
+        "translational": 1,
+        "rotational": 1,
+        "translationAxes": [
+          [
+            1,
+            0,
+            -3.4914813388431334e-15
+          ]
+        ],
+        "rotationAxes": [
+          [
+            1,
+            0,
+            -3.4914813388431334e-15
+          ]
+        ]
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": true,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 3.375,
+      "spanMm": [
+        7.85,
+        11.225
+      ],
+      "holderSpanMm": [
+        7.85,
+        11.85
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#11535",
+        "#28774",
+        "#48145",
+        "#51990",
+        "#56203",
+        "#6470",
+        "#73312",
+        "#77584",
+        "#8316"
+      ],
+      "note": "Axle in round bore: 1 translational DOF and 1 rotational DOF along axis."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO14/NAUO64:30465/NAUO14/NAUO65:0",
+      "pieces": [
+        "30465/NAUO14/NAUO64",
+        "30465/NAUO14/NAUO65"
+      ],
+      "pieceNames": [
+        "Axle - 30465_3 - Long",
+        "Small Bush - 30565"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "prismatic",
+      "axis": [
+        1,
+        1.0474444016529425e-14,
+        -3.4914813388431334e-15
+      ],
+      "origin": [
+        5.684341886080802e-14,
+        7.999999999999857,
+        39.99999999999999
+      ],
+      "releaseDirections": [
+        [
+          1,
+          1.0474444016529425e-14,
+          -3.4914813388431334e-15
+        ],
+        [
+          -1,
+          -1.0474444016529425e-14,
+          3.4914813388431334e-15
+        ]
+      ],
+      "dof": {
+        "total": 1,
+        "translational": 1,
+        "rotational": 0,
+        "translationAxes": [
+          [
+            1,
+            1.0474444016529425e-14,
+            -3.4914813388431334e-15
+          ]
+        ],
+        "rotationAxes": []
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": false,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 3.95,
+      "spanMm": [
+        -7.875,
+        -3.925
+      ],
+      "holderSpanMm": [
+        -7.875,
+        -3.925
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#26011",
+        "#28774",
+        "#47996",
+        "#48145",
+        "#51990",
+        "#56203",
+        "#7013",
+        "#74700",
+        "#75366",
+        "#8316"
+      ],
+      "note": "Cross-axle fit: 1 translational DOF along axis, axial rotation locked by cross profile."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO14/NAUO64:30465/NAUO15:0",
+      "pieces": [
+        "30465/NAUO14/NAUO64",
+        "30465/NAUO15"
+      ],
+      "pieceNames": [
+        "Axle - 30465_3 - Long",
+        "Small Bush - 30565"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "prismatic",
+      "axis": [
+        1,
+        1.0474444016529425e-14,
+        -3.4914813388431334e-15
+      ],
+      "origin": [
+        5.684341886080802e-14,
+        7.999999999999857,
+        39.99999999999999
+      ],
+      "releaseDirections": [
+        [
+          1,
+          1.0474444016529425e-14,
+          -3.4914813388431334e-15
+        ],
+        [
+          -1,
+          -1.0474444016529425e-14,
+          3.4914813388431334e-15
+        ]
+      ],
+      "dof": {
+        "total": 1,
+        "translational": 1,
+        "rotational": 0,
+        "translationAxes": [
+          [
+            1,
+            1.0474444016529425e-14,
+            -3.4914813388431334e-15
+          ]
+        ],
+        "rotationAxes": []
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": false,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 3.95,
+      "spanMm": [
+        3.925,
+        7.875
+      ],
+      "holderSpanMm": [
+        3.925,
+        7.875
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#26011",
+        "#28774",
+        "#47996",
+        "#48145",
+        "#51990",
+        "#56203",
+        "#7013",
+        "#74700",
+        "#75366",
+        "#8316"
+      ],
+      "note": "Cross-axle fit: 1 translational DOF along axis, axial rotation locked by cross profile."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO14/NAUO64:30465/NAUO16:0",
+      "pieces": [
+        "30465/NAUO14/NAUO64",
+        "30465/NAUO16"
+      ],
+      "pieceNames": [
+        "Axle - 30465_3 - Long",
+        "Right Angle Beam with Curve - 5x3 - 30465"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "cylindrical",
+      "axis": [
+        1,
+        1.0474444016529425e-14,
+        -3.4914813388431334e-15
+      ],
+      "origin": [
+        5.684341886080802e-14,
+        7.999999999999857,
+        39.99999999999999
+      ],
+      "releaseDirections": [
+        [
+          1,
+          1.0474444016529425e-14,
+          -3.4914813388431334e-15
+        ],
+        [
+          -1,
+          -1.0474444016529425e-14,
+          3.4914813388431334e-15
+        ]
+      ],
+      "dof": {
+        "total": 2,
+        "translational": 1,
+        "rotational": 1,
+        "translationAxes": [
+          [
+            1,
+            1.0474444016529425e-14,
+            -3.4914813388431334e-15
+          ]
+        ],
+        "rotationAxes": [
+          [
+            1,
+            1.0474444016529425e-14,
+            -3.4914813388431334e-15
+          ]
+        ]
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": true,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 3.35,
+      "spanMm": [
+        -11.225,
+        -7.875
+      ],
+      "holderSpanMm": [
+        -11.875,
+        -7.875
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#28774",
+        "#48145",
+        "#51990",
+        "#56203",
+        "#59576",
+        "#62315",
+        "#76928",
+        "#8316"
+      ],
+      "note": "Axle in round bore: 1 translational DOF and 1 rotational DOF along axis."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO14/NAUO64:30465/NAUO2/NAUO76:0",
+      "pieces": [
+        "30465/NAUO14/NAUO64",
+        "30465/NAUO2/NAUO76"
+      ],
+      "pieceNames": [
+        "Axle - 30465_3 - Long",
+        "Right Angle Beam - 4x2 - 30465"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "cylindrical",
+      "axis": [
+        1,
+        1.0474444016529425e-14,
+        -3.4914813388431334e-15
+      ],
+      "origin": [
+        5.684341886080802e-14,
+        7.999999999999857,
+        39.99999999999999
+      ],
+      "releaseDirections": [
+        [
+          1,
+          1.0474444016529425e-14,
+          -3.4914813388431334e-15
+        ],
+        [
+          -1,
+          -1.0474444016529425e-14,
+          3.4914813388431334e-15
+        ]
+      ],
+      "dof": {
+        "total": 2,
+        "translational": 1,
+        "rotational": 1,
+        "translationAxes": [
+          [
+            1,
+            1.0474444016529425e-14,
+            -3.4914813388431334e-15
+          ]
+        ],
+        "rotationAxes": [
+          [
+            1,
+            1.0474444016529425e-14,
+            -3.4914813388431334e-15
+          ]
+        ]
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": true,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 5.35,
+      "spanMm": [
+        -2.675,
+        2.675
+      ],
+      "holderSpanMm": [
+        -2.675,
+        2.675
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#19607",
+        "#28774",
+        "#48145",
+        "#51990",
+        "#56203",
+        "#75619",
+        "#8316"
+      ],
+      "note": "Axle in round bore: 1 translational DOF and 1 rotational DOF along axis."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO14/NAUO64:30465/NAUO26:0",
+      "pieces": [
+        "30465/NAUO14/NAUO64",
+        "30465/NAUO26"
+      ],
+      "pieceNames": [
+        "Axle - 30465_3 - Long",
+        "Right Angle Beam with Curve - 5x3 - 30465"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "cylindrical",
+      "axis": [
+        1,
+        1.0474444016529425e-14,
+        -3.4914813388431334e-15
+      ],
+      "origin": [
+        5.684341886080802e-14,
+        7.999999999999857,
+        39.99999999999999
+      ],
+      "releaseDirections": [
+        [
+          1,
+          1.0474444016529425e-14,
+          -3.4914813388431334e-15
+        ],
+        [
+          -1,
+          -1.0474444016529425e-14,
+          3.4914813388431334e-15
+        ]
+      ],
+      "dof": {
+        "total": 2,
+        "translational": 1,
+        "rotational": 1,
+        "translationAxes": [
+          [
+            1,
+            1.0474444016529425e-14,
+            -3.4914813388431334e-15
+          ]
+        ],
+        "rotationAxes": [
+          [
+            1,
+            1.0474444016529425e-14,
+            -3.4914813388431334e-15
+          ]
+        ]
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": true,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 3.35,
+      "spanMm": [
+        7.875,
+        11.225
+      ],
+      "holderSpanMm": [
+        7.875,
+        11.875
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#28774",
+        "#48145",
+        "#51990",
+        "#56203",
+        "#59576",
+        "#62315",
+        "#76928",
+        "#8316"
+      ],
+      "note": "Axle in round bore: 1 translational DOF and 1 rotational DOF along axis."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO16:30465/NAUO17/NAUO57:0",
+      "pieces": [
+        "30465/NAUO16",
+        "30465/NAUO17/NAUO57"
+      ],
+      "pieceNames": [
+        "Right Angle Beam with Curve - 5x3 - 30465",
+        "Axle - 30465_3 - Long"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "cylindrical",
+      "axis": [
+        1,
+        -6.982962677686267e-15,
+        -3.4914813388431334e-15
+      ],
+      "origin": [
+        1.9539925233402755e-13,
+        23.999999999999858,
+        8.000000000000057
+      ],
+      "releaseDirections": [
+        [
+          1,
+          -6.982962677686267e-15,
+          -3.4914813388431334e-15
+        ],
+        [
+          -1,
+          6.982962677686267e-15,
+          3.4914813388431334e-15
+        ]
+      ],
+      "dof": {
+        "total": 2,
+        "translational": 1,
+        "rotational": 1,
+        "translationAxes": [
+          [
+            1,
+            -6.982962677686267e-15,
+            -3.4914813388431334e-15
+          ]
+        ],
+        "rotationAxes": [
+          [
+            1,
+            -6.982962677686267e-15,
+            -3.4914813388431334e-15
+          ]
+        ]
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": true,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 3.35,
+      "spanMm": [
+        -11.225,
+        -7.875
+      ],
+      "holderSpanMm": [
+        -11.875,
+        -7.875
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#28774",
+        "#48145",
+        "#51990",
+        "#56203",
+        "#62369",
+        "#65497",
+        "#8316",
+        "#86549",
+        "#9178"
+      ],
+      "note": "Axle in round bore: 1 translational DOF and 1 rotational DOF along axis."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO17/NAUO56:30465/NAUO17/NAUO57:0",
+      "pieces": [
+        "30465/NAUO17/NAUO56",
+        "30465/NAUO17/NAUO57"
+      ],
+      "pieceNames": [
+        "Cross Block - 3 Long - 30465",
+        "Axle - 30465_3 - Long"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "prismatic",
+      "axis": [
+        1,
+        -6.982962677686267e-15,
+        -3.4914813388431334e-15
+      ],
+      "origin": [
+        1.9539925233402755e-13,
+        23.999999999999858,
+        8.000000000000057
+      ],
+      "releaseDirections": [
+        [
+          1,
+          -6.982962677686267e-15,
+          -3.4914813388431334e-15
+        ],
+        [
+          -1,
+          6.982962677686267e-15,
+          3.4914813388431334e-15
+        ]
+      ],
+      "dof": {
+        "total": 1,
+        "translational": 1,
+        "rotational": 0,
+        "translationAxes": [
+          [
+            1,
+            -6.982962677686267e-15,
+            -3.4914813388431334e-15
+          ]
+        ],
+        "rotationAxes": []
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": false,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 7.4,
+      "spanMm": [
+        -3.7,
+        3.7
+      ],
+      "holderSpanMm": [
+        -3.7,
+        3.7
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#28049",
+        "#28774",
+        "#32194",
+        "#42762",
+        "#48145",
+        "#51990",
+        "#56203",
+        "#68845",
+        "#72381",
+        "#8316"
+      ],
+      "note": "Cross-axle fit: 1 translational DOF along axis, axial rotation locked by cross profile."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO17/NAUO56:30465/NAUO17/NAUO58:0",
+      "pieces": [
+        "30465/NAUO17/NAUO56",
+        "30465/NAUO17/NAUO58"
+      ],
+      "pieceNames": [
+        "Cross Block - 3 Long - 30465",
+        "Friction Pin - 30465"
+      ],
+      "kind": "pin-hole",
+      "kinematicType": "cylindrical",
+      "axis": [
+        -3.4914813388431334e-15,
+        1,
+        0
+      ],
+      "origin": [
+        3.663424617236222e-13,
+        0,
+        5.861977570020827e-14
+      ],
+      "releaseDirections": [
+        [
+          -3.4914813388431334e-15,
+          1,
+          0
+        ],
+        [
+          3.4914813388431334e-15,
+          -1,
+          0
+        ]
+      ],
+      "dof": {
+        "total": 2,
+        "translational": 1,
+        "rotational": 1,
+        "translationAxes": [
+          [
+            -3.4914813388431334e-15,
+            1,
+            0
+          ]
+        ],
+        "rotationAxes": [
+          [
+            -3.4914813388431334e-15,
+            1,
+            0
+          ]
+        ]
+      },
+      "globalAxes": {
+        "tx": false,
+        "ty": true,
+        "tz": false,
+        "rx": false,
+        "ry": true,
+        "rz": false
+      },
+      "engagementMm": 5.8,
+      "spanMm": [
+        21.1,
+        26.9
+      ],
+      "holderSpanMm": [
+        21.1,
+        26.9
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#31357",
+        "#55644",
+        "#59599",
+        "#6642",
+        "#71625",
+        "#86108"
+      ],
+      "note": "Cylindrical pin/bore fit: 1 translational DOF and 1 rotational DOF along axis."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO17/NAUO56:30465/NAUO19/NAUO52:0",
+      "pieces": [
+        "30465/NAUO17/NAUO56",
+        "30465/NAUO19/NAUO52"
+      ],
+      "pieceNames": [
+        "Cross Block - 3 Long - 30465",
+        "Axle - 30465_7 - Long"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "prismatic",
+      "axis": [
+        -9.056656556702388e-15,
+        1,
+        6.263976122806508e-16
+      ],
+      "origin": [
+        3.315692706508506e-13,
+        5.329070518200751e-15,
+        -7.999999999999933
+      ],
+      "releaseDirections": [
+        [
+          -9.056656556702388e-15,
+          1,
+          6.263976122806508e-16
+        ],
+        [
+          9.056656556702388e-15,
+          -1,
+          -6.263976122806508e-16
+        ]
+      ],
+      "dof": {
+        "total": 1,
+        "translational": 1,
+        "rotational": 0,
+        "translationAxes": [
+          [
+            -9.056656556702388e-15,
+            1,
+            6.263976122806508e-16
+          ]
+        ],
+        "rotationAxes": []
+      },
+      "globalAxes": {
+        "tx": false,
+        "ty": true,
+        "tz": false,
+        "rx": false,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 5.8,
+      "spanMm": [
+        21.1,
+        26.9
+      ],
+      "holderSpanMm": [
+        21.1,
+        26.9
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#25258",
+        "#37485",
+        "#53827",
+        "#69924",
+        "#71335",
+        "#74377",
+        "#87005"
+      ],
+      "note": "Cross-axle fit: 1 translational DOF along axis, axial rotation locked by cross profile."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO17/NAUO57:30465/NAUO17/NAUO60:0",
+      "pieces": [
+        "30465/NAUO17/NAUO57",
+        "30465/NAUO17/NAUO60"
+      ],
+      "pieceNames": [
+        "Axle - 30465_3 - Long",
+        "Small Bush - 30565"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "prismatic",
+      "axis": [
+        1,
+        -6.982962677686267e-15,
+        -3.4914813388431334e-15
+      ],
+      "origin": [
+        1.9539925233402755e-13,
+        23.999999999999858,
+        8.000000000000057
+      ],
+      "releaseDirections": [
+        [
+          1,
+          -6.982962677686267e-15,
+          -3.4914813388431334e-15
+        ],
+        [
+          -1,
+          6.982962677686267e-15,
+          3.4914813388431334e-15
+        ]
+      ],
+      "dof": {
+        "total": 1,
+        "translational": 1,
+        "rotational": 0,
+        "translationAxes": [
+          [
+            1,
+            -6.982962677686267e-15,
+            -3.4914813388431334e-15
+          ]
+        ],
+        "rotationAxes": []
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": false,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 3.95,
+      "spanMm": [
+        -7.65,
+        -3.7
+      ],
+      "holderSpanMm": [
+        -7.65,
+        -3.7
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#26011",
+        "#28774",
+        "#47996",
+        "#48145",
+        "#51990",
+        "#56203",
+        "#7013",
+        "#74700",
+        "#75366",
+        "#8316"
+      ],
+      "note": "Cross-axle fit: 1 translational DOF along axis, axial rotation locked by cross profile."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO17/NAUO57:30465/NAUO17/NAUO63:0",
+      "pieces": [
+        "30465/NAUO17/NAUO57",
+        "30465/NAUO17/NAUO63"
+      ],
+      "pieceNames": [
+        "Axle - 30465_3 - Long",
+        "Small Bush - 30565"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "prismatic",
+      "axis": [
+        1,
+        -6.982962677686267e-15,
+        -3.4914813388431334e-15
+      ],
+      "origin": [
+        1.9539925233402755e-13,
+        23.999999999999858,
+        8.000000000000057
+      ],
+      "releaseDirections": [
+        [
+          1,
+          -6.982962677686267e-15,
+          -3.4914813388431334e-15
+        ],
+        [
+          -1,
+          6.982962677686267e-15,
+          3.4914813388431334e-15
+        ]
+      ],
+      "dof": {
+        "total": 1,
+        "translational": 1,
+        "rotational": 0,
+        "translationAxes": [
+          [
+            1,
+            -6.982962677686267e-15,
+            -3.4914813388431334e-15
+          ]
+        ],
+        "rotationAxes": []
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": false,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 3.95,
+      "spanMm": [
+        3.7,
+        7.65
+      ],
+      "holderSpanMm": [
+        3.7,
+        7.65
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#26011",
+        "#28774",
+        "#47996",
+        "#48145",
+        "#51990",
+        "#56203",
+        "#7013",
+        "#74700",
+        "#75366",
+        "#8316"
+      ],
+      "note": "Cross-axle fit: 1 translational DOF along axis, axial rotation locked by cross profile."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO17/NAUO57:30465/NAUO26:0",
+      "pieces": [
+        "30465/NAUO17/NAUO57",
+        "30465/NAUO26"
+      ],
+      "pieceNames": [
+        "Axle - 30465_3 - Long",
+        "Right Angle Beam with Curve - 5x3 - 30465"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "cylindrical",
+      "axis": [
+        1,
+        -6.982962677686267e-15,
+        -3.4914813388431334e-15
+      ],
+      "origin": [
+        1.9539925233402755e-13,
+        23.999999999999858,
+        8.000000000000057
+      ],
+      "releaseDirections": [
+        [
+          1,
+          -6.982962677686267e-15,
+          -3.4914813388431334e-15
+        ],
+        [
+          -1,
+          6.982962677686267e-15,
+          3.4914813388431334e-15
+        ]
+      ],
+      "dof": {
+        "total": 2,
+        "translational": 1,
+        "rotational": 1,
+        "translationAxes": [
+          [
+            1,
+            -6.982962677686267e-15,
+            -3.4914813388431334e-15
+          ]
+        ],
+        "rotationAxes": [
+          [
+            1,
+            -6.982962677686267e-15,
+            -3.4914813388431334e-15
+          ]
+        ]
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": true,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 3.35,
+      "spanMm": [
+        7.875,
+        11.225
+      ],
+      "holderSpanMm": [
+        7.875,
+        11.875
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#28774",
+        "#48145",
+        "#51990",
+        "#56203",
+        "#62369",
+        "#65497",
+        "#8316",
+        "#86549",
+        "#9178"
+      ],
+      "note": "Axle in round bore: 1 translational DOF and 1 rotational DOF along axis."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO17/NAUO58:30465/NAUO17/NAUO59:0",
+      "pieces": [
+        "30465/NAUO17/NAUO58",
+        "30465/NAUO17/NAUO59"
+      ],
+      "pieceNames": [
+        "Friction Pin - 30465",
+        "Axle with Bore - 30465"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "cylindrical",
+      "axis": [
+        -3.4914813388431334e-15,
+        1,
+        0
+      ],
+      "origin": [
+        3.663424617236222e-13,
+        0,
+        5.861977570020827e-14
+      ],
+      "releaseDirections": [
+        [
+          -3.4914813388431334e-15,
+          1,
+          0
+        ],
+        [
+          3.4914813388431334e-15,
+          -1,
+          0
+        ]
+      ],
+      "dof": {
+        "total": 2,
+        "translational": 1,
+        "rotational": 1,
+        "translationAxes": [
+          [
+            -3.4914813388431334e-15,
+            1,
+            0
+          ]
+        ],
+        "rotationAxes": [
+          [
+            -3.4914813388431334e-15,
+            1,
+            0
+          ]
+        ]
+      },
+      "globalAxes": {
+        "tx": false,
+        "ty": true,
+        "tz": false,
+        "rx": false,
+        "ry": true,
+        "rz": false
+      },
+      "engagementMm": 6.3,
+      "spanMm": [
+        28.85,
+        35.15
+      ],
+      "holderSpanMm": [
+        28.85,
+        35.15
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#24922",
+        "#40400",
+        "#55644",
+        "#59599",
+        "#6642",
+        "#86108"
+      ],
+      "note": "Axle in round bore: 1 translational DOF and 1 rotational DOF along axis."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO17/NAUO59:30465/NAUO17/NAUO61:0",
+      "pieces": [
+        "30465/NAUO17/NAUO59",
+        "30465/NAUO17/NAUO61"
+      ],
+      "pieceNames": [
+        "Axle with Bore - 30465",
+        "2 Beam with Axle Holes - 30465"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "prismatic",
+      "axis": [
+        1,
+        6.982962677686254e-15,
+        -3.4914813388431334e-15
+      ],
+      "origin": [
+        -2.2382096176443156e-13,
+        31.999999999999552,
+        8.750321950800576e-14
+      ],
+      "releaseDirections": [
+        [
+          1,
+          6.982962677686254e-15,
+          -3.4914813388431334e-15
+        ],
+        [
+          -1,
+          -6.982962677686254e-15,
+          3.4914813388431334e-15
+        ]
+      ],
+      "dof": {
+        "total": 1,
+        "translational": 1,
+        "rotational": 0,
+        "translationAxes": [
+          [
+            1,
+            6.982962677686254e-15,
+            -3.4914813388431334e-15
+          ]
+        ],
+        "rotationAxes": []
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": false,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 4,
+      "spanMm": [
+        -7.7,
+        -3.7
+      ],
+      "holderSpanMm": [
+        -11.2,
+        11.2
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#10977",
+        "#19475",
+        "#24498",
+        "#2744",
+        "#29878",
+        "#30733",
+        "#32847",
+        "#37973",
+        "#43436",
+        "#52184",
+        "#55056",
+        "#57318",
+        "#76898",
+        "#7968",
+        "#85635"
+      ],
+      "note": "Cross-axle fit: 1 translational DOF along axis, axial rotation locked by cross profile."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO17/NAUO59:30465/NAUO17/NAUO62:0",
+      "pieces": [
+        "30465/NAUO17/NAUO59",
+        "30465/NAUO17/NAUO62"
+      ],
+      "pieceNames": [
+        "Axle with Bore - 30465",
+        "2 Beam with Axle Holes - 30465"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "prismatic",
+      "axis": [
+        1,
+        -6.982962677686254e-15,
+        3.4914813388431334e-15
+      ],
+      "origin": [
+        2.233768725545815e-13,
+        31.999999999999552,
+        8.750321950800437e-14
+      ],
+      "releaseDirections": [
+        [
+          1,
+          -6.982962677686254e-15,
+          3.4914813388431334e-15
+        ],
+        [
+          -1,
+          6.982962677686254e-15,
+          -3.4914813388431334e-15
+        ]
+      ],
+      "dof": {
+        "total": 1,
+        "translational": 1,
+        "rotational": 0,
+        "translationAxes": [
+          [
+            1,
+            -6.982962677686254e-15,
+            3.4914813388431334e-15
+          ]
+        ],
+        "rotationAxes": []
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": false,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 4,
+      "spanMm": [
+        3.7,
+        7.7
+      ],
+      "holderSpanMm": [
+        -11.2,
+        11.2
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#10977",
+        "#19475",
+        "#24498",
+        "#2744",
+        "#29878",
+        "#30733",
+        "#32847",
+        "#37973",
+        "#43436",
+        "#52184",
+        "#55056",
+        "#57318",
+        "#76898",
+        "#7968",
+        "#85635"
+      ],
+      "note": "Cross-axle fit: 1 translational DOF along axis, axial rotation locked by cross profile."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO17/NAUO59:30465/NAUO18:0",
+      "pieces": [
+        "30465/NAUO17/NAUO59",
+        "30465/NAUO18"
+      ],
+      "pieceNames": [
+        "Axle with Bore - 30465",
+        "4 Beam with Extension - 30465"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "cylindrical",
+      "axis": [
+        1,
+        6.982962677686291e-15,
+        -6.982962677686242e-15
+      ],
+      "origin": [
+        -2.2382096176443156e-13,
+        31.999999999999556,
+        8.704148513061543e-14
+      ],
+      "releaseDirections": [
+        [
+          1,
+          6.982962677686291e-15,
+          -6.982962677686242e-15
+        ],
+        [
+          -1,
+          -6.982962677686291e-15,
+          6.982962677686242e-15
+        ]
+      ],
+      "dof": {
+        "total": 2,
+        "translational": 1,
+        "rotational": 1,
+        "translationAxes": [
+          [
+            1,
+            6.982962677686291e-15,
+            -6.982962677686242e-15
+          ]
+        ],
+        "rotationAxes": [
+          [
+            1,
+            6.982962677686291e-15,
+            -6.982962677686242e-15
+          ]
+        ]
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": true,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 3.35,
+      "spanMm": [
+        -11.2,
+        -7.85
+      ],
+      "holderSpanMm": [
+        -11.85,
+        -7.85
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#10448",
+        "#16040",
+        "#19475",
+        "#24498",
+        "#2744",
+        "#29878",
+        "#30733",
+        "#32847",
+        "#43436",
+        "#55056",
+        "#7968",
+        "#82884",
+        "#85635"
+      ],
+      "note": "Axle in round bore: 1 translational DOF and 1 rotational DOF along axis."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO17/NAUO59:30465/NAUO27:0",
+      "pieces": [
+        "30465/NAUO17/NAUO59",
+        "30465/NAUO27"
+      ],
+      "pieceNames": [
+        "Axle with Bore - 30465",
+        "4 Beam with Extension - 30465"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "cylindrical",
+      "axis": [
+        1,
+        6.982962677686291e-15,
+        -6.982962677686242e-15
+      ],
+      "origin": [
+        -2.2382096176443156e-13,
+        31.999999999999556,
+        8.704148513061543e-14
+      ],
+      "releaseDirections": [
+        [
+          1,
+          6.982962677686291e-15,
+          -6.982962677686242e-15
+        ],
+        [
+          -1,
+          -6.982962677686291e-15,
+          6.982962677686242e-15
+        ]
+      ],
+      "dof": {
+        "total": 2,
+        "translational": 1,
+        "rotational": 1,
+        "translationAxes": [
+          [
+            1,
+            6.982962677686291e-15,
+            -6.982962677686242e-15
+          ]
+        ],
+        "rotationAxes": [
+          [
+            1,
+            6.982962677686291e-15,
+            -6.982962677686242e-15
+          ]
+        ]
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": true,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 3.35,
+      "spanMm": [
+        7.85,
+        11.2
+      ],
+      "holderSpanMm": [
+        7.85,
+        11.85
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#10448",
+        "#16040",
+        "#19475",
+        "#24498",
+        "#2744",
+        "#29878",
+        "#30733",
+        "#32847",
+        "#43436",
+        "#55056",
+        "#7968",
+        "#82884",
+        "#85635"
+      ],
+      "note": "Axle in round bore: 1 translational DOF and 1 rotational DOF along axis."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO19/NAUO52:30465/NAUO19/NAUO54:0",
+      "pieces": [
+        "30465/NAUO19/NAUO52",
+        "30465/NAUO19/NAUO54"
+      ],
+      "pieceNames": [
+        "Axle - 30465_7 - Long",
+        "Axle Joint - 30465"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "prismatic",
+      "axis": [
+        -9.056656556702388e-15,
+        1,
+        6.263976122806508e-16
+      ],
+      "origin": [
+        3.315692706508506e-13,
+        5.329070518200751e-15,
+        -7.999999999999933
+      ],
+      "releaseDirections": [
+        [
+          -9.056656556702388e-15,
+          1,
+          6.263976122806508e-16
+        ],
+        [
+          9.056656556702388e-15,
+          -1,
+          -6.263976122806508e-16
+        ]
+      ],
+      "dof": {
+        "total": 1,
+        "translational": 1,
+        "rotational": 0,
+        "translationAxes": [
+          [
+            -9.056656556702388e-15,
+            1,
+            6.263976122806508e-16
+          ]
+        ],
+        "rotationAxes": []
+      },
+      "globalAxes": {
+        "tx": false,
+        "ty": true,
+        "tz": false,
+        "rx": false,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 6,
+      "spanMm": [
+        35.6,
+        41.6
+      ],
+      "holderSpanMm": [
+        35.6,
+        42.1
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#24228",
+        "#25258",
+        "#26599",
+        "#48633",
+        "#55165",
+        "#69924",
+        "#71335",
+        "#72834",
+        "#74377",
+        "#87005"
+      ],
+      "note": "Cross-axle fit: 1 translational DOF along axis, axial rotation locked by cross profile."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO19/NAUO52:30465/NAUO19/NAUO55:0",
+      "pieces": [
+        "30465/NAUO19/NAUO52",
+        "30465/NAUO19/NAUO55"
+      ],
+      "pieceNames": [
+        "Axle - 30465_7 - Long",
+        "Large Bush - 30465"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "prismatic",
+      "axis": [
+        -9.056656556702388e-15,
+        1,
+        6.263976122806508e-16
+      ],
+      "origin": [
+        3.315692706508506e-13,
+        5.329070518200751e-15,
+        -7.999999999999933
+      ],
+      "releaseDirections": [
+        [
+          -9.056656556702388e-15,
+          1,
+          6.263976122806508e-16
+        ],
+        [
+          9.056656556702388e-15,
+          -1,
+          -6.263976122806508e-16
+        ]
+      ],
+      "dof": {
+        "total": 1,
+        "translational": 1,
+        "rotational": 0,
+        "translationAxes": [
+          [
+            -9.056656556702388e-15,
+            1,
+            6.263976122806508e-16
+          ]
+        ],
+        "rotationAxes": []
+      },
+      "globalAxes": {
+        "tx": false,
+        "ty": true,
+        "tz": false,
+        "rx": false,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 7.9,
+      "spanMm": [
+        27.7,
+        35.6
+      ],
+      "holderSpanMm": [
+        27.7,
+        35.6
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#25258",
+        "#30656",
+        "#32815",
+        "#572",
+        "#69924",
+        "#70978",
+        "#71335",
+        "#74377",
+        "#75036",
+        "#87005"
+      ],
+      "note": "Cross-axle fit: 1 translational DOF along axis, axial rotation locked by cross profile."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO19/NAUO52:30465/NAUO20:0",
+      "pieces": [
+        "30465/NAUO19/NAUO52",
+        "30465/NAUO20"
+      ],
+      "pieceNames": [
+        "Axle - 30465_7 - Long",
+        "Bevel Gear - 12 Tooth - 30465"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "prismatic",
+      "axis": [
+        -9.056656556702388e-15,
+        1,
+        6.263976122806508e-16
+      ],
+      "origin": [
+        3.315692706508506e-13,
+        5.329070518200751e-15,
+        -7.999999999999933
+      ],
+      "releaseDirections": [
+        [
+          -9.056656556702388e-15,
+          1,
+          6.263976122806508e-16
+        ],
+        [
+          9.056656556702388e-15,
+          -1,
+          -6.263976122806508e-16
+        ]
+      ],
+      "dof": {
+        "total": 1,
+        "translational": 1,
+        "rotational": 0,
+        "translationAxes": [
+          [
+            -9.056656556702388e-15,
+            1,
+            6.263976122806508e-16
+          ]
+        ],
+        "rotationAxes": []
+      },
+      "globalAxes": {
+        "tx": false,
+        "ty": true,
+        "tz": false,
+        "rx": false,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 8,
+      "spanMm": [
+        12.3,
+        20.3
+      ],
+      "holderSpanMm": [
+        12.3,
+        20.3
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#25258",
+        "#34539",
+        "#35604",
+        "#52147",
+        "#57431",
+        "#57512",
+        "#69924",
+        "#71335",
+        "#74377",
+        "#87005"
+      ],
+      "note": "Cross-axle fit: 1 translational DOF along axis, axial rotation locked by cross profile."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO19/NAUO52:30465/NAUO21:0",
+      "pieces": [
+        "30465/NAUO19/NAUO52",
+        "30465/NAUO21"
+      ],
+      "pieceNames": [
+        "Axle - 30465_7 - Long",
+        "Large Bush - 30465"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "prismatic",
+      "axis": [
+        -9.056656556702388e-15,
+        1,
+        6.263976122806508e-16
+      ],
+      "origin": [
+        3.315692706508506e-13,
+        5.329070518200751e-15,
+        -7.999999999999933
+      ],
+      "releaseDirections": [
+        [
+          -9.056656556702388e-15,
+          1,
+          6.263976122806508e-16
+        ],
+        [
+          9.056656556702388e-15,
+          -1,
+          -6.263976122806508e-16
+        ]
+      ],
+      "dof": {
+        "total": 1,
+        "translational": 1,
+        "rotational": 0,
+        "translationAxes": [
+          [
+            -9.056656556702388e-15,
+            1,
+            6.263976122806508e-16
+          ]
+        ],
+        "rotationAxes": []
+      },
+      "globalAxes": {
+        "tx": false,
+        "ty": true,
+        "tz": false,
+        "rx": false,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 7.9,
+      "spanMm": [
+        -4,
+        3.9
+      ],
+      "holderSpanMm": [
+        -4,
+        3.9
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#25258",
+        "#30656",
+        "#32815",
+        "#572",
+        "#69924",
+        "#70978",
+        "#71335",
+        "#74377",
+        "#75036",
+        "#87005"
+      ],
+      "note": "Cross-axle fit: 1 translational DOF along axis, axial rotation locked by cross profile."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO19/NAUO52:30465/NAUO22:0",
+      "pieces": [
+        "30465/NAUO19/NAUO52",
+        "30465/NAUO22"
+      ],
+      "pieceNames": [
+        "Axle - 30465_7 - Long",
+        "Bevel Gear - 12 Tooth - 30465"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "prismatic",
+      "axis": [
+        -9.056656556702388e-15,
+        1,
+        6.263976122806508e-16
+      ],
+      "origin": [
+        3.315692706508506e-13,
+        5.329070518200751e-15,
+        -7.999999999999933
+      ],
+      "releaseDirections": [
+        [
+          -9.056656556702388e-15,
+          1,
+          6.263976122806508e-16
+        ],
+        [
+          9.056656556702388e-15,
+          -1,
+          -6.263976122806508e-16
+        ]
+      ],
+      "dof": {
+        "total": 1,
+        "translational": 1,
+        "rotational": 0,
+        "translationAxes": [
+          [
+            -9.056656556702388e-15,
+            1,
+            6.263976122806508e-16
+          ]
+        ],
+        "rotationAxes": []
+      },
+      "globalAxes": {
+        "tx": false,
+        "ty": true,
+        "tz": false,
+        "rx": false,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 8,
+      "spanMm": [
+        -12,
+        -4
+      ],
+      "holderSpanMm": [
+        -12,
+        -4
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#25258",
+        "#34539",
+        "#35604",
+        "#52147",
+        "#57431",
+        "#57512",
+        "#69924",
+        "#71335",
+        "#74377",
+        "#87005"
+      ],
+      "note": "Cross-axle fit: 1 translational DOF along axis, axial rotation locked by cross profile."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO19/NAUO52:30465/NAUO6:0",
+      "pieces": [
+        "30465/NAUO19/NAUO52",
+        "30465/NAUO6"
+      ],
+      "pieceNames": [
+        "Axle - 30465_7 - Long",
+        "Beam - 5 Long - 30465"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "cylindrical",
+      "axis": [
+        -9.056656556702388e-15,
+        1,
+        6.263976122806508e-16
+      ],
+      "origin": [
+        3.315692706508506e-13,
+        5.329070518200751e-15,
+        -7.999999999999933
+      ],
+      "releaseDirections": [
+        [
+          -9.056656556702388e-15,
+          1,
+          6.263976122806508e-16
+        ],
+        [
+          9.056656556702388e-15,
+          -1,
+          -6.263976122806508e-16
+        ]
+      ],
+      "dof": {
+        "total": 2,
+        "translational": 1,
+        "rotational": 1,
+        "translationAxes": [
+          [
+            -9.056656556702388e-15,
+            1,
+            6.263976122806508e-16
+          ]
+        ],
+        "rotationAxes": [
+          [
+            -9.056656556702388e-15,
+            1,
+            6.263976122806508e-16
+          ]
+        ]
+      },
+      "globalAxes": {
+        "tx": false,
+        "ty": true,
+        "tz": false,
+        "rx": false,
+        "ry": true,
+        "rz": false
+      },
+      "engagementMm": 5.35,
+      "spanMm": [
+        5.15,
+        10.5
+      ],
+      "holderSpanMm": [
+        5.15,
+        10.5
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#25258",
+        "#26267",
+        "#69924",
+        "#71335",
+        "#74377",
+        "#75848",
+        "#87005"
+      ],
+      "note": "Axle in round bore: 1 translational DOF and 1 rotational DOF along axis."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO19/NAUO53:30465/NAUO19/NAUO54:0",
+      "pieces": [
+        "30465/NAUO19/NAUO53",
+        "30465/NAUO19/NAUO54"
+      ],
+      "pieceNames": [
+        "Axle - 30465_3 - Long",
+        "Axle Joint - 30465"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "prismatic",
+      "axis": [
+        0.9208816014565616,
+        4.604430723070925e-15,
+        0.3898423734008379
+      ],
+      "origin": [
+        2.8719893530634923,
+        47.49999999999986,
+        -6.784183391209155
+      ],
+      "releaseDirections": [
+        [
+          0.9208816014565616,
+          4.604430723070925e-15,
+          0.3898423734008379
+        ],
+        [
+          -0.9208816014565616,
+          -4.604430723070925e-15,
+          -0.3898423734008379
+        ]
+      ],
+      "dof": {
+        "total": 1,
+        "translational": 1,
+        "rotational": 0,
+        "translationAxes": [
+          [
+            0.9208816014565616,
+            4.604430723070925e-15,
+            0.3898423734008379
+          ]
+        ],
+        "rotationAxes": []
+      },
+      "globalAxes": {
+        "tx": false,
+        "ty": false,
+        "tz": false,
+        "rx": false,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 7.8,
+      "spanMm": [
+        -7.0187,
+        0.7813
+      ],
+      "holderSpanMm": [
+        -7.0187,
+        0.7813
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#28001",
+        "#28774",
+        "#48145",
+        "#51990",
+        "#56203",
+        "#59960",
+        "#76271",
+        "#79008",
+        "#8316",
+        "#909"
+      ],
+      "note": "Cross-axle fit: 1 translational DOF along axis, axial rotation locked by cross profile."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO19/NAUO53:30465/NAUO36:0",
+      "pieces": [
+        "30465/NAUO19/NAUO53",
+        "30465/NAUO36"
+      ],
+      "pieceNames": [
+        "Axle - 30465_3 - Long",
+        "Large Rotor Blade - 30465"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "prismatic",
+      "axis": [
+        0.9208816014565616,
+        4.604430723070925e-15,
+        0.3898423734008379
+      ],
+      "origin": [
+        2.8719893530634923,
+        47.49999999999986,
+        -6.784183391209155
+      ],
+      "releaseDirections": [
+        [
+          0.9208816014565616,
+          4.604430723070925e-15,
+          0.3898423734008379
+        ],
+        [
+          -0.9208816014565616,
+          -4.604430723070925e-15,
+          -0.3898423734008379
+        ]
+      ],
+      "dof": {
+        "total": 1,
+        "translational": 1,
+        "rotational": 0,
+        "translationAxes": [
+          [
+            0.9208816014565616,
+            4.604430723070925e-15,
+            0.3898423734008379
+          ]
+        ],
+        "rotationAxes": []
+      },
+      "globalAxes": {
+        "tx": false,
+        "ty": false,
+        "tz": false,
+        "rx": false,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 7.325,
+      "spanMm": [
+        0.7813,
+        8.1063
+      ],
+      "holderSpanMm": [
+        0.7813,
+        8.6813
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#28774",
+        "#36809",
+        "#40498",
+        "#4648",
+        "#48145",
+        "#51990",
+        "#56203",
+        "#66411",
+        "#68763",
+        "#8316"
+      ],
+      "note": "Cross-axle fit: 1 translational DOF along axis, axial rotation locked by cross profile."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO19/NAUO53:30465/NAUO37:0",
+      "pieces": [
+        "30465/NAUO19/NAUO53",
+        "30465/NAUO37"
+      ],
+      "pieceNames": [
+        "Axle - 30465_3 - Long",
+        "Large Rotor Blade - 30465"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "prismatic",
+      "axis": [
+        0.9208816014565616,
+        4.604430723070925e-15,
+        0.3898423734008379
+      ],
+      "origin": [
+        2.8719893530634923,
+        47.49999999999986,
+        -6.784183391209155
+      ],
+      "releaseDirections": [
+        [
+          0.9208816014565616,
+          4.604430723070925e-15,
+          0.3898423734008379
+        ],
+        [
+          -0.9208816014565616,
+          -4.604430723070925e-15,
+          -0.3898423734008379
+        ]
+      ],
+      "dof": {
+        "total": 1,
+        "translational": 1,
+        "rotational": 0,
+        "translationAxes": [
+          [
+            0.9208816014565616,
+            4.604430723070925e-15,
+            0.3898423734008379
+          ]
+        ],
+        "rotationAxes": []
+      },
+      "globalAxes": {
+        "tx": false,
+        "ty": false,
+        "tz": false,
+        "rx": false,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 7.325,
+      "spanMm": [
+        -14.3437,
+        -7.0187
+      ],
+      "holderSpanMm": [
+        -14.9187,
+        -7.0187
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#28774",
+        "#36809",
+        "#40498",
+        "#4648",
+        "#48145",
+        "#51990",
+        "#56203",
+        "#66411",
+        "#68763",
+        "#8316"
+      ],
+      "note": "Cross-axle fit: 1 translational DOF along axis, axial rotation locked by cross profile."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO2/NAUO76:30465/NAUO2/NAUO77:0",
+      "pieces": [
+        "30465/NAUO2/NAUO76",
+        "30465/NAUO2/NAUO77"
+      ],
+      "pieceNames": [
+        "Right Angle Beam - 4x2 - 30465",
+        "Axle - 30465_6 - Long"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "cylindrical",
+      "axis": [
+        1,
+        2.1268331981663895e-16,
+        -1.1121731653083113e-16
+      ],
+      "origin": [
+        3.552713678800501e-15,
+        -5.833863547377239e-14,
+        15.999999999999996
+      ],
+      "releaseDirections": [
+        [
+          1,
+          2.1268331981663895e-16,
+          -1.1121731653083113e-16
+        ],
+        [
+          -1,
+          -2.1268331981663895e-16,
+          1.1121731653083113e-16
+        ]
+      ],
+      "dof": {
+        "total": 2,
+        "translational": 1,
+        "rotational": 1,
+        "translationAxes": [
+          [
+            1,
+            2.1268331981663895e-16,
+            -1.1121731653083113e-16
+          ]
+        ],
+        "rotationAxes": [
+          [
+            1,
+            2.1268331981663895e-16,
+            -1.1121731653083113e-16
+          ]
+        ]
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": true,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 7.85,
+      "spanMm": [
+        -3.925,
+        3.925
+      ],
+      "holderSpanMm": [
+        -3.925,
+        3.925
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#1118",
+        "#12267",
+        "#14021",
+        "#3377",
+        "#46266",
+        "#49931",
+        "#63688",
+        "#77869"
+      ],
+      "note": "Axle in round bore: 1 translational DOF and 1 rotational DOF along axis."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO2/NAUO77:30465/NAUO23:0",
+      "pieces": [
+        "30465/NAUO2/NAUO77",
+        "30465/NAUO23"
+      ],
+      "pieceNames": [
+        "Axle - 30465_6 - Long",
+        "Corner Beam - 7x4x3 - 30465"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "cylindrical",
+      "axis": [
+        1,
+        2.1268331981663895e-16,
+        -1.1121731653083113e-16
+      ],
+      "origin": [
+        3.552713678800501e-15,
+        -5.833863547377239e-14,
+        15.999999999999996
+      ],
+      "releaseDirections": [
+        [
+          1,
+          2.1268331981663895e-16,
+          -1.1121731653083113e-16
+        ],
+        [
+          -1,
+          -2.1268331981663895e-16,
+          1.1121731653083113e-16
+        ]
+      ],
+      "dof": {
+        "total": 2,
+        "translational": 1,
+        "rotational": 1,
+        "translationAxes": [
+          [
+            1,
+            2.1268331981663895e-16,
+            -1.1121731653083113e-16
+          ]
+        ],
+        "rotationAxes": [
+          [
+            1,
+            2.1268331981663895e-16,
+            -1.1121731653083113e-16
+          ]
+        ]
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": true,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 5.35,
+      "spanMm": [
+        5.25,
+        10.6
+      ],
+      "holderSpanMm": [
+        5.25,
+        10.6
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#12267",
+        "#14021",
+        "#32501",
+        "#3377",
+        "#63688",
+        "#77869",
+        "#84935"
+      ],
+      "note": "Axle in round bore: 1 translational DOF and 1 rotational DOF along axis."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO2/NAUO77:30465/NAUO25:0",
+      "pieces": [
+        "30465/NAUO2/NAUO77",
+        "30465/NAUO25"
+      ],
+      "pieceNames": [
+        "Axle - 30465_6 - Long",
+        "Small Bush - 30565"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "prismatic",
+      "axis": [
+        1,
+        2.1268331981663895e-16,
+        -1.1121731653083113e-16
+      ],
+      "origin": [
+        3.552713678800501e-15,
+        -5.833863547377239e-14,
+        15.999999999999996
+      ],
+      "releaseDirections": [
+        [
+          1,
+          2.1268331981663895e-16,
+          -1.1121731653083113e-16
+        ],
+        [
+          -1,
+          -2.1268331981663895e-16,
+          1.1121731653083113e-16
+        ]
+      ],
+      "dof": {
+        "total": 1,
+        "translational": 1,
+        "rotational": 0,
+        "translationAxes": [
+          [
+            1,
+            2.1268331981663895e-16,
+            -1.1121731653083113e-16
+          ]
+        ],
+        "rotationAxes": []
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": false,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 3.95,
+      "spanMm": [
+        11.85,
+        15.8
+      ],
+      "holderSpanMm": [
+        11.85,
+        15.8
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#12267",
+        "#14021",
+        "#26011",
+        "#3377",
+        "#47996",
+        "#63688",
+        "#7013",
+        "#74700",
+        "#75366",
+        "#77869"
+      ],
+      "note": "Cross-axle fit: 1 translational DOF along axis, axial rotation locked by cross profile."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO2/NAUO77:30465/NAUO30:0",
+      "pieces": [
+        "30465/NAUO2/NAUO77",
+        "30465/NAUO30"
+      ],
+      "pieceNames": [
+        "Axle - 30465_6 - Long",
+        "Cross Block - 30465"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "prismatic",
+      "axis": [
+        1,
+        2.1268331981663895e-16,
+        -1.1121731653083113e-16
+      ],
+      "origin": [
+        3.552713678800501e-15,
+        -5.833863547377239e-14,
+        15.999999999999996
+      ],
+      "releaseDirections": [
+        [
+          1,
+          2.1268331981663895e-16,
+          -1.1121731653083113e-16
+        ],
+        [
+          -1,
+          -2.1268331981663895e-16,
+          1.1121731653083113e-16
+        ]
+      ],
+      "dof": {
+        "total": 1,
+        "translational": 1,
+        "rotational": 0,
+        "translationAxes": [
+          [
+            1,
+            2.1268331981663895e-16,
+            -1.1121731653083113e-16
+          ]
+        ],
+        "rotationAxes": []
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": false,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 7.4,
+      "spanMm": [
+        -23.2,
+        -15.8
+      ],
+      "holderSpanMm": [
+        -23.2,
+        -15.8
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#12267",
+        "#14021",
+        "#3377",
+        "#3927",
+        "#59018",
+        "#63688",
+        "#66643",
+        "#74162",
+        "#77869",
+        "#78016"
+      ],
+      "note": "Cross-axle fit: 1 translational DOF along axis, axial rotation locked by cross profile."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO2/NAUO77:30465/NAUO31:0",
+      "pieces": [
+        "30465/NAUO2/NAUO77",
+        "30465/NAUO31"
+      ],
+      "pieceNames": [
+        "Axle - 30465_6 - Long",
+        "Cross Block - 30465"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "prismatic",
+      "axis": [
+        1,
+        2.1268331981663895e-16,
+        -1.1121731653083113e-16
+      ],
+      "origin": [
+        3.552713678800501e-15,
+        -5.833863547377239e-14,
+        15.999999999999996
+      ],
+      "releaseDirections": [
+        [
+          1,
+          2.1268331981663895e-16,
+          -1.1121731653083113e-16
+        ],
+        [
+          -1,
+          -2.1268331981663895e-16,
+          1.1121731653083113e-16
+        ]
+      ],
+      "dof": {
+        "total": 1,
+        "translational": 1,
+        "rotational": 0,
+        "translationAxes": [
+          [
+            1,
+            2.1268331981663895e-16,
+            -1.1121731653083113e-16
+          ]
+        ],
+        "rotationAxes": []
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": false,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 7.4,
+      "spanMm": [
+        15.8,
+        23.2
+      ],
+      "holderSpanMm": [
+        15.8,
+        23.2
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#12267",
+        "#14021",
+        "#3377",
+        "#3927",
+        "#59018",
+        "#63688",
+        "#66643",
+        "#74162",
+        "#77869",
+        "#78016"
+      ],
+      "note": "Cross-axle fit: 1 translational DOF along axis, axial rotation locked by cross profile."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO2/NAUO77:30465/NAUO3:0",
+      "pieces": [
+        "30465/NAUO2/NAUO77",
+        "30465/NAUO3"
+      ],
+      "pieceNames": [
+        "Axle - 30465_6 - Long",
+        "Small Bush - 30565"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "prismatic",
+      "axis": [
+        1,
+        2.1268331981663895e-16,
+        -1.1121731653083113e-16
+      ],
+      "origin": [
+        3.552713678800501e-15,
+        -5.833863547377239e-14,
+        15.999999999999996
+      ],
+      "releaseDirections": [
+        [
+          1,
+          2.1268331981663895e-16,
+          -1.1121731653083113e-16
+        ],
+        [
+          -1,
+          -2.1268331981663895e-16,
+          1.1121731653083113e-16
+        ]
+      ],
+      "dof": {
+        "total": 1,
+        "translational": 1,
+        "rotational": 0,
+        "translationAxes": [
+          [
+            1,
+            2.1268331981663895e-16,
+            -1.1121731653083113e-16
+          ]
+        ],
+        "rotationAxes": []
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": false,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 3.95,
+      "spanMm": [
+        -15.8,
+        -11.85
+      ],
+      "holderSpanMm": [
+        -15.8,
+        -11.85
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#12267",
+        "#14021",
+        "#26011",
+        "#3377",
+        "#47996",
+        "#63688",
+        "#7013",
+        "#74700",
+        "#75366",
+        "#77869"
+      ],
+      "note": "Cross-axle fit: 1 translational DOF along axis, axial rotation locked by cross profile."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO23:30465/NAUO4/NAUO74:0",
+      "pieces": [
+        "30465/NAUO23",
+        "30465/NAUO4/NAUO74"
+      ],
+      "pieceNames": [
+        "Corner Beam - 7x4x3 - 30465",
+        "Axle - 30465_6 - Long"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "cylindrical",
+      "axis": [
+        1,
+        2.203902440112839e-18,
+        2.0990671579799633e-17
+      ],
+      "origin": [
+        0,
+        5.578870698741452e-14,
+        -16
+      ],
+      "releaseDirections": [
+        [
+          1,
+          2.203902440112839e-18,
+          2.0990671579799633e-17
+        ],
+        [
+          -1,
+          -2.203902440112839e-18,
+          -2.0990671579799633e-17
+        ]
+      ],
+      "dof": {
+        "total": 2,
+        "translational": 1,
+        "rotational": 1,
+        "translationAxes": [
+          [
+            1,
+            2.203902440112839e-18,
+            2.0990671579799633e-17
+          ]
+        ],
+        "rotationAxes": [
+          [
+            1,
+            2.203902440112839e-18,
+            2.0990671579799633e-17
+          ]
+        ]
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": true,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 5.35,
+      "spanMm": [
+        5.25,
+        10.6
+      ],
+      "holderSpanMm": [
+        5.25,
+        10.6
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#12267",
+        "#14021",
+        "#20546",
+        "#3377",
+        "#63688",
+        "#77869",
+        "#83630"
+      ],
+      "note": "Axle in round bore: 1 translational DOF and 1 rotational DOF along axis."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO23:30465/NAUO9:0",
+      "pieces": [
+        "30465/NAUO23",
+        "30465/NAUO9"
+      ],
+      "pieceNames": [
+        "Corner Beam - 7x4x3 - 30465",
+        "Friction Pin with Bore - 30465"
+      ],
+      "kind": "pin-hole",
+      "kinematicType": "cylindrical",
+      "axis": [
+        1,
+        0,
+        0
+      ],
+      "origin": [
+        0,
+        24.00000000000007,
+        -32
+      ],
+      "releaseDirections": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          -1,
+          0,
+          0
+        ]
+      ],
+      "dof": {
+        "total": 2,
+        "translational": 1,
+        "rotational": 1,
+        "translationAxes": [
+          [
+            1,
+            0,
+            0
+          ]
+        ],
+        "rotationAxes": [
+          [
+            1,
+            0,
+            0
+          ]
+        ]
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": true,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 5.35,
+      "spanMm": [
+        5.25,
+        10.6
+      ],
+      "holderSpanMm": [
+        5.25,
+        10.6
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#24256",
+        "#25985",
+        "#34756",
+        "#47710",
+        "#73112",
+        "#79180"
+      ],
+      "note": "Cylindrical pin/bore fit: 1 translational DOF and 1 rotational DOF along axis."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO24:30465/NAUO4/NAUO74:0",
+      "pieces": [
+        "30465/NAUO24",
+        "30465/NAUO4/NAUO74"
+      ],
+      "pieceNames": [
+        "Small Bush - 30565",
+        "Axle - 30465_6 - Long"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "prismatic",
+      "axis": [
+        1,
+        2.203902440112839e-18,
+        2.0990671579799633e-17
+      ],
+      "origin": [
+        0,
+        5.578870698741452e-14,
+        -16
+      ],
+      "releaseDirections": [
+        [
+          1,
+          2.203902440112839e-18,
+          2.0990671579799633e-17
+        ],
+        [
+          -1,
+          -2.203902440112839e-18,
+          -2.0990671579799633e-17
+        ]
+      ],
+      "dof": {
+        "total": 1,
+        "translational": 1,
+        "rotational": 0,
+        "translationAxes": [
+          [
+            1,
+            2.203902440112839e-18,
+            2.0990671579799633e-17
+          ]
+        ],
+        "rotationAxes": []
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": false,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 3.95,
+      "spanMm": [
+        11.85,
+        15.8
+      ],
+      "holderSpanMm": [
+        11.85,
+        15.8
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#12267",
+        "#14021",
+        "#26011",
+        "#3377",
+        "#47996",
+        "#63688",
+        "#7013",
+        "#74700",
+        "#75366",
+        "#77869"
+      ],
+      "note": "Cross-axle fit: 1 translational DOF along axis, axial rotation locked by cross profile."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO28/NAUO42:30465/NAUO28/NAUO43:0",
+      "pieces": [
+        "30465/NAUO28/NAUO42",
+        "30465/NAUO28/NAUO43"
+      ],
+      "pieceNames": [
+        "Axle - 30465_2 - Long - with Cuts",
+        "Tail Fairing - 30465"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "cylindrical",
+      "axis": [
+        6.982962677686267e-15,
+        0,
+        1
+      ],
+      "origin": [
+        -4.265188162634213e-11,
+        8.05,
+        0
+      ],
+      "releaseDirections": [
+        [
+          6.982962677686267e-15,
+          0,
+          1
+        ],
+        [
+          -6.982962677686267e-15,
+          0,
+          -1
+        ]
+      ],
+      "dof": {
+        "total": 2,
+        "translational": 1,
+        "rotational": 1,
+        "translationAxes": [
+          [
+            6.982962677686267e-15,
+            0,
+            1
+          ]
+        ],
+        "rotationAxes": [
+          [
+            6.982962677686267e-15,
+            0,
+            1
+          ]
+        ]
+      },
+      "globalAxes": {
+        "tx": false,
+        "ty": false,
+        "tz": true,
+        "rx": false,
+        "ry": false,
+        "rz": true
+      },
+      "engagementMm": 7.3,
+      "spanMm": [
+        -84,
+        -76.7
+      ],
+      "holderSpanMm": [
+        -84,
+        -76.15
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#10377",
+        "#13220",
+        "#16186",
+        "#28751",
+        "#28817",
+        "#39112",
+        "#42801",
+        "#43705",
+        "#49956",
+        "#5401",
+        "#56871",
+        "#64819",
+        "#65224",
+        "#67356",
+        "#75938",
+        "#76944",
+        "#78720",
+        "#84266",
+        "#85929"
+      ],
+      "note": "Axle in round bore: 1 translational DOF and 1 rotational DOF along axis."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO28/NAUO42:30465/NAUO28/NAUO44:0",
+      "pieces": [
+        "30465/NAUO28/NAUO42",
+        "30465/NAUO28/NAUO44"
+      ],
+      "pieceNames": [
+        "Axle - 30465_2 - Long - with Cuts",
+        "Cross Block - 3 Long - 30465"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "prismatic",
+      "axis": [
+        6.982962677686267e-15,
+        0,
+        1
+      ],
+      "origin": [
+        -4.265188162634213e-11,
+        8.05,
+        0
+      ],
+      "releaseDirections": [
+        [
+          6.982962677686267e-15,
+          0,
+          1
+        ],
+        [
+          -6.982962677686267e-15,
+          0,
+          -1
+        ]
+      ],
+      "dof": {
+        "total": 1,
+        "translational": 1,
+        "rotational": 0,
+        "translationAxes": [
+          [
+            6.982962677686267e-15,
+            0,
+            1
+          ]
+        ],
+        "rotationAxes": []
+      },
+      "globalAxes": {
+        "tx": false,
+        "ty": false,
+        "tz": true,
+        "rx": false,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 7.3,
+      "spanMm": [
+        -91.3,
+        -84
+      ],
+      "holderSpanMm": [
+        -91.4,
+        -84
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#10377",
+        "#16186",
+        "#28049",
+        "#28751",
+        "#28817",
+        "#32194",
+        "#39112",
+        "#42762",
+        "#42801",
+        "#49956",
+        "#5401",
+        "#56871",
+        "#65224",
+        "#68845",
+        "#72381",
+        "#75938",
+        "#76944",
+        "#78720",
+        "#84266",
+        "#85929"
+      ],
+      "note": "Cross-axle fit: 1 translational DOF along axis, axial rotation locked by cross profile."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO28/NAUO43:30465/NAUO28/NAUO45:0",
+      "pieces": [
+        "30465/NAUO28/NAUO43",
+        "30465/NAUO28/NAUO45"
+      ],
+      "pieceNames": [
+        "Tail Fairing - 30465",
+        "Friction Pin - 30465"
+      ],
+      "kind": "pin-hole",
+      "kinematicType": "cylindrical",
+      "axis": [
+        -1.219044193948984e-29,
+        1,
+        8.512540108795893e-44
+      ],
+      "origin": [
+        -5.779168980828852e-10,
+        0,
+        -63.99999999963785
+      ],
+      "releaseDirections": [
+        [
+          -1.219044193948984e-29,
+          1,
+          8.512540108795893e-44
+        ],
+        [
+          1.219044193948984e-29,
+          -1,
+          -8.512540108795893e-44
+        ]
+      ],
+      "dof": {
+        "total": 2,
+        "translational": 1,
+        "rotational": 1,
+        "translationAxes": [
+          [
+            -1.219044193948984e-29,
+            1,
+            8.512540108795893e-44
+          ]
+        ],
+        "rotationAxes": [
+          [
+            -1.219044193948984e-29,
+            1,
+            8.512540108795893e-44
+          ]
+        ]
+      },
+      "globalAxes": {
+        "tx": false,
+        "ty": true,
+        "tz": false,
+        "rx": false,
+        "ry": true,
+        "rz": false
+      },
+      "engagementMm": 6.5,
+      "spanMm": [
+        4.75,
+        11.25
+      ],
+      "holderSpanMm": [
+        4.75,
+        11.25
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#55644",
+        "#58090",
+        "#59599",
+        "#6452",
+        "#6642",
+        "#86108"
+      ],
+      "note": "Cylindrical pin/bore fit: 1 translational DOF and 1 rotational DOF along axis."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO28/NAUO43:30465/NAUO28/NAUO46:0",
+      "pieces": [
+        "30465/NAUO28/NAUO43",
+        "30465/NAUO28/NAUO46"
+      ],
+      "pieceNames": [
+        "Tail Fairing - 30465",
+        "Friction Pin - 30465"
+      ],
+      "kind": "pin-hole",
+      "kinematicType": "cylindrical",
+      "axis": [
+        -1.219044193948984e-29,
+        1,
+        4.2562700543979466e-44
+      ],
+      "origin": [
+        -5.852908518764906e-10,
+        0,
+        -55.99999999965673
+      ],
+      "releaseDirections": [
+        [
+          -1.219044193948984e-29,
+          1,
+          4.2562700543979466e-44
+        ],
+        [
+          1.219044193948984e-29,
+          -1,
+          -4.2562700543979466e-44
+        ]
+      ],
+      "dof": {
+        "total": 2,
+        "translational": 1,
+        "rotational": 1,
+        "translationAxes": [
+          [
+            -1.219044193948984e-29,
+            1,
+            4.2562700543979466e-44
+          ]
+        ],
+        "rotationAxes": [
+          [
+            -1.219044193948984e-29,
+            1,
+            4.2562700543979466e-44
+          ]
+        ]
+      },
+      "globalAxes": {
+        "tx": false,
+        "ty": true,
+        "tz": false,
+        "rx": false,
+        "ry": true,
+        "rz": false
+      },
+      "engagementMm": 6.5,
+      "spanMm": [
+        4.75,
+        11.25
+      ],
+      "holderSpanMm": [
+        4.75,
+        11.25
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#30066",
+        "#55644",
+        "#59599",
+        "#6642",
+        "#78686",
+        "#86108"
+      ],
+      "note": "Cylindrical pin/bore fit: 1 translational DOF and 1 rotational DOF along axis."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO28/NAUO44:30465/NAUO28/NAUO47/NAUO50:0",
+      "pieces": [
+        "30465/NAUO28/NAUO44",
+        "30465/NAUO28/NAUO47/NAUO50"
+      ],
+      "pieceNames": [
+        "Cross Block - 3 Long - 30465",
+        "Friction Pin with Long Axle - 30465"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "prismatic",
+      "axis": [
+        1,
+        -6.982962677686267e-15,
+        1.04744440165294e-14
+      ],
+      "origin": [
+        1.0866862965031032e-12,
+        24.050000000337786,
+        -87.70000000029857
+      ],
+      "releaseDirections": [
+        [
+          1,
+          -6.982962677686267e-15,
+          1.04744440165294e-14
+        ],
+        [
+          -1,
+          6.982962677686267e-15,
+          -1.04744440165294e-14
+        ]
+      ],
+      "dof": {
+        "total": 1,
+        "translational": 1,
+        "rotational": 0,
+        "translationAxes": [
+          [
+            1,
+            -6.982962677686267e-15,
+            1.04744440165294e-14
+          ]
+        ],
+        "rotationAxes": []
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": false,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 5.8,
+      "spanMm": [
+        -2.9,
+        2.9
+      ],
+      "holderSpanMm": [
+        -7.8,
+        15
+      ],
+      "steppedFit": true,
+      "stepFaceEntities": [
+        "#126",
+        "#1329",
+        "#22510",
+        "#37485",
+        "#53827",
+        "#61880",
+        "#6342",
+        "#65335",
+        "#72977"
+      ],
+      "note": "Cross-axle fit: 1 translational DOF along axis, axial rotation locked by cross profile."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO28/NAUO44:30465/NAUO33/NAUO38:0",
+      "pieces": [
+        "30465/NAUO28/NAUO44",
+        "30465/NAUO33/NAUO38"
+      ],
+      "pieceNames": [
+        "Cross Block - 3 Long - 30465",
+        "Friction Pin with Stud - 30465"
+      ],
+      "kind": "pin-hole",
+      "kinematicType": "cylindrical",
+      "axis": [
+        1,
+        -1.0467832309224675e-14,
+        6.552190147317794e-13
+      ],
+      "origin": [
+        5.7630789029872176e-11,
+        16.05000000000028,
+        -87.7
+      ],
+      "releaseDirections": [
+        [
+          1,
+          -1.0467832309224675e-14,
+          6.552190147317794e-13
+        ],
+        [
+          -1,
+          1.0467832309224675e-14,
+          -6.552190147317794e-13
+        ]
+      ],
+      "dof": {
+        "total": 2,
+        "translational": 1,
+        "rotational": 1,
+        "translationAxes": [
+          [
+            1,
+            -1.0467832309224675e-14,
+            6.552190147317794e-13
+          ]
+        ],
+        "rotationAxes": [
+          [
+            1,
+            -1.0467832309224675e-14,
+            6.552190147317794e-13
+          ]
+        ]
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": true,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 5.8,
+      "spanMm": [
+        -2.9,
+        2.9
+      ],
+      "holderSpanMm": [
+        -2.9,
+        2.9
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#31357",
+        "#3385",
+        "#71625",
+        "#84201"
+      ],
+      "note": "Cylindrical pin/bore fit: 1 translational DOF and 1 rotational DOF along axis."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO28/NAUO45:30465/NAUO7:0",
+      "pieces": [
+        "30465/NAUO28/NAUO45",
+        "30465/NAUO7"
+      ],
+      "pieceNames": [
+        "Friction Pin - 30465",
+        "Beam - 7 Long - 30465"
+      ],
+      "kind": "pin-hole",
+      "kinematicType": "cylindrical",
+      "axis": [
+        -1.219044193948984e-29,
+        1,
+        8.512540108795893e-44
+      ],
+      "origin": [
+        -5.779168980828852e-10,
+        0,
+        -63.99999999963785
+      ],
+      "releaseDirections": [
+        [
+          -1.219044193948984e-29,
+          1,
+          8.512540108795893e-44
+        ],
+        [
+          1.219044193948984e-29,
+          -1,
+          -8.512540108795893e-44
+        ]
+      ],
+      "dof": {
+        "total": 2,
+        "translational": 1,
+        "rotational": 1,
+        "translationAxes": [
+          [
+            -1.219044193948984e-29,
+            1,
+            8.512540108795893e-44
+          ]
+        ],
+        "rotationAxes": [
+          [
+            -1.219044193948984e-29,
+            1,
+            8.512540108795893e-44
+          ]
+        ]
+      },
+      "globalAxes": {
+        "tx": false,
+        "ty": true,
+        "tz": false,
+        "rx": false,
+        "ry": true,
+        "rz": false
+      },
+      "engagementMm": 5.35,
+      "spanMm": [
+        13,
+        18.35
+      ],
+      "holderSpanMm": [
+        13,
+        18.35
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#55644",
+        "#59599",
+        "#6642",
+        "#74557",
+        "#78619",
+        "#86108"
+      ],
+      "note": "Cylindrical pin/bore fit: 1 translational DOF and 1 rotational DOF along axis."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO28/NAUO46:30465/NAUO7:0",
+      "pieces": [
+        "30465/NAUO28/NAUO46",
+        "30465/NAUO7"
+      ],
+      "pieceNames": [
+        "Friction Pin - 30465",
+        "Beam - 7 Long - 30465"
+      ],
+      "kind": "pin-hole",
+      "kinematicType": "cylindrical",
+      "axis": [
+        -1.219044193948984e-29,
+        1,
+        4.2562700543979466e-44
+      ],
+      "origin": [
+        -5.852908518764906e-10,
+        0,
+        -55.99999999965673
+      ],
+      "releaseDirections": [
+        [
+          -1.219044193948984e-29,
+          1,
+          4.2562700543979466e-44
+        ],
+        [
+          1.219044193948984e-29,
+          -1,
+          -4.2562700543979466e-44
+        ]
+      ],
+      "dof": {
+        "total": 2,
+        "translational": 1,
+        "rotational": 1,
+        "translationAxes": [
+          [
+            -1.219044193948984e-29,
+            1,
+            4.2562700543979466e-44
+          ]
+        ],
+        "rotationAxes": [
+          [
+            -1.219044193948984e-29,
+            1,
+            4.2562700543979466e-44
+          ]
+        ]
+      },
+      "globalAxes": {
+        "tx": false,
+        "ty": true,
+        "tz": false,
+        "rx": false,
+        "ry": true,
+        "rz": false
+      },
+      "engagementMm": 5.35,
+      "spanMm": [
+        13,
+        18.35
+      ],
+      "holderSpanMm": [
+        13,
+        18.35
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#15787",
+        "#22304",
+        "#55644",
+        "#59599",
+        "#6642",
+        "#86108"
+      ],
+      "note": "Cylindrical pin/bore fit: 1 translational DOF and 1 rotational DOF along axis."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO28/NAUO47/NAUO49:30465/NAUO28/NAUO47/NAUO50:0",
+      "pieces": [
+        "30465/NAUO28/NAUO47/NAUO49",
+        "30465/NAUO28/NAUO47/NAUO50"
+      ],
+      "pieceNames": [
+        "Tail Rotor - 30465",
+        "Friction Pin with Long Axle - 30465"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "prismatic",
+      "axis": [
+        1,
+        -3.1277041151547883e-15,
+        -6.46267642999511e-15
+      ],
+      "origin": [
+        -4.911626660941693e-13,
+        24.050000000278654,
+        -87.70000004557822
+      ],
+      "releaseDirections": [
+        [
+          1,
+          -3.1277041151547883e-15,
+          -6.46267642999511e-15
+        ],
+        [
+          -1,
+          3.1277041151547883e-15,
+          6.46267642999511e-15
+        ]
+      ],
+      "dof": {
+        "total": 1,
+        "translational": 1,
+        "rotational": 0,
+        "translationAxes": [
+          [
+            1,
+            -3.1277041151547883e-15,
+            -6.46267642999511e-15
+          ]
+        ],
+        "rotationAxes": []
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": false,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 6.2,
+      "spanMm": [
+        8.5,
+        14.7
+      ],
+      "holderSpanMm": [
+        -7.8,
+        15
+      ],
+      "steppedFit": true,
+      "stepFaceEntities": [
+        "#126",
+        "#1329",
+        "#22510",
+        "#22862",
+        "#32857",
+        "#61880",
+        "#6342",
+        "#65335",
+        "#72977"
+      ],
+      "note": "Cross-axle fit: 1 translational DOF along axis, axial rotation locked by cross profile."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO28/NAUO47/NAUO50:30465/NAUO28/NAUO47/NAUO51:0",
+      "pieces": [
+        "30465/NAUO28/NAUO47/NAUO50",
+        "30465/NAUO28/NAUO47/NAUO51"
+      ],
+      "pieceNames": [
+        "Friction Pin with Long Axle - 30465",
+        "Half Bevel Gear - 12 Tooth - 30465"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "prismatic",
+      "axis": [
+        1,
+        -3.1277041151547883e-15,
+        -6.46267642999511e-15
+      ],
+      "origin": [
+        -4.902744876744691e-13,
+        24.050000000278654,
+        -87.70000004557824
+      ],
+      "releaseDirections": [
+        [
+          1,
+          -3.1277041151547883e-15,
+          -6.46267642999511e-15
+        ],
+        [
+          -1,
+          3.1277041151547883e-15,
+          6.46267642999511e-15
+        ]
+      ],
+      "dof": {
+        "total": 1,
+        "translational": 1,
+        "rotational": 0,
+        "translationAxes": [
+          [
+            1,
+            -3.1277041151547883e-15,
+            -6.46267642999511e-15
+          ]
+        ],
+        "rotationAxes": []
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": false,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 3,
+      "spanMm": [
+        3.7,
+        6.7
+      ],
+      "holderSpanMm": [
+        3.7,
+        6.7
+      ],
+      "steppedFit": true,
+      "stepFaceEntities": [
+        "#126",
+        "#1329",
+        "#18015",
+        "#22510",
+        "#24714",
+        "#32358",
+        "#36754",
+        "#4393",
+        "#4483",
+        "#54981",
+        "#61880",
+        "#6342",
+        "#65335",
+        "#72977",
+        "#73984"
+      ],
+      "note": "Cross-axle fit: 1 translational DOF along axis, axial rotation locked by cross profile."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO28/NAUO47/NAUO50:30465/NAUO28/NAUO48:0",
+      "pieces": [
+        "30465/NAUO28/NAUO47/NAUO50",
+        "30465/NAUO28/NAUO48"
+      ],
+      "pieceNames": [
+        "Friction Pin with Long Axle - 30465",
+        "Small Bush - 30565"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "prismatic",
+      "axis": [
+        1,
+        -3.1277041151547883e-15,
+        -6.46267642999511e-15
+      ],
+      "origin": [
+        -4.902744876744691e-13,
+        24.050000000278654,
+        -87.70000004557824
+      ],
+      "releaseDirections": [
+        [
+          1,
+          -3.1277041151547883e-15,
+          -6.46267642999511e-15
+        ],
+        [
+          -1,
+          3.1277041151547883e-15,
+          6.46267642999511e-15
+        ]
+      ],
+      "dof": {
+        "total": 1,
+        "translational": 1,
+        "rotational": 0,
+        "translationAxes": [
+          [
+            1,
+            -3.1277041151547883e-15,
+            -6.46267642999511e-15
+          ]
+        ],
+        "rotationAxes": []
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": false,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 3.7,
+      "spanMm": [
+        -8.05,
+        -4.35
+      ],
+      "holderSpanMm": [
+        -8.3,
+        -4.35
+      ],
+      "steppedFit": true,
+      "stepFaceEntities": [
+        "#126",
+        "#1329",
+        "#22510",
+        "#26011",
+        "#47996",
+        "#61880",
+        "#6342",
+        "#65335",
+        "#7013",
+        "#72977",
+        "#74700",
+        "#75366"
+      ],
+      "note": "Cross-axle fit: 1 translational DOF along axis, axial rotation locked by cross profile."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO29/NAUO40:30465/NAUO29/NAUO41:0",
+      "pieces": [
+        "30465/NAUO29/NAUO40",
+        "30465/NAUO29/NAUO41"
+      ],
+      "pieceNames": [
+        "Cross Block - 30465",
+        "Pin with Large Bush- 30465"
+      ],
+      "kind": "pin-hole",
+      "kinematicType": "cylindrical",
+      "axis": [
+        1.3965925355372533e-14,
+        4.876176775795936e-29,
+        1
+      ],
+      "origin": [
+        -19.499999999999982,
+        -8.000000000000012,
+        2.7355895326763857e-13
+      ],
+      "releaseDirections": [
+        [
+          1.3965925355372533e-14,
+          4.876176775795936e-29,
+          1
+        ],
+        [
+          -1.3965925355372533e-14,
+          -4.876176775795936e-29,
+          -1
+        ]
+      ],
+      "dof": {
+        "total": 2,
+        "translational": 1,
+        "rotational": 1,
+        "translationAxes": [
+          [
+            1.3965925355372533e-14,
+            4.876176775795936e-29,
+            1
+          ]
+        ],
+        "rotationAxes": [
+          [
+            1.3965925355372533e-14,
+            4.876176775795936e-29,
+            1
+          ]
+        ]
+      },
+      "globalAxes": {
+        "tx": false,
+        "ty": false,
+        "tz": true,
+        "rx": false,
+        "ry": false,
+        "rz": true
+      },
+      "engagementMm": 5.8,
+      "spanMm": [
+        -18.9,
+        -13.1
+      ],
+      "holderSpanMm": [
+        -27.6,
+        -4.4
+      ],
+      "steppedFit": true,
+      "stepFaceEntities": [
+        "#11010",
+        "#31439",
+        "#43743",
+        "#45960",
+        "#55089",
+        "#6463",
+        "#66091",
+        "#69034",
+        "#748",
+        "#75743",
+        "#76217"
+      ],
+      "note": "Stepped cylindrical fit: 1 translational DOF along axis (verify flange/stop direction) and 1 rotational DOF."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO29/NAUO40:30465/NAUO4/NAUO74:0",
+      "pieces": [
+        "30465/NAUO29/NAUO40",
+        "30465/NAUO4/NAUO74"
+      ],
+      "pieceNames": [
+        "Cross Block - 30465",
+        "Axle - 30465_6 - Long"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "prismatic",
+      "axis": [
+        1,
+        2.203902440112839e-18,
+        2.0990671579799633e-17
+      ],
+      "origin": [
+        0,
+        5.578870698741452e-14,
+        -16
+      ],
+      "releaseDirections": [
+        [
+          1,
+          2.203902440112839e-18,
+          2.0990671579799633e-17
+        ],
+        [
+          -1,
+          -2.203902440112839e-18,
+          -2.0990671579799633e-17
+        ]
+      ],
+      "dof": {
+        "total": 1,
+        "translational": 1,
+        "rotational": 0,
+        "translationAxes": [
+          [
+            1,
+            2.203902440112839e-18,
+            2.0990671579799633e-17
+          ]
+        ],
+        "rotationAxes": []
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": false,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 7.4,
+      "spanMm": [
+        -23.2,
+        -15.8
+      ],
+      "holderSpanMm": [
+        -23.2,
+        -15.8
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#12267",
+        "#14021",
+        "#3377",
+        "#3927",
+        "#59018",
+        "#63688",
+        "#66643",
+        "#74162",
+        "#77869",
+        "#78016"
+      ],
+      "note": "Cross-axle fit: 1 translational DOF along axis, axial rotation locked by cross profile."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO30:30465/NAUO34:0",
+      "pieces": [
+        "30465/NAUO30",
+        "30465/NAUO34"
+      ],
+      "pieceNames": [
+        "Cross Block - 30465",
+        "Axle - 30465_6 - Long"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "prismatic",
+      "axis": [
+        1.4088390035287269e-14,
+        4.994475606180531e-29,
+        1
+      ],
+      "origin": [
+        -19.499999999999982,
+        -8.000000000000012,
+        2.753353101070388e-13
+      ],
+      "releaseDirections": [
+        [
+          1.4088390035287269e-14,
+          4.994475606180531e-29,
+          1
+        ],
+        [
+          -1.4088390035287269e-14,
+          -4.994475606180531e-29,
+          -1
+        ]
+      ],
+      "dof": {
+        "total": 1,
+        "translational": 1,
+        "rotational": 0,
+        "translationAxes": [
+          [
+            1.4088390035287269e-14,
+            4.994475606180531e-29,
+            1
+          ]
+        ],
+        "rotationAxes": []
+      },
+      "globalAxes": {
+        "tx": false,
+        "ty": false,
+        "tz": true,
+        "rx": false,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 5.8,
+      "spanMm": [
+        13.1,
+        18.9
+      ],
+      "holderSpanMm": [
+        13.1,
+        18.9
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#12267",
+        "#14021",
+        "#31439",
+        "#3377",
+        "#45960",
+        "#63688",
+        "#77869"
+      ],
+      "note": "Cross-axle fit: 1 translational DOF along axis, axial rotation locked by cross profile."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO31:30465/NAUO35:0",
+      "pieces": [
+        "30465/NAUO31",
+        "30465/NAUO35"
+      ],
+      "pieceNames": [
+        "Cross Block - 30465",
+        "Axle - 30465_6 - Long"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "prismatic",
+      "axis": [
+        -1.4088390035287269e-14,
+        4.8653655658584015e-29,
+        1
+      ],
+      "origin": [
+        19.499999999999986,
+        -8.000000000000012,
+        2.7711166694643907e-13
+      ],
+      "releaseDirections": [
+        [
+          -1.4088390035287269e-14,
+          4.8653655658584015e-29,
+          1
+        ],
+        [
+          1.4088390035287269e-14,
+          -4.8653655658584015e-29,
+          -1
+        ]
+      ],
+      "dof": {
+        "total": 1,
+        "translational": 1,
+        "rotational": 0,
+        "translationAxes": [
+          [
+            -1.4088390035287269e-14,
+            4.8653655658584015e-29,
+            1
+          ]
+        ],
+        "rotationAxes": []
+      },
+      "globalAxes": {
+        "tx": false,
+        "ty": false,
+        "tz": true,
+        "rx": false,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 5.8,
+      "spanMm": [
+        13.1,
+        18.9
+      ],
+      "holderSpanMm": [
+        13.1,
+        18.9
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#12267",
+        "#14021",
+        "#31439",
+        "#3377",
+        "#45960",
+        "#63688",
+        "#77869"
+      ],
+      "note": "Cross-axle fit: 1 translational DOF along axis, axial rotation locked by cross profile."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO32/NAUO40:30465/NAUO32/NAUO41:0",
+      "pieces": [
+        "30465/NAUO32/NAUO40",
+        "30465/NAUO32/NAUO41"
+      ],
+      "pieceNames": [
+        "Cross Block - 30465",
+        "Pin with Large Bush- 30465"
+      ],
+      "kind": "pin-hole",
+      "kinematicType": "cylindrical",
+      "axis": [
+        -1.3965925355372533e-14,
+        4.876176775795936e-29,
+        1
+      ],
+      "origin": [
+        19.49999999999999,
+        -8.00000000000001,
+        2.7355895326763857e-13
+      ],
+      "releaseDirections": [
+        [
+          -1.3965925355372533e-14,
+          4.876176775795936e-29,
+          1
+        ],
+        [
+          1.3965925355372533e-14,
+          -4.876176775795936e-29,
+          -1
+        ]
+      ],
+      "dof": {
+        "total": 2,
+        "translational": 1,
+        "rotational": 1,
+        "translationAxes": [
+          [
+            -1.3965925355372533e-14,
+            4.876176775795936e-29,
+            1
+          ]
+        ],
+        "rotationAxes": [
+          [
+            -1.3965925355372533e-14,
+            4.876176775795936e-29,
+            1
+          ]
+        ]
+      },
+      "globalAxes": {
+        "tx": false,
+        "ty": false,
+        "tz": true,
+        "rx": false,
+        "ry": false,
+        "rz": true
+      },
+      "engagementMm": 5.8,
+      "spanMm": [
+        -18.9,
+        -13.1
+      ],
+      "holderSpanMm": [
+        -18.9,
+        -13.1
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#11010",
+        "#31439",
+        "#45960",
+        "#55089",
+        "#6463",
+        "#69034"
+      ],
+      "note": "Cylindrical pin/bore fit: 1 translational DOF and 1 rotational DOF along axis."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO32/NAUO40:30465/NAUO4/NAUO74:0",
+      "pieces": [
+        "30465/NAUO32/NAUO40",
+        "30465/NAUO4/NAUO74"
+      ],
+      "pieceNames": [
+        "Cross Block - 30465",
+        "Axle - 30465_6 - Long"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "prismatic",
+      "axis": [
+        1,
+        2.203902440112839e-18,
+        2.0990671579799633e-17
+      ],
+      "origin": [
+        0,
+        5.578870698741452e-14,
+        -16
+      ],
+      "releaseDirections": [
+        [
+          1,
+          2.203902440112839e-18,
+          2.0990671579799633e-17
+        ],
+        [
+          -1,
+          -2.203902440112839e-18,
+          -2.0990671579799633e-17
+        ]
+      ],
+      "dof": {
+        "total": 1,
+        "translational": 1,
+        "rotational": 0,
+        "translationAxes": [
+          [
+            1,
+            2.203902440112839e-18,
+            2.0990671579799633e-17
+          ]
+        ],
+        "rotationAxes": []
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": false,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 7.4,
+      "spanMm": [
+        15.8,
+        23.2
+      ],
+      "holderSpanMm": [
+        15.8,
+        23.2
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#12267",
+        "#14021",
+        "#3377",
+        "#3927",
+        "#59018",
+        "#63688",
+        "#66643",
+        "#74162",
+        "#77869",
+        "#78016"
+      ],
+      "note": "Cross-axle fit: 1 translational DOF along axis, axial rotation locked by cross profile."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO33/NAUO38:30465/NAUO33/NAUO39:0",
+      "pieces": [
+        "30465/NAUO33/NAUO38",
+        "30465/NAUO33/NAUO39"
+      ],
+      "pieceNames": [
+        "Friction Pin with Stud - 30465",
+        "Light Stud - 30465"
+      ],
+      "kind": "pin-hole",
+      "kinematicType": "cylindrical",
+      "axis": [
+        1,
+        -1.0467832309224675e-14,
+        6.552190147317794e-13
+      ],
+      "origin": [
+        5.7630344940662326e-11,
+        16.05000000000028,
+        -87.7
+      ],
+      "releaseDirections": [
+        [
+          1,
+          -1.0467832309224675e-14,
+          6.552190147317794e-13
+        ],
+        [
+          -1,
+          1.0467832309224675e-14,
+          -6.552190147317794e-13
+        ]
+      ],
+      "dof": {
+        "total": 2,
+        "translational": 1,
+        "rotational": 1,
+        "translationAxes": [
+          [
+            1,
+            -1.0467832309224675e-14,
+            6.552190147317794e-13
+          ]
+        ],
+        "rotationAxes": [
+          [
+            1,
+            -1.0467832309224675e-14,
+            6.552190147317794e-13
+          ]
+        ]
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": true,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 1.8,
+      "spanMm": [
+        -5.5,
+        -3.7
+      ],
+      "holderSpanMm": [
+        -5.8,
+        -3.7
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#31678",
+        "#31855",
+        "#52666",
+        "#65990",
+        "#86804",
+        "#87611"
+      ],
+      "note": "Cylindrical pin/bore fit: 1 translational DOF and 1 rotational DOF along axis."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO4/NAUO73:30465/NAUO4/NAUO74:0",
+      "pieces": [
+        "30465/NAUO4/NAUO73",
+        "30465/NAUO4/NAUO74"
+      ],
+      "pieceNames": [
+        "Cross Block - 30465",
+        "Axle - 30465_6 - Long"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "prismatic",
+      "axis": [
+        1,
+        2.203902440112839e-18,
+        2.0990671579799633e-17
+      ],
+      "origin": [
+        0,
+        5.578870698741452e-14,
+        -16
+      ],
+      "releaseDirections": [
+        [
+          1,
+          2.203902440112839e-18,
+          2.0990671579799633e-17
+        ],
+        [
+          -1,
+          -2.203902440112839e-18,
+          -2.0990671579799633e-17
+        ]
+      ],
+      "dof": {
+        "total": 1,
+        "translational": 1,
+        "rotational": 0,
+        "translationAxes": [
+          [
+            1,
+            2.203902440112839e-18,
+            2.0990671579799633e-17
+          ]
+        ],
+        "rotationAxes": []
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": false,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 7.4,
+      "spanMm": [
+        -3.7,
+        3.7
+      ],
+      "holderSpanMm": [
+        -3.7,
+        3.7
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#12267",
+        "#14021",
+        "#3377",
+        "#3927",
+        "#59018",
+        "#63688",
+        "#66643",
+        "#74162",
+        "#77869",
+        "#78016"
+      ],
+      "note": "Cross-axle fit: 1 translational DOF along axis, axial rotation locked by cross profile."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO4/NAUO73:30465/NAUO4/NAUO75:0",
+      "pieces": [
+        "30465/NAUO4/NAUO73",
+        "30465/NAUO4/NAUO75"
+      ],
+      "pieceNames": [
+        "Cross Block - 30465",
+        "Long Friction Pin - 30465"
+      ],
+      "kind": "pin-hole",
+      "kinematicType": "cylindrical",
+      "axis": [
+        3.4892774364030205e-15,
+        1,
+        3.4867941867133823e-15
+      ],
+      "origin": [
+        -1.4124479138316803e-16,
+        8.526512829121202e-14,
+        -24
+      ],
+      "releaseDirections": [
+        [
+          3.4892774364030205e-15,
+          1,
+          3.4867941867133823e-15
+        ],
+        [
+          -3.4892774364030205e-15,
+          -1,
+          -3.4867941867133823e-15
+        ]
+      ],
+      "dof": {
+        "total": 2,
+        "translational": 1,
+        "rotational": 1,
+        "translationAxes": [
+          [
+            3.4892774364030205e-15,
+            1,
+            3.4867941867133823e-15
+          ]
+        ],
+        "rotationAxes": [
+          [
+            3.4892774364030205e-15,
+            1,
+            3.4867941867133823e-15
+          ]
+        ]
+      },
+      "globalAxes": {
+        "tx": false,
+        "ty": true,
+        "tz": false,
+        "rx": false,
+        "ry": true,
+        "rz": false
+      },
+      "engagementMm": 5.8,
+      "spanMm": [
+        -2.9,
+        2.9
+      ],
+      "holderSpanMm": [
+        -2.9,
+        2.9
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#13678",
+        "#21352",
+        "#31439",
+        "#41789",
+        "#4454",
+        "#45960"
+      ],
+      "note": "Cylindrical pin/bore fit: 1 translational DOF and 1 rotational DOF along axis."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO4/NAUO74:30465/NAUO5:0",
+      "pieces": [
+        "30465/NAUO4/NAUO74",
+        "30465/NAUO5"
+      ],
+      "pieceNames": [
+        "Axle - 30465_6 - Long",
+        "Small Bush - 30565"
+      ],
+      "kind": "axle-bore",
+      "kinematicType": "prismatic",
+      "axis": [
+        1,
+        2.203902440112839e-18,
+        2.0990671579799633e-17
+      ],
+      "origin": [
+        0,
+        5.578870698741452e-14,
+        -16
+      ],
+      "releaseDirections": [
+        [
+          1,
+          2.203902440112839e-18,
+          2.0990671579799633e-17
+        ],
+        [
+          -1,
+          -2.203902440112839e-18,
+          -2.0990671579799633e-17
+        ]
+      ],
+      "dof": {
+        "total": 1,
+        "translational": 1,
+        "rotational": 0,
+        "translationAxes": [
+          [
+            1,
+            2.203902440112839e-18,
+            2.0990671579799633e-17
+          ]
+        ],
+        "rotationAxes": []
+      },
+      "globalAxes": {
+        "tx": true,
+        "ty": false,
+        "tz": false,
+        "rx": false,
+        "ry": false,
+        "rz": false
+      },
+      "engagementMm": 3.95,
+      "spanMm": [
+        -15.8,
+        -11.85
+      ],
+      "holderSpanMm": [
+        -15.8,
+        -11.85
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#12267",
+        "#14021",
+        "#26011",
+        "#3377",
+        "#47996",
+        "#63688",
+        "#7013",
+        "#74700",
+        "#75366",
+        "#77869"
+      ],
+      "note": "Cross-axle fit: 1 translational DOF along axis, axial rotation locked by cross profile."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO4/NAUO75:30465/NAUO6:0",
+      "pieces": [
+        "30465/NAUO4/NAUO75",
+        "30465/NAUO6"
+      ],
+      "pieceNames": [
+        "Long Friction Pin - 30465",
+        "Beam - 5 Long - 30465"
+      ],
+      "kind": "pin-hole",
+      "kinematicType": "cylindrical",
+      "axis": [
+        3.4892774364030205e-15,
+        1,
+        3.4867941867133823e-15
+      ],
+      "origin": [
+        -1.4124479138316803e-16,
+        8.526512829121202e-14,
+        -24
+      ],
+      "releaseDirections": [
+        [
+          3.4892774364030205e-15,
+          1,
+          3.4867941867133823e-15
+        ],
+        [
+          -3.4892774364030205e-15,
+          -1,
+          -3.4867941867133823e-15
+        ]
+      ],
+      "dof": {
+        "total": 2,
+        "translational": 1,
+        "rotational": 1,
+        "translationAxes": [
+          [
+            3.4892774364030205e-15,
+            1,
+            3.4867941867133823e-15
+          ]
+        ],
+        "rotationAxes": [
+          [
+            3.4892774364030205e-15,
+            1,
+            3.4867941867133823e-15
+          ]
+        ]
+      },
+      "globalAxes": {
+        "tx": false,
+        "ty": true,
+        "tz": false,
+        "rx": false,
+        "ry": true,
+        "rz": false
+      },
+      "engagementMm": 5.35,
+      "spanMm": [
+        5.15,
+        10.5
+      ],
+      "holderSpanMm": [
+        5.15,
+        10.5
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#13678",
+        "#21352",
+        "#41789",
+        "#4454",
+        "#45489",
+        "#61459"
+      ],
+      "note": "Cylindrical pin/bore fit: 1 translational DOF and 1 rotational DOF along axis."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO4/NAUO75:30465/NAUO7:0",
+      "pieces": [
+        "30465/NAUO4/NAUO75",
+        "30465/NAUO7"
+      ],
+      "pieceNames": [
+        "Long Friction Pin - 30465",
+        "Beam - 7 Long - 30465"
+      ],
+      "kind": "pin-hole",
+      "kinematicType": "cylindrical",
+      "axis": [
+        3.4892774364030205e-15,
+        1,
+        3.4867941867133823e-15
+      ],
+      "origin": [
+        -1.4124479138316803e-16,
+        8.526512829121202e-14,
+        -24
+      ],
+      "releaseDirections": [
+        [
+          3.4892774364030205e-15,
+          1,
+          3.4867941867133823e-15
+        ],
+        [
+          -3.4892774364030205e-15,
+          -1,
+          -3.4867941867133823e-15
+        ]
+      ],
+      "dof": {
+        "total": 2,
+        "translational": 1,
+        "rotational": 1,
+        "translationAxes": [
+          [
+            3.4892774364030205e-15,
+            1,
+            3.4867941867133823e-15
+          ]
+        ],
+        "rotationAxes": [
+          [
+            3.4892774364030205e-15,
+            1,
+            3.4867941867133823e-15
+          ]
+        ]
+      },
+      "globalAxes": {
+        "tx": false,
+        "ty": true,
+        "tz": false,
+        "rx": false,
+        "ry": true,
+        "rz": false
+      },
+      "engagementMm": 5.35,
+      "spanMm": [
+        13,
+        18.35
+      ],
+      "holderSpanMm": [
+        13,
+        18.35
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#13678",
+        "#21352",
+        "#41789",
+        "#4454",
+        "#44591",
+        "#66773"
+      ],
+      "note": "Cylindrical pin/bore fit: 1 translational DOF and 1 rotational DOF along axis."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO6:30465/NAUO8:0",
+      "pieces": [
+        "30465/NAUO6",
+        "30465/NAUO8"
+      ],
+      "pieceNames": [
+        "Beam - 5 Long - 30465",
+        "Friction Pin - 30465"
+      ],
+      "kind": "pin-hole",
+      "kinematicType": "cylindrical",
+      "axis": [
+        3.4892774364030205e-15,
+        1,
+        3.4833247397614286e-15
+      ],
+      "origin": [
+        3.7178112900045e-15,
+        1.1102230246251565e-13,
+        -31.999999999999996
+      ],
+      "releaseDirections": [
+        [
+          3.4892774364030205e-15,
+          1,
+          3.4833247397614286e-15
+        ],
+        [
+          -3.4892774364030205e-15,
+          -1,
+          -3.4833247397614286e-15
+        ]
+      ],
+      "dof": {
+        "total": 2,
+        "translational": 1,
+        "rotational": 1,
+        "translationAxes": [
+          [
+            3.4892774364030205e-15,
+            1,
+            3.4833247397614286e-15
+          ]
+        ],
+        "rotationAxes": [
+          [
+            3.4892774364030205e-15,
+            1,
+            3.4833247397614286e-15
+          ]
+        ]
+      },
+      "globalAxes": {
+        "tx": false,
+        "ty": true,
+        "tz": false,
+        "rx": false,
+        "ry": true,
+        "rz": false
+      },
+      "engagementMm": 5.35,
+      "spanMm": [
+        5.15,
+        10.5
+      ],
+      "holderSpanMm": [
+        5.15,
+        10.5
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#53449",
+        "#55644",
+        "#59599",
+        "#6642",
+        "#68420",
+        "#86108"
+      ],
+      "note": "Cylindrical pin/bore fit: 1 translational DOF and 1 rotational DOF along axis."
+    },
+    {
+      "connectionId": "jnt:30465/NAUO7:30465/NAUO8:0",
+      "pieces": [
+        "30465/NAUO7",
+        "30465/NAUO8"
+      ],
+      "pieceNames": [
+        "Beam - 7 Long - 30465",
+        "Friction Pin - 30465"
+      ],
+      "kind": "pin-hole",
+      "kinematicType": "cylindrical",
+      "axis": [
+        3.4892774364030205e-15,
+        1,
+        3.4833247397614286e-15
+      ],
+      "origin": [
+        3.7178112900045e-15,
+        1.1102230246251565e-13,
+        -31.999999999999996
+      ],
+      "releaseDirections": [
+        [
+          3.4892774364030205e-15,
+          1,
+          3.4833247397614286e-15
+        ],
+        [
+          -3.4892774364030205e-15,
+          -1,
+          -3.4833247397614286e-15
+        ]
+      ],
+      "dof": {
+        "total": 2,
+        "translational": 1,
+        "rotational": 1,
+        "translationAxes": [
+          [
+            3.4892774364030205e-15,
+            1,
+            3.4833247397614286e-15
+          ]
+        ],
+        "rotationAxes": [
+          [
+            3.4892774364030205e-15,
+            1,
+            3.4833247397614286e-15
+          ]
+        ]
+      },
+      "globalAxes": {
+        "tx": false,
+        "ty": true,
+        "tz": false,
+        "rx": false,
+        "ry": true,
+        "rz": false
+      },
+      "engagementMm": 5.35,
+      "spanMm": [
+        13,
+        18.35
+      ],
+      "holderSpanMm": [
+        13,
+        18.35
+      ],
+      "steppedFit": false,
+      "stepFaceEntities": [
+        "#55644",
+        "#59599",
+        "#6642",
+        "#80294",
+        "#83098",
+        "#86108"
+      ],
+      "note": "Cylindrical pin/bore fit: 1 translational DOF and 1 rotational DOF along axis."
+    }
+  ],
+  "pieces": [
+    {
+      "pieceId": "30465/NAUO1/NAUO78",
+      "commonName": "Friction Pin with Bore - 30465",
+      "connectionIds": [
+        "jnt:30465/NAUO1/NAUO78:30465/NAUO1/NAUO80:0",
+        "jnt:30465/NAUO1/NAUO78:30465/NAUO1/NAUO81:0",
+        "jnt:30465/NAUO1/NAUO78:30465/NAUO23:0"
+      ],
+      "distinctAxes": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          3.4914813388431334e-15
+        ]
+      ],
+      "remainingTranslationalDof": 0,
+      "status": "kinematically-locked"
+    },
+    {
+      "pieceId": "30465/NAUO1/NAUO79",
+      "commonName": "Axle - 30465_3 - Long",
+      "connectionIds": [
+        "jnt:30465/NAUO1/NAUO79:30465/NAUO1/NAUO80:0",
+        "jnt:30465/NAUO1/NAUO79:30465/NAUO2/NAUO76:0",
+        "jnt:30465/NAUO1/NAUO79:30465/NAUO23:0"
+      ],
+      "distinctAxes": [
+        [
+          1,
+          1.176613783820849e-16,
+          -3.396171173333732e-17
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO1/NAUO80",
+      "commonName": "Corner Beam - 7x4x3 - 30465",
+      "connectionIds": [
+        "jnt:30465/NAUO1/NAUO78:30465/NAUO1/NAUO80:0",
+        "jnt:30465/NAUO1/NAUO79:30465/NAUO1/NAUO80:0",
+        "jnt:30465/NAUO1/NAUO80:30465/NAUO13/NAUO66:0",
+        "jnt:30465/NAUO1/NAUO80:30465/NAUO2/NAUO77:0",
+        "jnt:30465/NAUO1/NAUO80:30465/NAUO4/NAUO74:0",
+        "jnt:30465/NAUO1/NAUO80:30465/NAUO9:0"
+      ],
+      "distinctAxes": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO1/NAUO81",
+      "commonName": "Friction Pin - 30465",
+      "connectionIds": [
+        "jnt:30465/NAUO1/NAUO78:30465/NAUO1/NAUO81:0",
+        "jnt:30465/NAUO1/NAUO81:30465/NAUO6:0"
+      ],
+      "distinctAxes": [
+        [
+          0,
+          1,
+          3.4914813388431334e-15
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO10",
+      "commonName": "One Sided Friction Pin with Bore - 30465",
+      "connectionIds": [
+        "jnt:30465/NAUO10:30465/NAUO11/NAUO70:0",
+        "jnt:30465/NAUO10:30465/NAUO7:0"
+      ],
+      "distinctAxes": [
+        [
+          6.039850435972806e-15,
+          -5.611167812195152e-15,
+          1
+        ],
+        [
+          -3.4914813388431334e-15,
+          1,
+          3.491481338843109e-15
+        ]
+      ],
+      "remainingTranslationalDof": 0,
+      "status": "kinematically-locked"
+    },
+    {
+      "pieceId": "30465/NAUO11/NAUO70",
+      "commonName": "Axle - 30465_9 - Long",
+      "connectionIds": [
+        "jnt:30465/NAUO10:30465/NAUO11/NAUO70:0",
+        "jnt:30465/NAUO11/NAUO70:30465/NAUO11/NAUO71:0",
+        "jnt:30465/NAUO11/NAUO70:30465/NAUO11/NAUO72:0",
+        "jnt:30465/NAUO11/NAUO70:30465/NAUO12:0",
+        "jnt:30465/NAUO11/NAUO70:30465/NAUO9:0"
+      ],
+      "distinctAxes": [
+        [
+          6.039850435972806e-15,
+          -5.611167812195152e-15,
+          1
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO11/NAUO71",
+      "commonName": "Bevel Gear - 12 Tooth - 30465",
+      "connectionIds": [
+        "jnt:30465/NAUO11/NAUO70:30465/NAUO11/NAUO71:0"
+      ],
+      "distinctAxes": [
+        [
+          6.039850435972806e-15,
+          -5.611167812195152e-15,
+          1
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO11/NAUO72",
+      "commonName": "Large Bush - 30465",
+      "connectionIds": [
+        "jnt:30465/NAUO11/NAUO70:30465/NAUO11/NAUO72:0"
+      ],
+      "distinctAxes": [
+        [
+          6.039850435972806e-15,
+          -5.611167812195152e-15,
+          1
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO12",
+      "commonName": "Bevel Gear - 12 Tooth - 30465",
+      "connectionIds": [
+        "jnt:30465/NAUO11/NAUO70:30465/NAUO12:0"
+      ],
+      "distinctAxes": [
+        [
+          6.039850435972806e-15,
+          -5.611167812195152e-15,
+          1
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO13/NAUO66",
+      "commonName": "Axle - 30465_3 - Long",
+      "connectionIds": [
+        "jnt:30465/NAUO1/NAUO80:30465/NAUO13/NAUO66:0",
+        "jnt:30465/NAUO13/NAUO66:30465/NAUO13/NAUO68:0",
+        "jnt:30465/NAUO13/NAUO66:30465/NAUO13/NAUO69:0",
+        "jnt:30465/NAUO13/NAUO66:30465/NAUO23:0"
+      ],
+      "distinctAxes": [
+        [
+          1,
+          0,
+          -3.4914813388431334e-15
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO13/NAUO67",
+      "commonName": "Axle - 30465_3 - Long",
+      "connectionIds": [
+        "jnt:30465/NAUO13/NAUO67:30465/NAUO13/NAUO68:0",
+        "jnt:30465/NAUO13/NAUO67:30465/NAUO13/NAUO69:0",
+        "jnt:30465/NAUO13/NAUO67:30465/NAUO18:0",
+        "jnt:30465/NAUO13/NAUO67:30465/NAUO27:0"
+      ],
+      "distinctAxes": [
+        [
+          1,
+          0,
+          -3.4914813388431334e-15
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO13/NAUO68",
+      "commonName": "2 Beam with Axle Holes - 30465",
+      "connectionIds": [
+        "jnt:30465/NAUO13/NAUO66:30465/NAUO13/NAUO68:0",
+        "jnt:30465/NAUO13/NAUO67:30465/NAUO13/NAUO68:0"
+      ],
+      "distinctAxes": [
+        [
+          1,
+          0,
+          -3.4914813388431334e-15
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO13/NAUO69",
+      "commonName": "2 Beam with Axle Holes - 30465",
+      "connectionIds": [
+        "jnt:30465/NAUO13/NAUO66:30465/NAUO13/NAUO69:0",
+        "jnt:30465/NAUO13/NAUO67:30465/NAUO13/NAUO69:0"
+      ],
+      "distinctAxes": [
+        [
+          1,
+          0,
+          -3.4914813388431334e-15
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO14/NAUO64",
+      "commonName": "Axle - 30465_3 - Long",
+      "connectionIds": [
+        "jnt:30465/NAUO14/NAUO64:30465/NAUO14/NAUO65:0",
+        "jnt:30465/NAUO14/NAUO64:30465/NAUO15:0",
+        "jnt:30465/NAUO14/NAUO64:30465/NAUO16:0",
+        "jnt:30465/NAUO14/NAUO64:30465/NAUO2/NAUO76:0",
+        "jnt:30465/NAUO14/NAUO64:30465/NAUO26:0"
+      ],
+      "distinctAxes": [
+        [
+          1,
+          1.0474444016529425e-14,
+          -3.4914813388431334e-15
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO14/NAUO65",
+      "commonName": "Small Bush - 30565",
+      "connectionIds": [
+        "jnt:30465/NAUO14/NAUO64:30465/NAUO14/NAUO65:0"
+      ],
+      "distinctAxes": [
+        [
+          1,
+          1.0474444016529425e-14,
+          -3.4914813388431334e-15
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO15",
+      "commonName": "Small Bush - 30565",
+      "connectionIds": [
+        "jnt:30465/NAUO14/NAUO64:30465/NAUO15:0"
+      ],
+      "distinctAxes": [
+        [
+          1,
+          1.0474444016529425e-14,
+          -3.4914813388431334e-15
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO16",
+      "commonName": "Right Angle Beam with Curve - 5x3 - 30465",
+      "connectionIds": [
+        "jnt:30465/NAUO14/NAUO64:30465/NAUO16:0",
+        "jnt:30465/NAUO16:30465/NAUO17/NAUO57:0"
+      ],
+      "distinctAxes": [
+        [
+          1,
+          1.0474444016529425e-14,
+          -3.4914813388431334e-15
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO17/NAUO56",
+      "commonName": "Cross Block - 3 Long - 30465",
+      "connectionIds": [
+        "jnt:30465/NAUO17/NAUO56:30465/NAUO17/NAUO57:0",
+        "jnt:30465/NAUO17/NAUO56:30465/NAUO17/NAUO58:0",
+        "jnt:30465/NAUO17/NAUO56:30465/NAUO19/NAUO52:0"
+      ],
+      "distinctAxes": [
+        [
+          1,
+          -6.982962677686267e-15,
+          -3.4914813388431334e-15
+        ],
+        [
+          -3.4914813388431334e-15,
+          1,
+          0
+        ]
+      ],
+      "remainingTranslationalDof": 0,
+      "status": "kinematically-locked"
+    },
+    {
+      "pieceId": "30465/NAUO17/NAUO57",
+      "commonName": "Axle - 30465_3 - Long",
+      "connectionIds": [
+        "jnt:30465/NAUO16:30465/NAUO17/NAUO57:0",
+        "jnt:30465/NAUO17/NAUO56:30465/NAUO17/NAUO57:0",
+        "jnt:30465/NAUO17/NAUO57:30465/NAUO17/NAUO60:0",
+        "jnt:30465/NAUO17/NAUO57:30465/NAUO17/NAUO63:0",
+        "jnt:30465/NAUO17/NAUO57:30465/NAUO26:0"
+      ],
+      "distinctAxes": [
+        [
+          1,
+          -6.982962677686267e-15,
+          -3.4914813388431334e-15
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO17/NAUO58",
+      "commonName": "Friction Pin - 30465",
+      "connectionIds": [
+        "jnt:30465/NAUO17/NAUO56:30465/NAUO17/NAUO58:0",
+        "jnt:30465/NAUO17/NAUO58:30465/NAUO17/NAUO59:0"
+      ],
+      "distinctAxes": [
+        [
+          -3.4914813388431334e-15,
+          1,
+          0
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO17/NAUO59",
+      "commonName": "Axle with Bore - 30465",
+      "connectionIds": [
+        "jnt:30465/NAUO17/NAUO58:30465/NAUO17/NAUO59:0",
+        "jnt:30465/NAUO17/NAUO59:30465/NAUO17/NAUO61:0",
+        "jnt:30465/NAUO17/NAUO59:30465/NAUO17/NAUO62:0",
+        "jnt:30465/NAUO17/NAUO59:30465/NAUO18:0",
+        "jnt:30465/NAUO17/NAUO59:30465/NAUO27:0"
+      ],
+      "distinctAxes": [
+        [
+          -3.4914813388431334e-15,
+          1,
+          0
+        ],
+        [
+          1,
+          6.982962677686254e-15,
+          -3.4914813388431334e-15
+        ]
+      ],
+      "remainingTranslationalDof": 0,
+      "status": "kinematically-locked"
+    },
+    {
+      "pieceId": "30465/NAUO17/NAUO60",
+      "commonName": "Small Bush - 30565",
+      "connectionIds": [
+        "jnt:30465/NAUO17/NAUO57:30465/NAUO17/NAUO60:0"
+      ],
+      "distinctAxes": [
+        [
+          1,
+          -6.982962677686267e-15,
+          -3.4914813388431334e-15
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO17/NAUO61",
+      "commonName": "2 Beam with Axle Holes - 30465",
+      "connectionIds": [
+        "jnt:30465/NAUO17/NAUO59:30465/NAUO17/NAUO61:0"
+      ],
+      "distinctAxes": [
+        [
+          1,
+          6.982962677686254e-15,
+          -3.4914813388431334e-15
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO17/NAUO62",
+      "commonName": "2 Beam with Axle Holes - 30465",
+      "connectionIds": [
+        "jnt:30465/NAUO17/NAUO59:30465/NAUO17/NAUO62:0"
+      ],
+      "distinctAxes": [
+        [
+          1,
+          -6.982962677686254e-15,
+          3.4914813388431334e-15
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO17/NAUO63",
+      "commonName": "Small Bush - 30565",
+      "connectionIds": [
+        "jnt:30465/NAUO17/NAUO57:30465/NAUO17/NAUO63:0"
+      ],
+      "distinctAxes": [
+        [
+          1,
+          -6.982962677686267e-15,
+          -3.4914813388431334e-15
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO18",
+      "commonName": "4 Beam with Extension - 30465",
+      "connectionIds": [
+        "jnt:30465/NAUO13/NAUO67:30465/NAUO18:0",
+        "jnt:30465/NAUO17/NAUO59:30465/NAUO18:0"
+      ],
+      "distinctAxes": [
+        [
+          1,
+          0,
+          -3.4914813388431334e-15
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO19/NAUO52",
+      "commonName": "Axle - 30465_7 - Long",
+      "connectionIds": [
+        "jnt:30465/NAUO17/NAUO56:30465/NAUO19/NAUO52:0",
+        "jnt:30465/NAUO19/NAUO52:30465/NAUO19/NAUO54:0",
+        "jnt:30465/NAUO19/NAUO52:30465/NAUO19/NAUO55:0",
+        "jnt:30465/NAUO19/NAUO52:30465/NAUO20:0",
+        "jnt:30465/NAUO19/NAUO52:30465/NAUO21:0",
+        "jnt:30465/NAUO19/NAUO52:30465/NAUO22:0",
+        "jnt:30465/NAUO19/NAUO52:30465/NAUO6:0"
+      ],
+      "distinctAxes": [
+        [
+          -9.056656556702388e-15,
+          1,
+          6.263976122806508e-16
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO19/NAUO53",
+      "commonName": "Axle - 30465_3 - Long",
+      "connectionIds": [
+        "jnt:30465/NAUO19/NAUO53:30465/NAUO19/NAUO54:0",
+        "jnt:30465/NAUO19/NAUO53:30465/NAUO36:0",
+        "jnt:30465/NAUO19/NAUO53:30465/NAUO37:0"
+      ],
+      "distinctAxes": [
+        [
+          0.9208816014565616,
+          4.604430723070925e-15,
+          0.3898423734008379
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO19/NAUO54",
+      "commonName": "Axle Joint - 30465",
+      "connectionIds": [
+        "jnt:30465/NAUO19/NAUO52:30465/NAUO19/NAUO54:0",
+        "jnt:30465/NAUO19/NAUO53:30465/NAUO19/NAUO54:0"
+      ],
+      "distinctAxes": [
+        [
+          -9.056656556702388e-15,
+          1,
+          6.263976122806508e-16
+        ],
+        [
+          0.9208816014565616,
+          4.604430723070925e-15,
+          0.3898423734008379
+        ]
+      ],
+      "remainingTranslationalDof": 0,
+      "status": "kinematically-locked"
+    },
+    {
+      "pieceId": "30465/NAUO19/NAUO55",
+      "commonName": "Large Bush - 30465",
+      "connectionIds": [
+        "jnt:30465/NAUO19/NAUO52:30465/NAUO19/NAUO55:0"
+      ],
+      "distinctAxes": [
+        [
+          -9.056656556702388e-15,
+          1,
+          6.263976122806508e-16
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO2/NAUO76",
+      "commonName": "Right Angle Beam - 4x2 - 30465",
+      "connectionIds": [
+        "jnt:30465/NAUO1/NAUO79:30465/NAUO2/NAUO76:0",
+        "jnt:30465/NAUO14/NAUO64:30465/NAUO2/NAUO76:0",
+        "jnt:30465/NAUO2/NAUO76:30465/NAUO2/NAUO77:0"
+      ],
+      "distinctAxes": [
+        [
+          1,
+          1.176613783820849e-16,
+          -3.396171173333732e-17
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO2/NAUO77",
+      "commonName": "Axle - 30465_6 - Long",
+      "connectionIds": [
+        "jnt:30465/NAUO1/NAUO80:30465/NAUO2/NAUO77:0",
+        "jnt:30465/NAUO2/NAUO76:30465/NAUO2/NAUO77:0",
+        "jnt:30465/NAUO2/NAUO77:30465/NAUO23:0",
+        "jnt:30465/NAUO2/NAUO77:30465/NAUO25:0",
+        "jnt:30465/NAUO2/NAUO77:30465/NAUO30:0",
+        "jnt:30465/NAUO2/NAUO77:30465/NAUO31:0",
+        "jnt:30465/NAUO2/NAUO77:30465/NAUO3:0"
+      ],
+      "distinctAxes": [
+        [
+          1,
+          2.1268331981663895e-16,
+          -1.1121731653083113e-16
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO20",
+      "commonName": "Bevel Gear - 12 Tooth - 30465",
+      "connectionIds": [
+        "jnt:30465/NAUO19/NAUO52:30465/NAUO20:0"
+      ],
+      "distinctAxes": [
+        [
+          -9.056656556702388e-15,
+          1,
+          6.263976122806508e-16
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO21",
+      "commonName": "Large Bush - 30465",
+      "connectionIds": [
+        "jnt:30465/NAUO19/NAUO52:30465/NAUO21:0"
+      ],
+      "distinctAxes": [
+        [
+          -9.056656556702388e-15,
+          1,
+          6.263976122806508e-16
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO22",
+      "commonName": "Bevel Gear - 12 Tooth - 30465",
+      "connectionIds": [
+        "jnt:30465/NAUO19/NAUO52:30465/NAUO22:0"
+      ],
+      "distinctAxes": [
+        [
+          -9.056656556702388e-15,
+          1,
+          6.263976122806508e-16
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO23",
+      "commonName": "Corner Beam - 7x4x3 - 30465",
+      "connectionIds": [
+        "jnt:30465/NAUO1/NAUO78:30465/NAUO23:0",
+        "jnt:30465/NAUO1/NAUO79:30465/NAUO23:0",
+        "jnt:30465/NAUO13/NAUO66:30465/NAUO23:0",
+        "jnt:30465/NAUO2/NAUO77:30465/NAUO23:0",
+        "jnt:30465/NAUO23:30465/NAUO4/NAUO74:0",
+        "jnt:30465/NAUO23:30465/NAUO9:0"
+      ],
+      "distinctAxes": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO24",
+      "commonName": "Small Bush - 30565",
+      "connectionIds": [
+        "jnt:30465/NAUO24:30465/NAUO4/NAUO74:0"
+      ],
+      "distinctAxes": [
+        [
+          1,
+          2.203902440112839e-18,
+          2.0990671579799633e-17
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO25",
+      "commonName": "Small Bush - 30565",
+      "connectionIds": [
+        "jnt:30465/NAUO2/NAUO77:30465/NAUO25:0"
+      ],
+      "distinctAxes": [
+        [
+          1,
+          2.1268331981663895e-16,
+          -1.1121731653083113e-16
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO26",
+      "commonName": "Right Angle Beam with Curve - 5x3 - 30465",
+      "connectionIds": [
+        "jnt:30465/NAUO14/NAUO64:30465/NAUO26:0",
+        "jnt:30465/NAUO17/NAUO57:30465/NAUO26:0"
+      ],
+      "distinctAxes": [
+        [
+          1,
+          1.0474444016529425e-14,
+          -3.4914813388431334e-15
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO27",
+      "commonName": "4 Beam with Extension - 30465",
+      "connectionIds": [
+        "jnt:30465/NAUO13/NAUO67:30465/NAUO27:0",
+        "jnt:30465/NAUO17/NAUO59:30465/NAUO27:0"
+      ],
+      "distinctAxes": [
+        [
+          1,
+          0,
+          -3.4914813388431334e-15
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO28/NAUO42",
+      "commonName": "Axle - 30465_2 - Long - with Cuts",
+      "connectionIds": [
+        "jnt:30465/NAUO28/NAUO42:30465/NAUO28/NAUO43:0",
+        "jnt:30465/NAUO28/NAUO42:30465/NAUO28/NAUO44:0"
+      ],
+      "distinctAxes": [
+        [
+          6.982962677686267e-15,
+          0,
+          1
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO28/NAUO43",
+      "commonName": "Tail Fairing - 30465",
+      "connectionIds": [
+        "jnt:30465/NAUO28/NAUO42:30465/NAUO28/NAUO43:0",
+        "jnt:30465/NAUO28/NAUO43:30465/NAUO28/NAUO45:0",
+        "jnt:30465/NAUO28/NAUO43:30465/NAUO28/NAUO46:0"
+      ],
+      "distinctAxes": [
+        [
+          6.982962677686267e-15,
+          0,
+          1
+        ],
+        [
+          -1.219044193948984e-29,
+          1,
+          8.512540108795893e-44
+        ]
+      ],
+      "remainingTranslationalDof": 0,
+      "status": "kinematically-locked"
+    },
+    {
+      "pieceId": "30465/NAUO28/NAUO44",
+      "commonName": "Cross Block - 3 Long - 30465",
+      "connectionIds": [
+        "jnt:30465/NAUO28/NAUO42:30465/NAUO28/NAUO44:0",
+        "jnt:30465/NAUO28/NAUO44:30465/NAUO28/NAUO47/NAUO50:0",
+        "jnt:30465/NAUO28/NAUO44:30465/NAUO33/NAUO38:0"
+      ],
+      "distinctAxes": [
+        [
+          6.982962677686267e-15,
+          0,
+          1
+        ],
+        [
+          1,
+          -6.982962677686267e-15,
+          1.04744440165294e-14
+        ]
+      ],
+      "remainingTranslationalDof": 0,
+      "status": "kinematically-locked"
+    },
+    {
+      "pieceId": "30465/NAUO28/NAUO45",
+      "commonName": "Friction Pin - 30465",
+      "connectionIds": [
+        "jnt:30465/NAUO28/NAUO43:30465/NAUO28/NAUO45:0",
+        "jnt:30465/NAUO28/NAUO45:30465/NAUO7:0"
+      ],
+      "distinctAxes": [
+        [
+          -1.219044193948984e-29,
+          1,
+          8.512540108795893e-44
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO28/NAUO46",
+      "commonName": "Friction Pin - 30465",
+      "connectionIds": [
+        "jnt:30465/NAUO28/NAUO43:30465/NAUO28/NAUO46:0",
+        "jnt:30465/NAUO28/NAUO46:30465/NAUO7:0"
+      ],
+      "distinctAxes": [
+        [
+          -1.219044193948984e-29,
+          1,
+          4.2562700543979466e-44
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO28/NAUO47/NAUO49",
+      "commonName": "Tail Rotor - 30465",
+      "connectionIds": [
+        "jnt:30465/NAUO28/NAUO47/NAUO49:30465/NAUO28/NAUO47/NAUO50:0"
+      ],
+      "distinctAxes": [
+        [
+          1,
+          -3.1277041151547883e-15,
+          -6.46267642999511e-15
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO28/NAUO47/NAUO50",
+      "commonName": "Friction Pin with Long Axle - 30465",
+      "connectionIds": [
+        "jnt:30465/NAUO28/NAUO44:30465/NAUO28/NAUO47/NAUO50:0",
+        "jnt:30465/NAUO28/NAUO47/NAUO49:30465/NAUO28/NAUO47/NAUO50:0",
+        "jnt:30465/NAUO28/NAUO47/NAUO50:30465/NAUO28/NAUO47/NAUO51:0",
+        "jnt:30465/NAUO28/NAUO47/NAUO50:30465/NAUO28/NAUO48:0"
+      ],
+      "distinctAxes": [
+        [
+          1,
+          -6.982962677686267e-15,
+          1.04744440165294e-14
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO28/NAUO47/NAUO51",
+      "commonName": "Half Bevel Gear - 12 Tooth - 30465",
+      "connectionIds": [
+        "jnt:30465/NAUO28/NAUO47/NAUO50:30465/NAUO28/NAUO47/NAUO51:0"
+      ],
+      "distinctAxes": [
+        [
+          1,
+          -3.1277041151547883e-15,
+          -6.46267642999511e-15
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO28/NAUO48",
+      "commonName": "Small Bush - 30565",
+      "connectionIds": [
+        "jnt:30465/NAUO28/NAUO47/NAUO50:30465/NAUO28/NAUO48:0"
+      ],
+      "distinctAxes": [
+        [
+          1,
+          -3.1277041151547883e-15,
+          -6.46267642999511e-15
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO29/NAUO40",
+      "commonName": "Cross Block - 30465",
+      "connectionIds": [
+        "jnt:30465/NAUO29/NAUO40:30465/NAUO29/NAUO41:0",
+        "jnt:30465/NAUO29/NAUO40:30465/NAUO4/NAUO74:0"
+      ],
+      "distinctAxes": [
+        [
+          1.3965925355372533e-14,
+          4.876176775795936e-29,
+          1
+        ],
+        [
+          1,
+          2.203902440112839e-18,
+          2.0990671579799633e-17
+        ]
+      ],
+      "remainingTranslationalDof": 0,
+      "status": "kinematically-locked"
+    },
+    {
+      "pieceId": "30465/NAUO29/NAUO41",
+      "commonName": "Pin with Large Bush- 30465",
+      "connectionIds": [
+        "jnt:30465/NAUO29/NAUO40:30465/NAUO29/NAUO41:0"
+      ],
+      "distinctAxes": [
+        [
+          1.3965925355372533e-14,
+          4.876176775795936e-29,
+          1
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO3",
+      "commonName": "Small Bush - 30565",
+      "connectionIds": [
+        "jnt:30465/NAUO2/NAUO77:30465/NAUO3:0"
+      ],
+      "distinctAxes": [
+        [
+          1,
+          2.1268331981663895e-16,
+          -1.1121731653083113e-16
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO30",
+      "commonName": "Cross Block - 30465",
+      "connectionIds": [
+        "jnt:30465/NAUO2/NAUO77:30465/NAUO30:0",
+        "jnt:30465/NAUO30:30465/NAUO34:0"
+      ],
+      "distinctAxes": [
+        [
+          1,
+          2.1268331981663895e-16,
+          -1.1121731653083113e-16
+        ],
+        [
+          1.4088390035287269e-14,
+          4.994475606180531e-29,
+          1
+        ]
+      ],
+      "remainingTranslationalDof": 0,
+      "status": "kinematically-locked"
+    },
+    {
+      "pieceId": "30465/NAUO31",
+      "commonName": "Cross Block - 30465",
+      "connectionIds": [
+        "jnt:30465/NAUO2/NAUO77:30465/NAUO31:0",
+        "jnt:30465/NAUO31:30465/NAUO35:0"
+      ],
+      "distinctAxes": [
+        [
+          1,
+          2.1268331981663895e-16,
+          -1.1121731653083113e-16
+        ],
+        [
+          -1.4088390035287269e-14,
+          4.8653655658584015e-29,
+          1
+        ]
+      ],
+      "remainingTranslationalDof": 0,
+      "status": "kinematically-locked"
+    },
+    {
+      "pieceId": "30465/NAUO32/NAUO40",
+      "commonName": "Cross Block - 30465",
+      "connectionIds": [
+        "jnt:30465/NAUO32/NAUO40:30465/NAUO32/NAUO41:0",
+        "jnt:30465/NAUO32/NAUO40:30465/NAUO4/NAUO74:0"
+      ],
+      "distinctAxes": [
+        [
+          -1.3965925355372533e-14,
+          4.876176775795936e-29,
+          1
+        ],
+        [
+          1,
+          2.203902440112839e-18,
+          2.0990671579799633e-17
+        ]
+      ],
+      "remainingTranslationalDof": 0,
+      "status": "kinematically-locked"
+    },
+    {
+      "pieceId": "30465/NAUO32/NAUO41",
+      "commonName": "Pin with Large Bush- 30465",
+      "connectionIds": [
+        "jnt:30465/NAUO32/NAUO40:30465/NAUO32/NAUO41:0"
+      ],
+      "distinctAxes": [
+        [
+          -1.3965925355372533e-14,
+          4.876176775795936e-29,
+          1
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO33/NAUO38",
+      "commonName": "Friction Pin with Stud - 30465",
+      "connectionIds": [
+        "jnt:30465/NAUO28/NAUO44:30465/NAUO33/NAUO38:0",
+        "jnt:30465/NAUO33/NAUO38:30465/NAUO33/NAUO39:0"
+      ],
+      "distinctAxes": [
+        [
+          1,
+          -1.0467832309224675e-14,
+          6.552190147317794e-13
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO33/NAUO39",
+      "commonName": "Light Stud - 30465",
+      "connectionIds": [
+        "jnt:30465/NAUO33/NAUO38:30465/NAUO33/NAUO39:0"
+      ],
+      "distinctAxes": [
+        [
+          1,
+          -1.0467832309224675e-14,
+          6.552190147317794e-13
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO34",
+      "commonName": "Axle - 30465_6 - Long",
+      "connectionIds": [
+        "jnt:30465/NAUO30:30465/NAUO34:0"
+      ],
+      "distinctAxes": [
+        [
+          1.4088390035287269e-14,
+          4.994475606180531e-29,
+          1
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO35",
+      "commonName": "Axle - 30465_6 - Long",
+      "connectionIds": [
+        "jnt:30465/NAUO31:30465/NAUO35:0"
+      ],
+      "distinctAxes": [
+        [
+          -1.4088390035287269e-14,
+          4.8653655658584015e-29,
+          1
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO36",
+      "commonName": "Large Rotor Blade - 30465",
+      "connectionIds": [
+        "jnt:30465/NAUO19/NAUO53:30465/NAUO36:0"
+      ],
+      "distinctAxes": [
+        [
+          0.9208816014565616,
+          4.604430723070925e-15,
+          0.3898423734008379
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO37",
+      "commonName": "Large Rotor Blade - 30465",
+      "connectionIds": [
+        "jnt:30465/NAUO19/NAUO53:30465/NAUO37:0"
+      ],
+      "distinctAxes": [
+        [
+          0.9208816014565616,
+          4.604430723070925e-15,
+          0.3898423734008379
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO4/NAUO73",
+      "commonName": "Cross Block - 30465",
+      "connectionIds": [
+        "jnt:30465/NAUO4/NAUO73:30465/NAUO4/NAUO74:0",
+        "jnt:30465/NAUO4/NAUO73:30465/NAUO4/NAUO75:0"
+      ],
+      "distinctAxes": [
+        [
+          1,
+          2.203902440112839e-18,
+          2.0990671579799633e-17
+        ],
+        [
+          3.4892774364030205e-15,
+          1,
+          3.4867941867133823e-15
+        ]
+      ],
+      "remainingTranslationalDof": 0,
+      "status": "kinematically-locked"
+    },
+    {
+      "pieceId": "30465/NAUO4/NAUO74",
+      "commonName": "Axle - 30465_6 - Long",
+      "connectionIds": [
+        "jnt:30465/NAUO1/NAUO80:30465/NAUO4/NAUO74:0",
+        "jnt:30465/NAUO23:30465/NAUO4/NAUO74:0",
+        "jnt:30465/NAUO24:30465/NAUO4/NAUO74:0",
+        "jnt:30465/NAUO29/NAUO40:30465/NAUO4/NAUO74:0",
+        "jnt:30465/NAUO32/NAUO40:30465/NAUO4/NAUO74:0",
+        "jnt:30465/NAUO4/NAUO73:30465/NAUO4/NAUO74:0",
+        "jnt:30465/NAUO4/NAUO74:30465/NAUO5:0"
+      ],
+      "distinctAxes": [
+        [
+          1,
+          2.203902440112839e-18,
+          2.0990671579799633e-17
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO4/NAUO75",
+      "commonName": "Long Friction Pin - 30465",
+      "connectionIds": [
+        "jnt:30465/NAUO4/NAUO73:30465/NAUO4/NAUO75:0",
+        "jnt:30465/NAUO4/NAUO75:30465/NAUO6:0",
+        "jnt:30465/NAUO4/NAUO75:30465/NAUO7:0"
+      ],
+      "distinctAxes": [
+        [
+          3.4892774364030205e-15,
+          1,
+          3.4867941867133823e-15
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO5",
+      "commonName": "Small Bush - 30565",
+      "connectionIds": [
+        "jnt:30465/NAUO4/NAUO74:30465/NAUO5:0"
+      ],
+      "distinctAxes": [
+        [
+          1,
+          2.203902440112839e-18,
+          2.0990671579799633e-17
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO6",
+      "commonName": "Beam - 5 Long - 30465",
+      "connectionIds": [
+        "jnt:30465/NAUO1/NAUO81:30465/NAUO6:0",
+        "jnt:30465/NAUO19/NAUO52:30465/NAUO6:0",
+        "jnt:30465/NAUO4/NAUO75:30465/NAUO6:0",
+        "jnt:30465/NAUO6:30465/NAUO8:0"
+      ],
+      "distinctAxes": [
+        [
+          0,
+          1,
+          3.4914813388431334e-15
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO7",
+      "commonName": "Beam - 7 Long - 30465",
+      "connectionIds": [
+        "jnt:30465/NAUO10:30465/NAUO7:0",
+        "jnt:30465/NAUO28/NAUO45:30465/NAUO7:0",
+        "jnt:30465/NAUO28/NAUO46:30465/NAUO7:0",
+        "jnt:30465/NAUO4/NAUO75:30465/NAUO7:0",
+        "jnt:30465/NAUO7:30465/NAUO8:0"
+      ],
+      "distinctAxes": [
+        [
+          -3.4914813388431334e-15,
+          1,
+          3.491481338843109e-15
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO8",
+      "commonName": "Friction Pin - 30465",
+      "connectionIds": [
+        "jnt:30465/NAUO6:30465/NAUO8:0",
+        "jnt:30465/NAUO7:30465/NAUO8:0"
+      ],
+      "distinctAxes": [
+        [
+          3.4892774364030205e-15,
+          1,
+          3.4833247397614286e-15
+        ]
+      ],
+      "remainingTranslationalDof": 1,
+      "status": "axial-slide"
+    },
+    {
+      "pieceId": "30465/NAUO9",
+      "commonName": "Friction Pin with Bore - 30465",
+      "connectionIds": [
+        "jnt:30465/NAUO1/NAUO80:30465/NAUO9:0",
+        "jnt:30465/NAUO11/NAUO70:30465/NAUO9:0",
+        "jnt:30465/NAUO23:30465/NAUO9:0"
+      ],
+      "distinctAxes": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          6.039850435972806e-15,
+          -5.611167812195152e-15,
+          1
+        ]
+      ],
+      "remainingTranslationalDof": 0,
+      "status": "kinematically-locked"
+    }
+  ]
+}

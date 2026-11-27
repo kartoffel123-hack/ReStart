@@ -19,6 +19,20 @@ describe('bootstrap shell', () => {
         expect(document.querySelector('[data-placeholder]')).toBeNull();
     });
 
+    it('opens the dependency graph on its own route', async () => {
+        window.location.hash = '#/graph';
+        render(<App />);
+        expect(await screen.findByRole('heading', { name: /dependency graph/i })).toBeInTheDocument();
+        expect(document.querySelector('[data-placeholder]')).toBeNull();
+    });
+
+    it('opens the DOF and timing overview on its own route', async () => {
+        window.location.hash = '#/dof';
+        render(<App />);
+        expect(await screen.findByRole('heading', { name: /freiheitsgrade/i })).toBeInTheDocument();
+        expect(document.querySelector('[data-placeholder]')).toBeNull();
+    });
+
     it('resolves the concept route to the gallery, which renders the production screen', () => {
         // Changed with ticket 4. The gallery is not a placeholder: it mounts the real
         // ManualScreen with its real props, which is what makes a design review of it mean

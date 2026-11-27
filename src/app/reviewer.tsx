@@ -107,7 +107,7 @@ export function Reviewer() {
     }
     const tree=(parent:string):React.ReactNode=>model.occurrences.filter(o=>o.parent===parent).map(p=>p.kind==='piece'?<li key={p.id}><button onClick={()=>select(p.id)}>{p.commonName} — {p.id.split('/').at(-1)}</button></li>:
         <li key={p.id}><details><summary>{p.commonName}</summary><ul>{tree(p.id)}</ul></details></li>);
-    return <main className="reviewer" data-route="review"><header><a href="#/">Mechanic manual</a><h1>Repair reviewer</h1>
+    return <main className="reviewer" data-route="review"><header><a href="#/">Mechanic manual</a> · <a href={`#/graph?piece=${encodeURIComponent(selected)}`}>Dependency graph</a><h1>Repair reviewer</h1>
         <p>Inspect a connection, then test what happens if a move needs it released.</p></header>
         <section><h2>Assembly relationships</h2><label>Occurrence <select value={selected} onChange={e=>select(e.target.value)}>
             {model.occurrences.map(p=><option key={p.id} value={p.id}>{p.commonName} — {p.id}</option>)}</select></label>

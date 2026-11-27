@@ -1,0 +1,223 @@
+.rs-dof-page {
+    min-height: 100vh;
+    box-sizing: border-box;
+    font: 0.94rem/1.45 var(--rs-font-body);
+    color: var(--rs-ink);
+    background: var(--rs-build-field);
+}
+
+.rs-dof-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 24px;
+    background: var(--rs-paper);
+    border-bottom: 1px solid var(--rs-hairline);
+}
+
+.rs-dof-header h1 {
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.rs-dof-header__sub {
+    color: var(--rs-muted);
+    font-size: 0.9rem;
+}
+
+.rs-dof-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.rs-dof-nav a,
+.rs-dof-nav button {
+    padding: 6px 12px;
+    border-radius: var(--rs-radius);
+    border: 1px solid var(--rs-hairline);
+    background: var(--rs-paper);
+    color: var(--rs-ink);
+    text-decoration: none;
+    font: inherit;
+    cursor: pointer;
+}
+
+.rs-dof-nav a:hover,
+.rs-dof-nav button:hover {
+    border-color: var(--rs-focus);
+    color: var(--rs-focus);
+}
+
+.rs-dof-content {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 20px 24px 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.rs-dof-kpis {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 14px;
+}
+
+.rs-dof-kpi {
+    background: var(--rs-paper);
+    border: 1px solid var(--rs-hairline);
+    border-radius: var(--rs-radius);
+    padding: 14px 16px;
+}
+
+.rs-dof-kpi__label {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--rs-muted);
+}
+
+.rs-dof-kpi__value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-top: 4px;
+}
+
+.rs-dof-kpi__sub {
+    font-size: 0.8rem;
+    color: var(--rs-muted);
+    margin-top: 2px;
+}
+
+.rs-dof-panel {
+    background: var(--rs-paper);
+    border: 1px solid var(--rs-hairline);
+    border-radius: var(--rs-radius);
+    padding: 16px 20px;
+}
+
+.rs-dof-panel h2 {
+    margin: 0 0 8px;
+    font-size: 1.05rem;
+}
+
+.rs-dof-provenance {
+    margin: 0 0 12px;
+    padding: 8px 12px;
+    border-radius: var(--rs-radius);
+    background: #fff8e1;
+    border: 1px solid #e6c665;
+    font-size: 0.84rem;
+}
+
+.rs-dof-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.rs-dof-controls input[type='search'],
+.rs-dof-controls select {
+    padding: 7px 10px;
+    border: 1px solid var(--rs-hairline);
+    border-radius: var(--rs-radius);
+    font: inherit;
+    background: var(--rs-paper);
+}
+
+.rs-dof-controls input[type='search'] {
+    min-width: 260px;
+    flex: 1;
+}
+
+.rs-dof-table-wrap {
+    overflow-x: auto;
+}
+
+.rs-dof-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.86rem;
+}
+
+.rs-dof-table th,
+.rs-dof-table td {
+    text-align: left;
+    vertical-align: top;
+    padding: 10px 10px;
+    border-bottom: 1px solid var(--rs-hairline);
+}
+
+.rs-dof-table th {
+    background: #f7f8f9;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.rs-dof-table tfoot td {
+    background: #f7f8f9;
+    font-weight: 700;
+    border-top: 2px solid var(--rs-ink);
+}
+
+.rs-dof-num-input {
+    width: 74px;
+    padding: 4px 6px;
+    border: 1px solid var(--rs-hairline);
+    border-radius: 4px;
+    font: inherit;
+}
+
+.rs-dof-badge {
+    display: inline-block;
+    padding: 2px 7px;
+    border-radius: 999px;
+    font-size: 0.74rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.rs-dof-badge--locked {
+    background: #fde8e8;
+    color: var(--rs-danger);
+}
+
+.rs-dof-badge--axial {
+    background: #e8f7ee;
+    color: var(--rs-ok);
+}
+
+.rs-dof-conn-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.rs-dof-conn-list li {
+    padding: 4px 6px;
+    border-radius: 4px;
+    background: #f7f8f9;
+    border: 1px solid #e2e6e9;
+    font-size: 0.8rem;
+}
+
+.rs-dof-link {
+    display: inline-block;
+    margin-top: 4px;
+    color: var(--rs-focus);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.8rem;
+}
+
+.rs-dof-link:hover {
+    text-decoration: underline;
+}

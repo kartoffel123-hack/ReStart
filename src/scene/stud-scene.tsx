@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowHelper, Box3, Color, DirectionalLight, Group, HemisphereLight, Mesh, MeshStandardMaterial, MeshBasicMaterial, PerspectiveCamera, Raycaster, Scene, Vector2, Vector3, WebGLRenderer } from 'three';
+import { ArrowHelper, Box3, Color, DirectionalLight, EdgesGeometry, Group, HemisphereLight, LineBasicMaterial, LineSegments, Mesh, MeshStandardMaterial, MeshBasicMaterial, PerspectiveCamera, Raycaster, Scene, Vector2, Vector3, WebGLRenderer } from 'three';
+import { partInset } from './part-inset.js';
 import { xrManual,type XrStep } from './xr-manual.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -44,7 +45,9 @@ export function StudScene(props: Props) {
         const neutral = new MeshStandardMaterial({ color: 0x838e94 });
         const colors:Record<string,number>={'Black':0x222527,'Dark Grey':0x565d62,'Light Grey':0xa5aaab,'White':0xe7e7df,'Lime Green':0x9ab928,'Red':0xad2521,'Transparent Red':0xcd3029,'Blue':0x195d99,'Beige':0xc9b68d,'Yellow':0xffcf25};
         const meshPoses=new Map<Mesh,{pose:Vector3; explode:Vector3;neutral:MeshStandardMaterial;center:Vector3}>();
-        const active = new MeshStandardMaterial({ color: 0xffad22 });
+        const inset=partInset();
+        let contour:LineSegments<EdgesGeometry,LineBasicMaterial>|undefined;
+        let targetRadius=0.005;
         let model: Group | undefined, stud: Mesh | undefined, disposed = false;
         const installed = new Vector3(), center = new Vector3();
         const arrow = new ArrowHelper();
@@ -62,8 +65,11 @@ export function StudScene(props: Props) {
         });
         const frameCamera = () => {
             const focused = latest.current.focus;
-            controls.target.copy(focused ? center : new Vector3(0,0.012,0));
-            camera.position.copy(controls.target).add(focused ? new Vector3(-0.032,0.015,-0.036) : new Vector3(-0.23,0.14,-0.22));
+            const p=latest.current;
+            controls.target.copy(focused ? center.clone().addScaledVector(new Vector3(...p.start).add(new Vector3(...p.end)),0.0005) : new Vector3(0,0.012,0));
+            const halfStroke=new Vector3(...p.start).distanceTo(new Vector3(...p.end))*0.0005;
+            const distance=Math.max(0.040,1.3*(targetRadius+halfStroke)/(Math.tan(camera.fov*Math.PI/360)*Math.min(1,camera.aspect)));
+            camera.position.copy(controls.target).add(focused ? new Vector3(-1,0.65,-1.5).normalize().multiplyScalar(distance) : new Vector3(-0.23,0.14,-0.22));
             controls.update();
         };
         new GLTFLoader().load(props.url, gltf => {
@@ -101,14 +107,17 @@ export function StudScene(props: Props) {
             if (!model) return;
             const p = latest.current;
             if(previous?.target!==p.target){
-                if(stud) stud.material=meshPoses.get(stud)!.neutral;
+                if(contour){contour.removeFromParent();contour.geometry.dispose();contour.material.dispose();}
                 stud=[...meshPoses.keys()].find(m=>m.userData.instanceId===p.target);
                 if(!stud){setError(true);return;}
-                stud.material=active;installed.copy(meshPoses.get(stud)!.pose);center.copy(meshPoses.get(stud)!.center);
+                installed.copy(meshPoses.get(stud)!.pose);center.copy(meshPoses.get(stud)!.center);
+                targetRadius=new Box3().setFromObject(stud).getSize(new Vector3()).length()/2;
+                contour=new LineSegments(new EdgesGeometry(stud.geometry,32),new LineBasicMaterial({color:0x172127}));stud.add(contour);
+                inset.select(stud);
                 if(ghost) display.remove(ghost);ghost=new Mesh(stud.geometry,ghostMaterial);ghost.quaternion.copy(stud.quaternion);ghost.visible=false;display.add(ghost);
             }
             if(!stud)return;
-            if (previous?.reset !== p.reset || previous.focus !== p.focus || previous.target!==p.target) {frameCamera();xr.current?.recenter();}
+            if (previous?.reset !== p.reset || previous.focus !== p.focus || previous.target!==p.target || previous.start!==p.start || previous.end!==p.end) {frameCamera();xr.current?.recenter();}
             if (previous?.start !== p.start || previous.end !== p.end || previous.replay !== p.replay) {
                 began = now;
                 a.fromArray(p.start).multiplyScalar(0.001);
@@ -137,6 +146,7 @@ export function StudScene(props: Props) {
             const t = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 1 : Math.min(1,(now-began)/1200);
             stud.position.copy(installed).add(displacement.lerpVectors(a,b,t)).addScaledVector(meshPoses.get(stud)!.explode,p.explode ?? 0);
             xr.current?.update();renderer.render(scene,camera);
+            if(p.focus) inset.draw(renderer,el.clientWidth,el.clientHeight);
             if (!p.focus) {
                 const ndc = displacement.copy(center).addScaledVector(meshPoses.get(stud)!.explode,p.explode ?? 0).project(camera);
                 renderer.domElement.dataset.targetPoint = `${(ndc.x+1)/2},${(1-ndc.y)/2}`;
@@ -146,7 +156,7 @@ export function StudScene(props: Props) {
             disposed = true; resize.disconnect(); el.removeEventListener('click',pick);
             renderer.setAnimationLoop(null); controls.dispose(); if (model) dropModel(model);
             xr.current?.dispose();xr.current=null;ghostMaterial.dispose();meshPoses.forEach(v=>v.neutral.dispose());
-            arrow.dispose(); neutral.dispose(); active.dispose(); renderer.dispose(); renderer.domElement.remove();
+            contour?.geometry.dispose();contour?.material.dispose();arrow.dispose(); neutral.dispose(); renderer.dispose(); renderer.domElement.remove();
         };
     }, [props.url,retry]);
     return <div className="stud-scene" ref={host} aria-label="Helicopter with selected piece highlighted">

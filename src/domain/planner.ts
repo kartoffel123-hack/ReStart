@@ -204,7 +204,7 @@ class Frontier {
     }
 }
 
-function stepsFor(model: AssemblyModel, route: readonly string[], checkId: string | null): RepairStep[] {
+function stepsFor(model: AssemblyModel, route: readonly string[], checkId: string | null, targets:readonly string[]): RepairStep[] {
     const steps: RepairStep[] = route.map((operationId, position) => {
         const operation = model.operations.find((candidate) => candidate.id === operationId) as Operation;
         const firstMember = model.occurrences.find((occurrence) => occurrence.id === operation.members[0]);
@@ -214,7 +214,7 @@ function stepsFor(model: AssemblyModel, route: readonly string[], checkId: strin
             ordinal: position + 1,
             phase: operation.phase,
             operationId,
-            heading: PHASE_HEADING[operation.phase],
+            heading: operation.phase==='remove' && operation.members.some(m=>targets.includes(m)) ? 'Remove the target piece' : PHASE_HEADING[operation.phase],
             instruction: `${operation.directionLabel} until ${operation.stopLandmark}.`,
             toolLabel: tool?.name ?? operation.toolId,
             stopLandmark: operation.stopLandmark,
@@ -420,7 +420,7 @@ export function planRepair(
         graphRevision: model.graphRevision,
         datasetRevision: model.source.datasetRevision,
         procedureFingerprint: procedureFingerprint(model, targets, route, functionCheckId),
-        steps: stepsFor(model, route, functionCheckId),
+        steps: stepsFor(model, route, functionCheckId,targets),
         operationIds: route,
         disturbedIds: [],
         disturbedCount: 0,

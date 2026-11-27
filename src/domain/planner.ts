@@ -76,6 +76,10 @@ export function relevantOperations(
         const subjects = new Set<string>();
         for (const requirement of operation.requires) {
             if (requirement.subject.kind === 'occurrence') subjects.add(requirement.subject.id);
+            else for (const candidate of model.operations) {
+                if (candidate.releasesConnectionIds.includes(requirement.subject.id) ||
+                    candidate.establishesConnectionIds.includes(requirement.subject.id)) queue.push(candidate);
+            }
         }
         for (const assignment of operation.from) subjects.add(assignment.occurrenceId);
         for (const subject of subjects) queue.push(...(movers.get(subject) ?? []));
@@ -105,29 +109,26 @@ export function routeDisturbance(
 }
 
 /** Seconds rank candidates only when both routes are fully timed. */
-function routeSeconds(model: AssemblyModel, route: readonly string[]): number | null {
+function routeTiming(model: AssemblyModel, route: readonly string[]): {basis:string; seconds:number} | null {
     let total = 0;
+    let basis: string | undefined;
     for (const operationId of route) {
         const operation = model.operations.find((candidate) => candidate.id === operationId);
         if (operation === undefined || operation.phase !== 'remove') continue;
         const estimate = operation.estimatedSeconds;
         if (estimate === undefined || estimate.coverage === 'unknown') return null;
+        if (basis !== undefined && basis !== estimate.basis) return null;
+        basis = estimate.basis;
         total += estimate.seconds;
     }
-    return total;
+    return {basis:basis ?? '',seconds:total};
 }
 
 /** Secondary ranking among equal-count routes: time, then fewer steps, then IDs. */
 function betterRoute(
-    model: AssemblyModel,
     candidate: readonly string[],
     incumbent: readonly string[]
 ): boolean {
-    const candidateSeconds = routeSeconds(model, candidate);
-    const incumbentSeconds = routeSeconds(model, incumbent);
-    if (candidateSeconds !== null && incumbentSeconds !== null && candidateSeconds !== incumbentSeconds) {
-        return candidateSeconds < incumbentSeconds;
-    }
     if (candidate.length !== incumbent.length) return candidate.length < incumbent.length;
     const longest = Math.min(candidate.length, incumbent.length);
     for (let index = 0; index < longest; index += 1) {
@@ -203,7 +204,7 @@ class Frontier {
     }
 }
 
-function stepsFor(model: AssemblyModel, route: readonly string[]): RepairStep[] {
+function stepsFor(model: AssemblyModel, route: readonly string[], checkId: string | null): RepairStep[] {
     const steps: RepairStep[] = route.map((operationId, position) => {
         const operation = model.operations.find((candidate) => candidate.id === operationId) as Operation;
         const firstMember = model.occurrences.find((occurrence) => occurrence.id === operation.members[0]);
@@ -224,7 +225,7 @@ function stepsFor(model: AssemblyModel, route: readonly string[]): RepairStep[] 
         };
     });
 
-    const check = model.functionChecks[0];
+    const check = model.functionChecks.find(c => c.id === checkId);
     if (check !== undefined) {
         steps.push({
             stepId: `step-${steps.length + 1}`,
@@ -282,14 +283,14 @@ export function planRepair(
 ): PlanOutcome {
     const targets = sortedIds(targetIds);
     const targetSet = new Set(targets);
-    const catalog = relevantOperations(model, targets);
+    const catalog = relevantOperations(model, targets).sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);
     const releaseOperations = catalog.filter(
         (operation) => operation.phase === 'remove' && operation.members.some((member) => targetSet.has(member))
     );
 
     let incumbent: readonly string[] | undefined;
     let incumbentSource: SearchReport['incumbentSource'] = 'none';
-    if (options.incumbentRoute !== undefined) {
+    if (budget.allowIncumbent && options.incumbentRoute !== undefined) {
         const seeded = walk(model, options.incumbentRoute, targets);
         if (seeded.issues.length === 0 && isGoal(model, seeded.state, targets)) {
             incumbent = [...options.incumbentRoute];
@@ -301,7 +302,13 @@ export function planRepair(
     const start = initialState(model, targets);
     const frontier = new Frontier();
     frontier.push({ state: start, cost: 0, lastOperationId: '' });
-    const bestCostForKey = new Map<string, number>([[stateKey(start), 0]]);
+    // For each physical state and timing basis, retain both useful prefixes:
+    // fastest and shortest canonical. An untimed goal anywhere in the minimum
+    // set makes the latter decisive even for prefixes that were fully timed.
+    type Label = { seconds:number; route:readonly string[] };
+    const labels = new Map<string,{short:Label; fast:Label}>();
+    const goals = new Map<string,readonly string[]>();
+    if (incumbent) goals.set(JSON.stringify(incumbent),incumbent);
 
     let expanded = 0;
     let capped = false;
@@ -330,11 +337,13 @@ export function planRepair(
         if (isGoal(model, node.state, targets)) {
             const route = node.state.history;
             const cost = node.state.disturbedIds.length;
-            if (incumbentCost === null || cost < incumbentCost || betterRoute(model, route, incumbent as readonly string[])) {
+            if (incumbentCost === null || cost < incumbentCost) {
+                goals.clear();
                 incumbent = route;
                 incumbentCost = cost;
                 incumbentSource = 'search';
             }
+            if (cost===incumbentCost) goals.set(JSON.stringify(route),route);
             continue;
         }
 
@@ -344,14 +353,26 @@ export function planRepair(
             const key = stateKey(applied.state);
             const cost = applied.state.disturbedIds.length;
             if (incumbentCost !== null && cost > incumbentCost) continue;
-            const seenCost = bestCostForKey.get(key);
-            if (seenCost !== undefined && seenCost <= cost) continue;
-            bestCostForKey.set(key, cost);
+            const route=applied.state.history;
+            const timing=routeTiming(model,route);
+            const labelKey=JSON.stringify([key,timing?.basis ?? null]);
+            const old=labels.get(labelKey), next={route,seconds:timing?.seconds ?? 0};
+            const shorter=!old || betterRoute(route,old.short.route);
+            const faster=!old || next.seconds<old.fast.seconds || (next.seconds===old.fast.seconds && betterRoute(route,old.fast.route));
+            if (!shorter && !faster) continue;
+            labels.set(labelKey,{short:shorter?next:old!.short,fast:faster?next:old!.fast});
             frontier.push({ state: applied.state, cost, lastOperationId: operation.id });
         }
     }
 
     const frontierMinimum = frontierEmpty ? null : frontier.minimumCost;
+    const choices=[...goals.values()].map(route=>({route,timing:routeTiming(model,route)}));
+    const comparable=choices.every(c=>c.timing!==null && c.timing.basis===choices[0]?.timing?.basis);
+    choices.sort((a,b)=>(comparable ? a.timing!.seconds-b.timing!.seconds : 0) || (betterRoute(a.route,b.route)?-1:betterRoute(b.route,a.route)?1:0));
+    if(choices.length) {
+        incumbent=choices[0]!.route;
+        if(JSON.stringify(incumbent)!==JSON.stringify(options.incumbentRoute)) incumbentSource='search';
+    }
     const tieFrontierComplete =
         incumbentCost !== null && (frontierMinimum === null || frontierMinimum > incumbentCost);
     const noLowerBoundRemains =
@@ -399,7 +420,7 @@ export function planRepair(
         graphRevision: model.graphRevision,
         datasetRevision: model.source.datasetRevision,
         procedureFingerprint: procedureFingerprint(model, targets, route, functionCheckId),
-        steps: stepsFor(model, route),
+        steps: stepsFor(model, route, functionCheckId),
         operationIds: route,
         disturbedIds: [],
         disturbedCount: 0,

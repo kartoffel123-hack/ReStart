@@ -69,8 +69,7 @@ export function unitOutcomes(model: AssemblyModel, repair: Repair): UnitOutcome[
         const rigid = touching.every(
             (operation) =>
                 operation.wholeAssembly ||
-                operation.unitId === unit.id ||
-                operation.members.every((member) => members.has(member))
+                unit.memberIds.every((member) => operation.members.includes(member))
         );
         if (rigid) {
             return {

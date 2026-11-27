@@ -154,7 +154,7 @@ export function enablement(
     if (operation.fitsReplacementOf !== undefined) {
         // The damaged piece has to be individually out of the slot first.
         const fittedNow = state.fitted[operation.fitsReplacementOf];
-        if (fittedNow === undefined || fittedNow !== 'original') {
+        if (fittedNow !== 'original' || !targetIsIndividuallyReleased(model,state,operation.fitsReplacementOf)) {
             unmet.push({
                 id: `slot:${operation.id}:${operation.fitsReplacementOf}`,
                 subject: { kind: 'occurrence', id: operation.fitsReplacementOf },
@@ -167,13 +167,13 @@ export function enablement(
     }
 
     // A return is offered only against an obligation the job actually owes.
-    if (operation.isReturn && !state.outstandingReturns.includes(operation.id)) {
+    if (operation.isReturn && state.outstandingReturns.at(-1)!==operation.id) {
         unmet.push({
             id: `return:${operation.id}`,
             subject: { kind: 'occurrence', id: operation.members[0] ?? operation.id },
             acceptable: ['owed'],
             role: 'support',
-            reason: `${operation.id} has no outstanding return obligation`,
+                reason: `${operation.id} is not the next outstanding return`,
             evidence: { tier: 'generated', source: 'operation.isReturn' }
         });
     }
@@ -246,7 +246,7 @@ export function applyOperation(
         outstandingReturns = outstandingReturns.filter((owedId) => owedId !== operation.id);
     } else if (operation.returnOperationId !== undefined && operation.phase === 'remove') {
         if (!outstandingReturns.includes(operation.returnOperationId)) {
-            outstandingReturns = sortedIds([...outstandingReturns, operation.returnOperationId]);
+            outstandingReturns = [...outstandingReturns, operation.returnOperationId];
         }
     }
 
@@ -287,13 +287,14 @@ export function isGoal(
 /** Whether the target can be exchanged as an individual right now. */
 export function targetIsIndividuallyReleased(
     model: AssemblyModel,
-    state: AssemblyModel extends never ? never : AssemblyState,
+    state: AssemblyState,
     targetId: string
 ): boolean {
     const poseId = state.poses[targetId];
     if (poseId === undefined) return false;
     const pose = model.poses.find((candidate) => candidate.id === poseId);
-    return pose !== undefined && (pose.kind === 'detached' || pose.kind === 'bench');
+    return pose !== undefined && pose.kind === 'detached' &&
+        !model.connections.some(c => (c.a === targetId || c.b === targetId) && state.engagement[c.id] === 'engaged');
 }
 
 /** Canonical, order-independent key for state merging (plan 02 §4.4). */

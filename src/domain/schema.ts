@@ -239,7 +239,7 @@ export const operationSchema = z.object({
     fitsReplacementOf: z.string().optional(),
     estimatedSeconds: z
         .object({
-            seconds: z.number().finite(),
+            seconds: z.number().finite().nonnegative(),
             rowId: z.string(),
             basis: z.string(),
             coverage: z.enum(['timed', 'proxy', 'unknown'])

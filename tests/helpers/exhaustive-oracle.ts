@@ -99,7 +99,7 @@ function poseKey(state: State): string {
 }
 
 function physicalKey(state: State): string {
-    return `${poseKey(state)}@${sortedUnique(state.owed).join(',')}`;
+    return `${poseKey(state)}@${state.owed.join(',')}`;
 }
 
 function holds(state: State, requirement: Requirement): boolean {
@@ -121,7 +121,7 @@ function isLegal(state: State, operation: Operation): boolean {
     if (operation.fitsReplacementOf !== undefined) {
         if (state.fitted[operation.fitsReplacementOf] !== 'original') return false;
     }
-    if (operation.isReturn && !state.owed.includes(operation.id)) return false;
+    if (operation.isReturn && state.owed[0]!==operation.id) return false;
     return true;
 }
 
@@ -140,7 +140,8 @@ function advance(state: State, operation: Operation, targets: ReadonlySet<string
     if (operation.isReturn) {
         owed = owed.filter((id) => id !== operation.id);
     } else if (operation.returnOperationId !== undefined && operation.phase === 'remove') {
-        owed = sortedUnique([...owed, operation.returnOperationId]);
+        // Newest access move is restored first (plan 02 §4.5).
+        if (!owed.includes(operation.returnOperationId)) owed = [operation.returnOperationId,...owed];
     }
 
     const disturbed = operation.wholeAssembly

@@ -1,0 +1,32 @@
+{
+  "targetId": "30465/NAUO9",
+  "actions": [
+    {
+      "pieceId": "30465/NAUO3",
+      "actionKind": "remove",
+      "blockerPieceId": "30465/NAUO1/NAUO80"
+    },
+    {
+      "pieceId": "30465/NAUO5",
+      "actionKind": "remove",
+      "blockerPieceId": "30465/NAUO1/NAUO80"
+    },
+    {
+      "pieceId": "30465/NAUO1/NAUO80",
+      "actionKind": "remove",
+      "directionLabel": "−X (zur Seite der Scheiben NAUO3/NAUO5)",
+      "restoreDirectionLabel": "+X (zurück in Einbaulage)"
+    },
+    {
+      "pieceId": "30465/NAUO11/NAUO70",
+      "actionKind": "slide",
+      "directionLabel": "−Z (nach hinten)",
+      "restoreDirectionLabel": "+Z (nach vorn)"
+    }
+  ],
+  "disconnectPieceIds": [
+    "30465/NAUO3",
+    "30465/NAUO5",
+    "30465/NAUO1/NAUO80"
+  ]
+}

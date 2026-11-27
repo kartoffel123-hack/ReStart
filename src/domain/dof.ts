@@ -142,57 +142,57 @@ export type ConnectionTimingRule = Readonly<{
  * These are fictitious challenge assumptions, never measured disassembly times.
  */
 export const MTM_TIMING_PROVENANCE =
-    'Challenge-Annahme: fiktive MTM-Basiswerte aus MTM_Mapping_Connection_V3.xlsx × Faktor 2 (Lösen) sowie Praxis-Kalibrierung für kompletten Zusammenbau ≈ 15 min (keine gemessenen Einzelzeiten).';
+    'Challenge-Annahme: fiktive MTM-Worst-Case-Werte (+30%) aus MTM_Mapping_Connection_V3.xlsx, ohne zusätzlichen Faktor; kompletter Zusammenbau separat auf ≈15 min kalibriert (keine gemessenen Einzelzeiten).';
 
 /**
- * Calibration factor for reassembly relative to disassembly:
- * With 84 connections (378 s disassembly at 2× MTM), factor 2.38 calibrates full
- * helicopter reassembly to ~900 s (15 minutes), matching physical build experience.
+ * Calibration factor for reassembly relative to the selected MTM worst-case release values:
+ * 84 connections total 132.68 s release (rounded per connection type); factor 6.78324
+ * calibrates full helicopter reassembly to ~900 s (15 minutes), matching the user's approximate build experience.
  */
-export const DEFAULT_REASSEMBLY_FACTOR = 2.38;
+export const DEFAULT_REASSEMBLY_FACTOR = 6.78323787;
 
 export const DEFAULT_CONNECTION_TIMING: Readonly<Record<ConnectionKind, ConnectionTimingRule>> = {
     'pin-hole': {
         kind: 'pin-hole',
-        seconds: 6,
-        mtmRowId: 'ST-mittel ×2',
-        mtmLabel: 'Steckverbindung / Bolzen (Ineinanderschieben 4.1.3, Faktor ×2)'
+        seconds: 2.106,
+        mtmRowId: 'ST-mittel · Worst Case',
+        mtmLabel: 'Steckverbindung / Bolzen (Ineinanderschieben 4.1.3, Worst Case +30%)'
     },
     'axle-bore': {
         kind: 'axle-bore',
-        seconds: 4,
-        mtmRowId: 'ST-klein ×2',
-        mtmLabel: 'Steckverbindung / Spielpassung (Ineinanderschieben 4.1.3, Faktor ×2)'
+        seconds: 1.404,
+        mtmRowId: 'ST-klein · Worst Case',
+        mtmLabel: 'Steckverbindung / Spielpassung (Ineinanderschieben 4.1.3, Worst Case +30%)'
     },
     'stud-tube': {
         kind: 'stud-tube',
-        seconds: 6,
-        mtmRowId: 'CL-mikro ×2',
-        mtmLabel: 'Schnappverbindung / Mikro-Clip (4.1.6, Faktor ×2)'
+        seconds: 2.808,
+        mtmRowId: 'CL-mikro · Worst Case',
+        mtmLabel: 'Schnappverbindung / Mikro-Clip (4.1.6, Worst Case +30%)'
     },
     friction: {
         kind: 'friction',
-        seconds: 6,
-        mtmRowId: 'ST-mittel ×2',
-        mtmLabel: 'Steckverbindung / Reibpassung (4.1.3, Faktor ×2)'
+        seconds: 2.106,
+        mtmRowId: 'ST-mittel · Worst Case',
+        mtmLabel: 'Steckverbindung / Reibpassung (4.1.3, Worst Case +30%)'
     },
     clip: {
         kind: 'clip',
-        seconds: 6,
-        mtmRowId: 'CL-std ×2',
-        mtmLabel: 'Schnappverbindung / Standard-Clip (4.1.6, Faktor ×2)'
+        seconds: 2.808,
+        mtmRowId: 'CL-std · Worst Case',
+        mtmLabel: 'Schnappverbindung / Standard-Clip (4.1.6, Worst Case +30%)'
     },
     'gear-mesh': {
         kind: 'gear-mesh',
-        seconds: 2,
-        mtmRowId: 'EL-dicht-s ×2',
-        mtmLabel: 'Einlegen / Auflegen (4.1.2, Faktor ×2)'
+        seconds: 0.936,
+        mtmRowId: 'EL-dicht-s · Worst Case',
+        mtmLabel: 'Einlegen / Auflegen (4.1.2, Worst Case +30%)'
     },
     other: {
         kind: 'other',
-        seconds: 4,
-        mtmRowId: 'ST-klein ×2',
-        mtmLabel: 'Steckverbindung allgemein (4.1.3, Faktor ×2)'
+        seconds: 1.404,
+        mtmRowId: 'ST-klein · Worst Case',
+        mtmLabel: 'Steckverbindung allgemein (4.1.3, Worst Case +30%)'
     }
 };
 

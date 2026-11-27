@@ -1,0 +1,39 @@
+NAUO9 – KURZENTWURF FÜR EINE REPARATURANLEITUNG
+
+Zielteil: Friction Pin with Bore NAUO9
+Rechter weißer Bügel: Corner Beam NAUO80
+Ablauf laut bestätigter Nutzerangabe; am physischen LEGO-Modell noch unabhängig zu prüfen.
+
+AUSBAU
+1. Scheibe NAUO3 vom Axle NAUO77 abziehen.
+   Verbindung lösen: NAUO77 ↔ NAUO3 (axle-bore, +X).
+2. Scheibe NAUO5 vom Axle NAUO74 abziehen.
+   Verbindung lösen: NAUO74 ↔ NAUO5 (axle-bore, +X).
+3. Verbindungen des Bügels NAUO80 lösen:
+   - NAUO78 Friction Pin with Bore ↔ NAUO80 (pin-hole, +X)
+   - NAUO79 Axle ↔ NAUO80 (axle-bore, +X)
+   - NAUO80 ↔ NAUO66 Axle, Stage 7 (axle-bore, +X)
+   - NAUO80 ↔ NAUO77 Axle, Stage 2 (axle-bore, +X)
+   - NAUO80 ↔ NAUO74 Axle, Stage 3 (axle-bore, +X)
+   - NAUO80 ↔ NAUO9 Zielteil (pin-hole, +X)
+4. Bügel NAUO80 entlang −X herausziehen.
+5. Kreuzstange/Axle NAUO70 nach hinten, entlang −Z, schieben, bis sie NAUO9 freigibt.
+   Verbindung NAUO70 ↔ NAUO9 (axle-bore, +Z) lösen.
+6. Verbindung NAUO23 Corner Beam ↔ NAUO9 (pin-hole, +X) lösen.
+7. NAUO9 herausnehmen und Ersatzteil einsetzen.
+
+WIEDEREINBAU
+1. NAUO9 einsetzen und Verbindung zu NAUO23 wieder schließen.
+2. NAUO70 nach vorn, entlang +Z, zurückschieben und Verbindung zu NAUO9 herstellen.
+3. Bügel NAUO80 entlang +X einsetzen; seine sechs Verbindungen aus Schritt 3 wieder herstellen.
+4. NAUO5 auf NAUO74 und NAUO3 auf NAUO77 zurücksetzen.
+5. Sitz und Orientierung aller Teile prüfen.
+
+MTM-ZEIT – VERBINDUNGEN, NUR WORST CASE (+30%), OHNE ZUSÄTZLICHEN FAKTOR
+Quelle: Registerkarte „Vorschlag_2_Raster“, „Worst_Case_Sekunden (+30%)“.
+- axle-bore / ST-klein: 1,404 s je Verbindung (Basiswert 1,080 s; hier wird nur der Maximalwert verwendet).
+- pin-hole / ST-mittel: 2,106 s je Verbindung (Basiswert 1,620 s; hier wird nur der Maximalwert verwendet).
+- Modellierte Verbindungen im Ablauf: 7 axle-bore + 3 pin-hole = 16,146 s (ca. 16,15 s).
+
+Die MTM-Zeit summiert nur die modellierten Verbindungsvorgänge. Herausziehen, Zurückschieben,
+Greifen und Prüfen sind darin nicht enthalten; dafür liegen hier keine MTM-Zeiten vor.

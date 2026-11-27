@@ -2,9 +2,11 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
     buildDependencyTree,
-    type MotionCandidateSummary
+    type MotionCandidateSummary,
+    type ReviewedDependencyPlan
 } from '../../src/domain/dependency-tree.js';
 import { computeDofTimingSummary, connectionDofCatalogSchema } from '../../src/domain/dof.js';
+import nauo9AccessPlan from '../../data/review/nauo9-access-plan.json';
 import { assemblyModelSchema, type AssemblyModel, type Repair } from '../../src/domain/schema.js';
 
 function makeChainModel(): { model: AssemblyModel; repair: Repair; candidates: MotionCandidateSummary[] } {
@@ -464,6 +466,15 @@ describe('buildDependencyTree', () => {
         ]);
         expect(tree.plan.additionalPartsCount).toBe(1);
         expect(tree.plan.releasedPieceIds).toEqual(['kit/sub/leaf']);
+        expect(
+            tree.edges.some(
+                (edge) => edge.relation === 'spatial-blocker' && edge.target === 'kit/sub/leaf'
+            )
+        ).toBe(true);
+        expect(tree.plan.removalOrder.map((step) => step.pieceId)).toContain('kit/sub/leaf');
+        expect(tree.plan.releasedConnections.map((connection) => connection.connectionId)).toContain(
+            'conn:blocker-leaf'
+        );
     });
 
     it('minimizes released connections and keeps intact subassemblies together instead of dismantling unrelated stages', () => {
@@ -503,14 +514,109 @@ describe('buildDependencyTree', () => {
             dofCatalog
         });
         expect(nauo9.plan.releasedConnections.length).toBeGreaterThanOrEqual(3);
-        expect(nauo9.plan.removalOrder.length).toBeGreaterThanOrEqual(3);
+        expect(nauo9.plan.removalOrder.length).toBe(3);
         expect(nauo9.plan.releasedPieceIds.length).toBeGreaterThanOrEqual(2);
+
+        // Show every external connection of the two blocking assemblies as a separate
+        // graph edge, without falsely claiming that each far-side part must be removed.
+        const interfaceEdges = nauo9.edges.filter((edge) => edge.relation === 'unit-interface');
+        const interfaceIds = nauo9.plan.intactUnits.flatMap((unit) => unit.interfaceConnectionIds);
+        expect(interfaceEdges.map((edge) => edge.connectionId).sort()).toEqual(interfaceIds.sort());
+        expect(interfaceEdges.map((edge) => edge.target)).toContain('30465/NAUO2/NAUO76');
+        expect(interfaceEdges.map((edge) => edge.target)).toContain('30465/NAUO13/NAUO66');
+        expect(interfaceEdges.map((edge) => edge.target)).toContain('30465/NAUO12');
+        expect(nauo9.nodes.find((node) => node.id === '30465/NAUO2/NAUO76')?.parentLabel).toBe(
+            'Stage 2 - Lego Helicopter - 30465'
+        );
+        expect(nauo9.plan.removalOrder.map((step) => step.pieceId)).not.toContain('30465/NAUO2/NAUO76');
+        expect(
+            nauo9.edges.some(
+                (edge) => edge.relation === 'spatial-blocker' && edge.target === '30465/NAUO11/NAUO72'
+            )
+        ).toBe(true);
+        expect(nauo9.plan.removalOrder.map((step) => step.pieceId)).toContain('30465/NAUO11');
+        expect(nauo9.plan.removalOrder.map((step) => step.pieceId)).not.toContain(
+            '30465/NAUO11/NAUO72'
+        );
+
+        const reviewedNauo9 = buildDependencyTree(model, '30465/NAUO9', {
+            includeRequires: true,
+            includeCandidates: true,
+            preserveIntactUnits: true,
+            includeConnected: false,
+            includeContains: false,
+            candidates: candidatesRaw,
+            dofCatalog,
+            reviewedPlan: nauo9AccessPlan as ReviewedDependencyPlan
+        });
+        expect(reviewedNauo9.plan.source).toBe('reviewed-procedure');
+        expect(reviewedNauo9.plan.removalOrder.map((step) => step.pieceId)).toEqual([
+            '30465/NAUO3',
+            '30465/NAUO5',
+            '30465/NAUO1/NAUO80',
+            '30465/NAUO11/NAUO70',
+            '30465/NAUO9'
+        ]);
+        expect(reviewedNauo9.plan.reassemblyOrder.map((step) => step.pieceId)).toEqual([
+            '30465/NAUO9',
+            '30465/NAUO11/NAUO70',
+            '30465/NAUO1/NAUO80',
+            '30465/NAUO5',
+            '30465/NAUO3'
+        ]);
+        expect(reviewedNauo9.plan.removalOrder[3]?.actionKind).toBe('slide');
+        expect(reviewedNauo9.plan.removalOrder[3]?.directionLabel).toContain('−Z');
+        expect(reviewedNauo9.plan.reassemblyOrder[1]?.directionLabel).toContain('+Z');
+        expect(reviewedNauo9.plan.intactUnits).toHaveLength(0);
+        expect(reviewedNauo9.plan.releasedConnections).toHaveLength(10);
+        expect(reviewedNauo9.plan.releasedPieceIds).toEqual([
+            '30465/NAUO1/NAUO80',
+            '30465/NAUO11/NAUO70',
+            '30465/NAUO3',
+            '30465/NAUO5'
+        ]);
+        expect(reviewedNauo9.nodes.find((node) => node.id === '30465/NAUO3')?.isIndirectRemoval).toBe(true);
+        expect(reviewedNauo9.nodes.find((node) => node.id === '30465/NAUO5')?.isIndirectRemoval).toBe(true);
+        expect(
+            reviewedNauo9.nodes.find((node) => node.id === '30465/NAUO1/NAUO80')?.isIndirectRemoval
+        ).toBe(false);
+        expect(
+            reviewedNauo9.edges.some(
+                (edge) => edge.relation === 'spatial-blocker' && edge.target === '30465/NAUO3'
+            )
+        ).toBe(true);
+        expect(
+            reviewedNauo9.edges.some(
+                (edge) =>
+                    edge.relation === 'connection-release' &&
+                    edge.source === '30465/NAUO9' &&
+                    edge.target === '30465/NAUO23'
+            )
+        ).toBe(true);
+        expect(
+            reviewedNauo9.edges.some(
+                (edge) =>
+                    edge.relation === 'connection-release' &&
+                    edge.source === '30465/NAUO1/NAUO80' &&
+                    edge.target === '30465/NAUO2/NAUO77'
+            )
+        ).toBe(true);
+        expect(
+            reviewedNauo9.edges.some(
+                (edge) =>
+                    edge.relation === 'connected-to' &&
+                    edge.source === '30465/NAUO11/NAUO70' &&
+                    edge.target === '30465/NAUO11/NAUO71'
+            )
+        ).toBe(true);
 
         const timing = computeDofTimingSummary(dofCatalog);
         expect(timing.challengeAssumption).toBe(true);
         expect(timing.totalConnections).toBe(84);
-        expect(timing.totalReleaseSeconds).toBe(378);
-        expect(timing.totalReassemblySeconds).toBeCloseTo(900, -1);
+        expect(timing.totalReleaseSeconds).toBe(132.68);
+        expect(timing.byType.find((row) => row.kind === 'axle-bore')?.secondsPerConnection).toBe(1.404);
+        expect(timing.byType.find((row) => row.kind === 'pin-hole')?.secondsPerConnection).toBe(2.106);
+        expect(timing.totalReassemblySeconds).toBeCloseTo(900, 2);
         expect(timing.totalRoundTripSeconds).toBeCloseTo(
             timing.totalReleaseSeconds + timing.totalReassemblySeconds,
             2

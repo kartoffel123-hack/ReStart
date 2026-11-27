@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { z } from 'zod';
 import {
     buildDependencyTree,
-    type MotionCandidateSummary
+    type MotionCandidateSummary,
+    type ReviewedDependencyPlan
 } from '../domain/dependency-tree.js';
 import {
     connectionDofCatalogSchema,
@@ -10,6 +11,7 @@ import {
     type ConnectionDofCatalog
 } from '../domain/dof.js';
 import type { AssemblyModel, Repair, Vec3 } from '../domain/schema.js';
+import nauo9AccessPlanRaw from '../../data/review/nauo9-access-plan.json';
 import {
     DependencyTreeDiagram,
     type TreeDirection
@@ -21,6 +23,21 @@ import { pilotBase, type PilotData } from './pilot-data.js';
 import '../presentation/dependency-graph.css';
 
 const ZERO: Vec3 = [0, 0, 0];
+
+const reviewedDependencyPlanSchema = z.object({
+    targetId: z.string(),
+    actions: z.array(
+        z.object({
+            pieceId: z.string(),
+            actionKind: z.enum(['remove', 'slide']),
+            directionLabel: z.string().optional(),
+            restoreDirectionLabel: z.string().optional(),
+            blockerPieceId: z.string().optional()
+        })
+    ),
+    disconnectPieceIds: z.array(z.string())
+});
+const nauo9AccessPlan = reviewedDependencyPlanSchema.parse(nauo9AccessPlanRaw) as ReviewedDependencyPlan;
 
 const candidateSchema = z.array(
     z.object({
@@ -147,7 +164,8 @@ export function DependencyGraphScreen() {
             maxDepth,
             repair: activeRepair,
             candidates,
-            dofCatalog
+            dofCatalog,
+            reviewedPlan: nauo9AccessPlan
         });
     }, [
         model,
@@ -167,12 +185,18 @@ export function DependencyGraphScreen() {
         const map = new Map<string, string>();
         if (!model || !tree) return map;
         const releasedSet = new Set(tree.plan.releasedPieceIds);
+        const indirectRemovalSet = new Set(
+            tree.nodes.filter((node) => node.isIndirectRemoval).map((node) => node.id)
+        );
         for (const occ of model.occurrences) {
             if (occ.kind !== 'piece') continue;
             if (occ.id === tree.rootId) {
                 map.set(occ.id, '#c81e1e'); // Rot: gesuchtes Bauteil
             } else if (releasedSet.has(occ.id)) {
-                map.set(occ.id, '#f5c518'); // Gelb: gelöste Verbindung / einzeln entfernt
+                map.set(
+                    occ.id,
+                    indirectRemovalSet.has(occ.id) ? '#fff0ae' : '#f5c518'
+                ); // Helles Gelb: indirekt nötiges Zusatzteil; Gelb: direkt bewegt
             } else {
                 map.set(occ.id, '#1f9d55'); // Grün: nicht einzeln gelöst (bleibt zusammen)
             }
@@ -215,6 +239,8 @@ export function DependencyGraphScreen() {
         setRootId(pieceId);
         setInspectedId(pieceId);
     };
+    const indirectRemovalCount = tree.nodes.filter((node) => node.isIndirectRemoval).length;
+    const directRemovalCount = Math.max(0, tree.plan.releasedPieceIds.length - indirectRemovalCount);
 
     return (
         <main className="rs-graph-page" data-route="graph">
@@ -375,7 +401,26 @@ export function DependencyGraphScreen() {
                     <div className="rs-graph-statsbar">
                         <div>
                             <strong>{tree.plan.releasedConnections.length}</strong> Verbindungen lösen ·{' '}
-                            <strong>{tree.plan.releasedPieceIds.length}</strong> Bauteile einzeln lösen ·{' '}
+                            {tree.plan.removalOrder.some((step) => step.actionKind === 'slide') ? (
+                                <>
+                                    <strong>
+                                        {tree.plan.removalOrder.filter(
+                                            (step) => !step.isTarget && step.actionKind !== 'slide'
+                                        ).length}
+                                    </strong>{' '}
+                                    Teile ausbauen ·{' '}
+                                    <strong>
+                                        {tree.plan.removalOrder.filter(
+                                            (step) => step.actionKind === 'slide'
+                                        ).length}
+                                    </strong>{' '}
+                                    verschieben ·{' '}
+                                </>
+                            ) : (
+                                <>
+                                    <strong>{tree.plan.releasedPieceIds.length}</strong> Bauteile einzeln lösen ·{' '}
+                                </>
+                            )}
                             <strong>{tree.plan.intactUnits.length}</strong> intakte Baugruppen
                         </div>
                         <div className="rs-graph-legend">
@@ -390,6 +435,18 @@ export function DependencyGraphScreen() {
                             <span className="rs-graph-legend__item">
                                 <span className="rs-graph-swatch rs-graph-swatch--connected" />
                                 connected ({tree.stats.byRelation['connected-to']})
+                            </span>
+                            <span className="rs-graph-legend__item">
+                                <span className="rs-graph-swatch rs-graph-swatch--unit-interface" />
+                                Baugruppen-Grenze ({tree.stats.byRelation['unit-interface']})
+                            </span>
+                            <span className="rs-graph-legend__item">
+                                <span className="rs-graph-swatch rs-graph-swatch--spatial-blocker" />
+                                räumliche Blockade ({tree.stats.byRelation['spatial-blocker']})
+                            </span>
+                            <span className="rs-graph-legend__item">
+                                <span className="rs-graph-swatch rs-graph-swatch--connection-release" />
+                                Verbindung lösen ({tree.stats.byRelation['connection-release']})
                             </span>
                         </div>
                     </div>
@@ -416,8 +473,11 @@ export function DependencyGraphScreen() {
                                     </span>
                                     <span className="rs-graph-legend__item">
                                         <span className="rs-graph-dot rs-graph-dot--remove" />
-                                        <strong>Gelb:</strong> Gelöste Verbindungen / Bauteile (
-                                        {tree.plan.releasedPieceIds.length})
+                                        <strong>Gelb:</strong> direkt zu bewegen ({directRemovalCount})
+                                    </span>
+                                    <span className="rs-graph-legend__item">
+                                        <span className="rs-graph-dot rs-graph-dot--remove-indirect" />
+                                        <strong>Hellgelb:</strong> zusätzlich räumlich nötig ({indirectRemovalCount})
                                     </span>
                                     <span className="rs-graph-legend__item">
                                         <span className="rs-graph-dot rs-graph-dot--stay" />
@@ -470,15 +530,19 @@ export function DependencyGraphScreen() {
                         <h3>
                             {tree.plan.releasedConnections.length} Verbindungen lösen ·{' '}
                             {tree.plan.releasedPieceIds.length === 0
-                                ? '0 weitere Bauteile einzeln lösen'
-                                : `${tree.plan.releasedPieceIds.length} weitere Bauteile einzeln lösen`}
+                                ? '0 weitere Bauteile bewegen'
+                                : tree.plan.removalOrder.some((step) => step.actionKind === 'slide')
+                                  ? `${tree.plan.removalOrder.filter((step) => !step.isTarget && step.actionKind !== 'slide').length} Teile ausbauen · ${tree.plan.removalOrder.filter((step) => step.actionKind === 'slide').length} verschieben`
+                                  : `${tree.plan.releasedPieceIds.length} weitere Bauteile einzeln lösen`}
                         </h3>
                         <p>
                             Quelle:{' '}
                             <strong>
                                 {tree.plan.source === 'modeled-manual'
                                     ? 'Modellierte Anleitung'
-                                    : 'STEP-Freiheitsgrade (minimale Verbindungs-Trennung)'}
+                                    : tree.plan.source === 'reviewed-procedure'
+                                      ? 'Bestätigter Ablaufentwurf (noch physisch zu prüfen)'
+                                      : 'STEP-Freiheitsgrade (minimale Verbindungs-Trennung)'}
                             </strong>
                         </p>
 
@@ -531,11 +595,17 @@ export function DependencyGraphScreen() {
                                             }`}
                                             onClick={() => setInspectedId(step.pieceId)}
                                         >
-                                            <strong>Ausbau #{step.order}:</strong> {step.commonName}{' '}
+                                            <strong>
+                                                {step.actionKind === 'slide'
+                                                    ? `Zurückschieben #${step.order}:`
+                                                    : `Ausbau #${step.order}:`}
+                                            </strong>{' '}
+                                            {step.commonName}{' '}
                                             <code>({step.pieceId.split('/').at(-1)})</code>
                                             {step.isUnit
                                                 ? ` · BAUGRUPPE IM GANZEN (${step.memberCount ?? 0} Teile)`
                                                 : ''}
+                                            {step.directionLabel ? ` · ${step.directionLabel}` : ''}
                                             {step.isTarget ? ' · ZIELTEIL' : ''}
                                         </button>
                                     </li>
@@ -563,11 +633,17 @@ export function DependencyGraphScreen() {
                                             }`}
                                             onClick={() => setInspectedId(step.pieceId)}
                                         >
-                                            <strong>Einbau #{step.order}:</strong> {step.commonName}{' '}
+                                            <strong>
+                                                {step.actionKind === 'slide'
+                                                    ? `Vorschieben #${step.order}:`
+                                                    : `Einbau #${step.order}:`}
+                                            </strong>{' '}
+                                            {step.commonName}{' '}
                                             <code>({step.pieceId.split('/').at(-1)})</code>
                                             {step.isUnit
                                                 ? ` · BAUGRUPPE IM GANZEN (${step.memberCount ?? 0} Teile)`
                                                 : ''}
+                                            {step.directionLabel ? ` · ${step.directionLabel}` : ''}
                                             {step.isTarget ? ' · ERSATZTEIL' : ''}
                                         </button>
                                     </li>

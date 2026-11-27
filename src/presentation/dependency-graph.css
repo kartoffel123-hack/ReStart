@@ -147,6 +147,9 @@
 .rs-graph-swatch--requires { background: var(--rs-motion-arrow); }
 .rs-graph-swatch--candidate { border-top: 2px dashed var(--rs-warn); height: 0; }
 .rs-graph-swatch--connected { background: var(--rs-focus); }
+.rs-graph-swatch--unit-interface { border-top: 2px dotted var(--rs-warn); height: 0; }
+.rs-graph-swatch--spatial-blocker { border-top: 2px dashed #7b4ab5; height: 0; }
+.rs-graph-swatch--connection-release { background: var(--rs-warn); }
 .rs-graph-swatch--contains { border-top: 2px dashed var(--rs-muted); height: 0; }
 .rs-tree-canvas {
     flex: 1 1 56%;
@@ -182,6 +185,7 @@
 .rs-graph-dot { width: 12px; height: 12px; border-radius: 999px; display: inline-block; border: 1px solid rgba(23, 33, 39, .3); }
 .rs-graph-dot--target { background: #c81e1e; }
 .rs-graph-dot--remove { background: #f5c518; }
+.rs-graph-dot--remove-indirect { background: #fff0ae; }
 .rs-graph-dot--stay { background: #1f9d55; }
 .rs-graph-explode { display: inline-flex; align-items: center; gap: var(--rs-space-1); font-size: .875rem; }
 .rs-tree-canvas--compact { height: 340px; min-height: 260px; border: 1px solid var(--rs-hairline); border-radius: var(--rs-radius); }
@@ -196,6 +200,7 @@
 .rs-tree-node__manual--active { background: var(--rs-motion-arrow); color: var(--rs-paper); }
 .rs-tree-node__name { font-size: .9375rem; font-weight: 600; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rs-tree-node__meta { display: flex; align-items: center; gap: 5px; margin-top: 3px; font-size: .875rem; color: var(--rs-muted); }
+.rs-tree-node__location { overflow: hidden; margin-top: 2px; color: var(--rs-muted); font-size: .66rem; line-height: 1.15; text-overflow: ellipsis; white-space: nowrap; }
 
 /* --- inspector cards ---------------------------------------------------- */
 .rs-graph-card {

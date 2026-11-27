@@ -57,6 +57,14 @@ export const SCENARIOS: readonly Scenario[] = [
         waitFor:'[data-route="review"]',highlights:'A new blocker changes the direct stud swap into a six-step detour disturbing the pin.'
     },
     {
+        id: 'nauo9-indirect-removal',
+        label: 'NAUO9 direct and indirect removal steps',
+        route: '#/graph?piece=30465%2FNAUO9',
+        highlights:
+            'NAUO9 graph shows direct removals in yellow and the indirect washer dependencies NAUO3 and NAUO5 in light yellow, with axle connections labelled for slide review.',
+        waitFor: '[data-route="graph"] .rs-graph-visual'
+    },
+    {
         id: 'concept-route',
         label: 'Concept gallery route',
         route: '#/concept',

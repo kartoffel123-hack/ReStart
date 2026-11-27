@@ -64,6 +64,13 @@ export type Joint = Readonly<{
     spanMm: readonly [number, number];
     /** Disjoint grip intervals, ordered, so no grip is counted twice. */
     bands: readonly Band[];
+    /**
+     * The holders' own extent along the line, which reaches past the grip: a piece sitting in this
+     * joint has to pass out of these mouths, so the release stroke is sized from here rather than
+     * from `bands`. A grip of 2 mm inside a hole of 18 mm is the difference between a stroke that
+     * works and one that leaves the piece held.
+     */
+    holderSpanMm: readonly [number, number];
     /** The bands summed: how much of the two pieces actually runs together. */
     engagementMm: number;
     /** The loosest face-pair gap folded in, so a reviewer sees the worst evidence. */
@@ -231,27 +238,27 @@ export function aggregateJoints(
 
         // Ordinal by where the grip starts, so the ids do not depend on which line was found first.
         const measured = lines.map((line) => {
+            const inLine = (span: readonly [number, number], member: ConfirmedInterface): Band =>
+                spanInLineFrame(span, member.source.axis, member.source.origin, line);
             const bands = mergeBands(
-                line.members.map((member) =>
-                    spanInLineFrame(
-                        member.contactSpanMm,
-                        member.source.axis,
-                        member.source.origin,
-                        line
-                    )
-                ),
+                line.members.map((member) => inLine(member.contactSpanMm, member)),
                 bandGapMm
             );
+            const holders = line.members.map((member) => inLine(member.holderSpanMm, member));
+            const holderSpanMm: [number, number] = [
+                Math.min(...holders.map((holder) => holder[0]!)),
+                Math.max(...holders.map((holder) => holder[1]!))
+            ];
             const span: [number, number] = [
                 Math.min(...bands.map((band) => band[0]!)),
                 Math.max(...bands.map((band) => band[1]!))
             ];
-            return { line, bands, span };
+            return { line, bands, span, holderSpanMm };
         });
         measured.sort((a, b) => a.span[0]! - b.span[0]! || a.span[1]! - b.span[1]!);
         if (measured.length > 1) ambiguous.push({ pieces, lines: measured.length });
 
-        measured.forEach(({ line, bands, span }, index) => {
+        measured.forEach(({ line, bands, span, holderSpanMm }, index) => {
             const engagementMm = bands.reduce((total, band) => total + (band[1]! - band[0]!), 0);
             // The dominant fit decides the kind, because that is the one the stroke must overcome.
             const dominant = [...line.members].sort(
@@ -266,6 +273,7 @@ export function aggregateJoints(
                 releaseDirections: [line.axis, [-line.axis[0], -line.axis[1], -line.axis[2]] as Vec3],
                 spanMm: span,
                 bands,
+                holderSpanMm,
                 engagementMm: engagementMm,
                 contactMm: line.members.reduce((max, member) => Math.max(max, member.contactMm), 0),
                 axisOffsetMm: line.maxOffsetMm,

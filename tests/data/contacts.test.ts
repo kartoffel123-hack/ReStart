@@ -428,3 +428,35 @@ describe('measuring a grip when the two faces disagree about the line', () => {
         }
     });
 });
+
+/**
+ * The grip is where two faces' material runs together; the hole does not stop there. A shaft
+ * seated 2 mm into a bore that runs to 18 mm is gripped over 2 mm and must travel 18 mm to pass
+ * the far mouth, so confirmation has to report the holder's own extent beside the overlap or the
+ * stroke a mechanic is told to pull will be short by 16 mm.
+ */
+describe('reporting the holder\u2019s own extent', () => {
+    it('reports the full span of the hole, which can reach past the grip', () => {
+        const shaftMesh = cylinder('shaft-1', 2.35, 0, 12, 'shaft');
+        const boreMesh = cylinder('bore-1', 2.4, 10, 18, 'void');
+        const report = confirmInterfaces(join(shaftFace(), boreFace()), meshesOf(shaftMesh, boreMesh));
+        expect(report.confirmed).toHaveLength(1);
+        const joint = report.confirmed[0];
+        expect(joint?.engagementMm).toBeCloseTo(2, 6);
+        expect(joint?.holderSpanMm[0]).toBeCloseTo(10, 6);
+        expect(joint?.holderSpanMm[1]).toBeCloseTo(18, 6);
+        // Both are reported in the interface frame, so they are comparable: the grip starts at
+        // the near mouth, because the shaft's own end is short of it, and stops 6 mm early.
+        expect(joint?.holderSpanMm[0]).toBeLessThanOrEqual(joint?.contactSpanMm[0]!);
+        expect(joint?.holderSpanMm[1]).toBeGreaterThan(joint?.contactSpanMm[1]!);
+    });
+
+    it('reports a holder no wider than the grip when the shaft runs past both mouths', () => {
+        const shaftMesh = cylinder('shaft-1', 2.35, 0, 22.45, 'shaft');
+        const boreMesh = cylinder('bore-1', 2.4, 3, 10.85, 'void');
+        const report = confirmInterfaces(join(shaftFace(), boreFace()), meshesOf(shaftMesh, boreMesh));
+        const joint = report.confirmed[0];
+        expect(joint?.engagementMm).toBeCloseTo(7.85, 6);
+        expect(joint?.holderSpanMm).toEqual(joint?.contactSpanMm);
+    });
+});

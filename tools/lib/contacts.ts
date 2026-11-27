@@ -65,10 +65,18 @@ export type ConfirmedInterface = Readonly<{
     source: MatingInterface;
     /** Closest approach of the two faces' triangles, millimetres. */
     contactMm: number;
-    /** Axial span over which they are in contact: what a release stroke must clear. */
+    /** Axial span over which they are in contact: how much of the two pieces runs together. */
     engagementMm: number;
     /** Contact extent along the release axis, as [near, far] projections in millimetres. */
     contactSpanMm: readonly [number, number];
+    /**
+     * The holder's own full extent along the axis, in the same interface frame as `contactSpanMm`.
+     *
+     * This is not the grip. A shaft seated 2 mm into a bore that runs to 18 mm contacts over 2 mm
+     * and must travel 18 mm to pass the far mouth, so the stroke a mechanic is told to pull is
+     * sized from this span and not from `contactSpanMm`.
+     */
+    holderSpanMm: readonly [number, number];
     /** The shaft's own triangles that lie inside the gripped span, for the reviewer's count. */
     grippedTriangles: number;
     /** Material side of each face, kept so a reviewer can see the joint's shape. */
@@ -418,6 +426,7 @@ export function confirmInterfaces(
             contactMm,
             engagementMm: Math.max(0, far - near),
             contactSpanMm: [near, far],
+            holderSpanMm: femaleSpan,
             grippedTriangles: gripping,
             maleSide,
             femaleSide

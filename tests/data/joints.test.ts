@@ -53,7 +53,7 @@ function pair(
     beamOrigin: Vec3,
     fromMm: number,
     toMm: number,
-    options: Readonly<{ pinAxis?: Vec3; pinRadius?: number; beamRadius?: number; contactMm?: number }> = {}
+    options: Readonly<{ pinAxis?: Vec3; pinRadius?: number; beamRadius?: number; contactMm?: number; holder?: readonly [number, number] }> = {}
 ): ConfirmedInterface {
     const pinAxis = options.pinAxis ?? Z;
     const male = face('pin-1', `${id}:pin`, options.pinRadius ?? 2.35, pinOrigin, pinAxis);
@@ -76,6 +76,7 @@ function pair(
         contactMm: options.contactMm ?? 0.02,
         engagementMm: toMm - fromMm,
         contactSpanMm: [fromMm, toMm],
+        holderSpanMm: options.holder ?? [fromMm, toMm],
         grippedTriangles: 8,
         maleSide: 'shaft',
         femaleSide: 'void'
@@ -296,5 +297,21 @@ describe('the joints of the pinned snapshot', () => {
         }
         const remeasured = aggregateJoints(shuffled);
         expect(remeasured.joints).toEqual(report.joints);
+    });
+});
+
+describe('carrying the holder past the grip', () => {
+    it('folds the holders into one span that reaches past the grip', () => {
+        // Two faces of one bore, gripping contiguously over 0..2.6 and 2.6..7.85, with the wall
+        // itself running 0..8. The connection's holder span is the whole mouth-to-mouth distance,
+        // because that is what the next piece has to pass.
+        const joints = aggregateJoints([
+            pair('a', [0, 0, 0], [0, 0, 0], 0, 2.6, { holder: [0, 8] }),
+            pair('b', [0, 0, 0], [0, 0, 0], 2.6, 7.85, { holder: [4, 8] })
+        ]);
+        const joint = joints.joints[0];
+        expect(joint?.engagementMm).toBeCloseTo(7.85, 6);
+        expect(joint?.holderSpanMm[0]).toBeCloseTo(0, 6);
+        expect(joint?.holderSpanMm[1]).toBeCloseTo(8, 6);
     });
 });

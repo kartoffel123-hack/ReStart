@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ManualScreen } from '../presentation/manual-screen.js';
+import { PiecePickerScreen } from '../presentation/piece-picker-screen.js';
 import { toStepViewModel } from '../presentation/manual-contract.js';
 import { StudScene } from '../scene/stud-scene.js';
 import { confirmStep, createManualSession, type ManualSession } from './manual-session.js';
@@ -29,6 +30,7 @@ export function StudPilot() {
     const [history,setHistory]=useState<number|null>(null);
     const [joint,setJoint]=useState(false);
     const [pick,select]=useState(''), [query,search]=useState(''), [isolate,setIsolate]=useState(false), [explode,setExplode]=useState(0);
+    const [hovered,setHovered]=useState('');
     const colors=useMemo(()=>new Map(data?.inventory.map(p=>[p.id,p.color])),[data]);
     const groups=useMemo(()=>{
         const result=new Map<string,NonNullable<typeof data>['inventory']>();
@@ -85,7 +87,7 @@ export function StudPilot() {
         const member=data?.movers[s.operationId], to=data?.paths[s.operationId]?.[1];
         if(member && to) offsets[member]=to;
     }
-    const scene = data && target && <StudScene url={geometryUrl} target={(step && data.movers[step.operationId]) || target} offsets={offsets} colors={colors} isolate={!session && isolate} explode={session ? 0 : explode}
+    const scene = data && target && <StudScene url={geometryUrl} target={(step && data.movers[step.operationId]) || target} offsets={offsets} colors={colors} isolate={!session && isolate} explode={session ? 0 : explode} idleAutoRotate={!session && history===null} highlight={hovered}
         xrStep={step ? {id:step.stepId,text:`${step.ordinal}. ${step.instruction}`,replay:()=>play(n=>n+1),confirm:()=>{if(history===null && !checkFailed)setSession(s=>s && confirmStep(s,step.stepId));}} : undefined}
         start={path?.[0] ?? zero} end={path?.[1] ?? zero} focus={!!step}
         replay={replay} reset={reset} onPick={id => { if (!session && !checkpoint) {select(id);begin(id);} }} />;
@@ -134,21 +136,31 @@ export function StudPilot() {
             <DependencyTreeDiagram tree={manualTree} direction="TB" activeStepPieceId={data?.movers[step.operationId] ?? target!} compact={true} />
         </details>}
     </>;
-    return <main className="stud-picker">
-        <section><p>ReStart · 30465 / {stage==='pilot'?'Single-target pilot':'Released manual'}</p><h1>Mechanic manual</h1>
-            <p><a href={`#/graph?piece=${encodeURIComponent(target ?? '')}`}>Dependency-Graph öffnen</a> · <a href="#/dof">DOF &amp; Zeiten</a> · <a href="#/review">Inspect the repair graph</a></p>
-            <p>Choose a piece on the helicopter or find its occurrence below.</p>
-            {data ? <><label>Search pieces <input value={query} onChange={e=>search(e.target.value)} placeholder="Part name, element ID or usage ID"/></label>
+    return <PiecePickerScreen edition={stage === 'pilot' ? 'Single-target pilot' : 'Released manual'} scene={scene} headerLinks={<>
+        <a href={`#/graph?piece=${encodeURIComponent(target ?? '')}`}>Dependency-Graph</a>
+        <a href="#/dof">DOF &amp; Zeiten</a>
+        <a href="#/review">Inspect the repair graph</a>
+    </>} viewControls={<>
+        <label><input type="checkbox" checked={isolate} onChange={e=>setIsolate(e.target.checked)}/> Isolate selected piece</label>
+        <label>Exploded view <input type="range" min="0" max="1" step="0.05" value={explode} onChange={e=>setExplode(Number(e.target.value))}/></label>
+    </>}>
+            {data ? <><label>Search pieces <input value={query} onChange={e=>search(e.target.value)} placeholder="Name, element ID, design or usage ID"/></label>
                 <label>Occurrence <select value={target} onChange={e=>select(e.target.value)}>
                     {groups.map(([name,items])=><optgroup key={name} label={`${name} (${items.length})`}>{items.map(p=>
                         <option key={p.id} value={p.id}>{p.name} — {p.id}</option>)}</optgroup>)}</select></label>
-                <label><input type="checkbox" checked={isolate} onChange={e=>setIsolate(e.target.checked)}/> Isolate selected piece</label>
-                <label>Exploded view <input type="range" min="0" max="1" step="0.05" value={explode} onChange={e=>setExplode(Number(e.target.value))}/></label>
-                <DescriptionPicker data={data} select={select}/>
-                <p><code>{target}</code></p>{job ? <button onClick={()=>begin(target!)}>Select {label.toLowerCase()}</button> : <p>No modeled repair available for this occurrence. <a href={`#/review?piece=${encodeURIComponent(target!)}`}>Inspect its candidate exits</a></p>}
+                <details className="occurrence-browser"><summary>Browse parts ({groups.reduce((count, [,items])=>count+items.length,0)})</summary>
+                    <div className="occurrence-list">{groups.map(([name,items])=><section key={name}><h3>{name}</h3>{items.map(p=><button key={p.id} type="button" aria-pressed={p.id===target}
+                        onMouseEnter={()=>setHovered(p.id)} onMouseLeave={()=>setHovered('')}
+                        onFocus={()=>setHovered(p.id)} onBlur={()=>setHovered('')}
+                        onClick={()=>select(p.id)}>{p.name} — {p.id}</button>)}</section>)}</div>
+                </details>
+                <DescriptionPicker data={data} select={select} hover={setHovered}/>
+                <div className="stud-picker__selection">
+                    <p>Selected piece</p><strong>{label}</strong><code>{target}</code>
+                    {job ? <button className="stud-picker__primary" onClick={()=>begin(target!)}>Select {label.toLowerCase()}</button> : <p>No modeled repair available for this occurrence. <a href={`#/review?piece=${encodeURIComponent(target!)}`}>Inspect its candidate exits</a></p>}
+                </div>
                 {(target===data.pin || target===data.target) && <button onClick={()=>begin(data.pin,true)}>Replace pin and light stud together</button>}
-                <p>{stage==='pilot'?'Generated model routes':'Reviewed model routes'} · {jobs.length} of {data.inventory.length} targets available.</p></> :
-                error ? <button onClick={() => retry(n => n+1)}>Retry loading repair</button> : <p>Loading repair…</p>}
-        </section>{scene}
-    </main>;
+                <p className="stud-picker__coverage">{stage==='pilot'?'Generated model routes':'Reviewed model routes'} · {jobs.length} of {data.inventory.length} targets available.</p></> :
+                error ? <><p role="status">The repair inventory could not be loaded.</p><button onClick={() => retry(n => n+1)}>Retry loading repair</button></> : <p role="status">Loading repair…</p>}
+    </PiecePickerScreen>;
 }

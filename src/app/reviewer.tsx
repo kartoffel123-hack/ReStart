@@ -101,48 +101,81 @@ export function Reviewer() {
         const step=rehearsal.session.current;
         const offsets=Object.fromEntries(rehearsal.repair.steps.slice(0,rehearsal.session.confirmedCount).flatMap(s=>pilot.paths[s.operationId] ? [[pilot.movers[s.operationId]!,pilot.paths[s.operationId]![1]]]:[]));
         const path=step && pilot.paths[step.operationId];
-        return <><header className="draft-banner"><strong>Local rehearsal</strong> · Draft state replay only. <button onClick={()=>setRehearsal(undefined)}>Back to reviewer</button></header>
+        return <main className="reviewer" data-route="review"><header className="draft-banner"><strong>Local rehearsal</strong> · Draft state replay only. <button onClick={()=>setRehearsal(undefined)}>Back to reviewer</button></header>
             {step ? <ManualScreen step={toStepViewModel(step,rehearsal.session.total,{canConfirm:true})} scene={<StudScene url={geometry} target={pilot.movers[step.operationId] ?? rehearsal.repair.targetIds[0]!} start={path?.[0]??zero} end={path?.[1]??zero} offsets={offsets} focus={true} replay={motionReplay} reset={viewReset} onPick={()=>{}}/>}
-                actions={{confirmStep:id=>setRehearsal(s=>s && {...s,session:confirmStep(s.session,id)}),resetCamera:()=>resetView(n=>n+1),replayMotion:()=>replayMotion(n=>n+1),returnToCurrentStep:()=>resetView(n=>n+1)}}/> : <h1>Rehearsal complete</h1>}</>;
+                actions={{confirmStep:id=>setRehearsal(s=>s && {...s,session:confirmStep(s.session,id)}),resetCamera:()=>resetView(n=>n+1),replayMotion:()=>replayMotion(n=>n+1),returnToCurrentStep:()=>resetView(n=>n+1)}}/> : <h1>Rehearsal complete</h1>}</main>;
     }
     const tree=(parent:string):React.ReactNode=>model.occurrences.filter(o=>o.parent===parent).map(p=>p.kind==='piece'?<li key={p.id}><button onClick={()=>select(p.id)}>{p.commonName} — {p.id.split('/').at(-1)}</button></li>:
         <li key={p.id}><details><summary>{p.commonName}</summary><ul>{tree(p.id)}</ul></details></li>);
-    return <main className="reviewer" data-route="review"><header><a href="#/">Mechanic manual</a> · <a href={`#/graph?piece=${encodeURIComponent(selected)}`}>Dependency graph</a><h1>Repair reviewer</h1>
-        <p>Inspect a connection, then test what happens if a move needs it released.</p></header>
-        <section><h2>Assembly relationships</h2><label>Occurrence <select value={selected} onChange={e=>select(e.target.value)}>
-            {model.occurrences.map(p=><option key={p.id} value={p.id}>{p.commonName} — {p.id}</option>)}</select></label>
-        <details><summary>Browse assembly hierarchy</summary><ul>{tree('30465')}</ul></details>
-        <AssemblyDiagram model={model} id={selected} select={select}/>
-        {model.occurrences.some(p=>p.id===selected && p.kind==='piece') && <div className="review-scene"><StudScene url={geometry}
-            target={selected} start={zero} end={zero} focus={true} replay={0} reset={0} onPick={()=>{}}/></div>}
-        <details><summary>{connections.length} generated contacts</summary><ul>{connections.map(c=><li key={c.id}>{c.kind}: {c.a} ↔ {c.b}</li>)}</ul></details>
-        <h2>Proposed exit directions</h2><p>These straight strokes were tested against installed meshes. A contact may be a mating surface or a blocker; stop, tools and return still need review.</p>
-        {candidates.filter(c=>c.piece===selected).map(c=><details key={c.id}><summary>{c.proposedStrokeMm.toFixed(2)} mm along [{c.axis.map(v=>Number(v.toFixed(2))).join(', ')}]</summary>
-            <p>{c.transverseJoints.length?`${c.transverseJoints.length} transverse interfaces need a separate access move.` :
-                c.exitAssessment ? `${c.exitAssessment.length} unresolved obstacles after checking the modeled mating fits.` : 'Fit-specific replay not recorded.'}</p>
-            <ul>{c.contacts.filter(k=>k.witness).map(k=><li key={k.obstacle}>{k.obstacle}: contact at {k.witness!.fromMm.toFixed(2)}–{k.witness!.toMm.toFixed(2)} mm</li>)}</ul></details>)}</section>
-        <section><h2>Review a move</h2><label>Move option <select value={option} onChange={e=>setOption(e.target.value)}>{model.operations.map(o=><option key={o.id} value={o.id}>{o.label}</option>)}</select></label>
-        <label>Blocker type <select value={subjectKind} onChange={e=>{setSubjectKind(e.target.value as typeof subjectKind);setObstacle('');setPose('');}}><option value="connection">Connection</option><option value="occurrence">Piece in the way</option></select></label>
-        {subjectKind==='connection' ? <label>Connection that must be released <select value={obstacleId} onChange={e=>setObstacle(e.target.value)}>{model.connections.map(c=><option key={c.id} value={c.id}>{c.a} ↔ {c.b}</option>)}</select></label> : <>
-        <label>Obstacle piece <select value={selectedObstacle} onChange={e=>{setObstacle(e.target.value);setPose('');}}>{movable.map(p=><option key={p.id} value={p.id}>{p.commonName} — {p.id}</option>)}</select></label>
-        <label>Clear state <select value={pose || clearPoses[0]?.id} onChange={e=>setPose(e.target.value)}>{clearPoses.map(p=><option key={p.id}>{p.id}</option>)}</select></label></>}
-        <label>Reason <input value={reason} onChange={e=>setReason(e.target.value)}/></label>
-        <button disabled={!reason.trim()} onClick={()=>edit('add')}>Add blocker</button>
-        <details><summary>{op.requires.length} prerequisites</summary><ul>{op.requires.map(r=><li key={r.id}>{r.reason} — {r.subject.id}
-            <button disabled={!reason.trim()} onClick={()=>edit('accept',r.id)}>Accept</button>
-            <button disabled={!reason.trim()} onClick={()=>edit('reject',r.id)}>Reject</button></li>)}</ul></details>
-        <h2>Repair preview</h2><label>Preview target <select value={baseline.targetIds[0]} onChange={e=>setPreviewId(e.target.value)}>{[pilot.repair,...pilot.alternatives].map(r=><option key={r.targetIds[0]} value={r.targetIds[0]}>{model.occurrences.find(o=>o.id===r.targetIds[0])?.commonName}</option>)}</select></label>
-        <p>Baseline: {baseline.steps.length} steps, {baseline.disturbedCount} healthy pieces disturbed. {baseline.search.status}; timing {baseline.timing.coverage}.</p>
-        <p role="status">{outcome ? outcome.repair ? `Draft: ${outcome.repair.steps.length} steps, ${outcome.repair.disturbedCount} healthy pieces disturbed. ${outcome.search.status}; replay ${outcome.repair.replay.ok?'passed':'failed'}. Timing: ${outcome.repair.timing.coverage}.` :
-            `${outcome.search.status}: ${outcome.search.firstUnsatisfied.map(r=>r.reason).join('; ')}` : 'Computing preview…'}</p>
-        <ol>{outcome?.repair?.steps.map(s=><li key={s.stepId}>{s.instruction}</li>)}</ol>
-        {outcome?.repair && <><p>Added moves: {outcome.repair.operationIds.filter(o=>!baseline.operationIds.includes(o)).join(', ') || 'none'}. Removed moves: {baseline.operationIds.filter(o=>!outcome.repair!.operationIds.includes(o)).join(', ') || 'none'}.</p>
-            <button onClick={()=>setRehearsal({repair:outcome.repair!,session:createManualSession(outcome.repair!)})}>Rehearse draft locally</button></>}
-        <button onClick={()=>exportJson('review-patch.json',patch)}>Export draft</button>
-        <button onClick={()=>exportJson('resolved-graph.json',model)}>Export graph</button>
-        <button onClick={()=>update({...patch,edits:[]})}>Restore baseline</button>
-        <label>Import draft <input type="file" accept="application/json" onChange={async e=>{
-            const f=e.target.files?.[0]; if(!f)return;
-            try {update(JSON.parse(await f.text()));} catch {setMessage('Malformed draft. Existing edits kept.');}
-        }}/></label><p aria-live="polite">{message}</p></section></main>;
+    return <main className="reviewer" data-route="review">
+        <header className="reviewer__header">
+            <div>
+                <p>ReStart / Repair reviewer</p>
+                <h1>Repair reviewer</h1>
+            </div>
+            <nav className="reviewer__header-links">
+                <a href="#/">Mechanic manual</a>
+                <a href={`#/graph?piece=${encodeURIComponent(selected)}`}>Dependency graph</a>
+            </nav>
+        </header>
+        <p>Inspect a connection, then test what happens if a move needs it released.</p>
+        <div className="reviewer__left">
+            <section className="reviewer__panel">
+                <h2>Assembly relationships</h2>
+                <label>Occurrence <select value={selected} onChange={e=>select(e.target.value)}>
+                    {model.occurrences.map(p=><option key={p.id} value={p.id}>{p.commonName} — {p.id}</option>)}</select></label>
+                <details><summary>Browse assembly hierarchy</summary><ul>{tree('30465')}</ul></details>
+                <details><summary>{connections.length} generated contacts</summary><ul>{connections.map(c=><li key={c.id}>{c.kind}: {c.a} ↔ {c.b}</li>)}</ul></details>
+                <details><summary>{candidates.filter(c=>c.piece===selected).length} proposed exit directions</summary>
+                    {candidates.filter(c=>c.piece===selected).map(c=><details key={c.id}><summary>{c.proposedStrokeMm.toFixed(2)} mm along [{c.axis.map(v=>Number(v.toFixed(2))).join(', ')}]</summary>
+                    <p>{c.transverseJoints.length?`${c.transverseJoints.length} transverse interfaces need a separate access move.` :
+                        c.exitAssessment ? `${c.exitAssessment.length} unresolved obstacles after checking the modeled mating fits.` : 'Fit-specific replay not recorded.'}</p>
+                    <ul>{c.contacts.filter(k=>k.witness).map(k=><li key={k.obstacle}>{k.obstacle}: contact at {k.witness!.fromMm.toFixed(2)}–{k.witness!.toMm.toFixed(2)} mm</li>)}</ul></details>)}</details>
+            </section>
+            <section className="reviewer__panel">
+                <h2>Review a move</h2>
+                <label>Move option <select value={option} onChange={e=>setOption(e.target.value)}>{model.operations.map(o=><option key={o.id} value={o.id}>{o.label}</option>)}</select></label>
+                <label>Blocker type <select value={subjectKind} onChange={e=>{setSubjectKind(e.target.value as typeof subjectKind);setObstacle('');setPose('');}}><option value="connection">Connection</option><option value="occurrence">Piece in the way</option></select></label>
+                {subjectKind==='connection' ? <label>Connection that must be released <select value={obstacleId} onChange={e=>setObstacle(e.target.value)}>{model.connections.map(c=><option key={c.id} value={c.id}>{c.a} ↔ {c.b}</option>)}</select></label> : <>
+                <label>Obstacle piece <select value={selectedObstacle} onChange={e=>{setObstacle(e.target.value);setPose('');}}>{movable.map(p=><option key={p.id} value={p.id}>{p.commonName} — {p.id}</option>)}</select></label>
+                <label>Clear state <select value={pose || clearPoses[0]?.id} onChange={e=>setPose(e.target.value)}>{clearPoses.map(p=><option key={p.id}>{p.id}</option>)}</select></label></>}
+                <label>Reason <input value={reason} onChange={e=>setReason(e.target.value)}/></label>
+                <button className="reviewer__primary" disabled={!reason.trim()} onClick={()=>edit('add')}>Add blocker</button>
+                <details><summary>{op.requires.length} prerequisites</summary><ul>{op.requires.map(r=><li key={r.id}>{r.reason} — {r.subject.id}
+                    <button disabled={!reason.trim()} onClick={()=>edit('accept',r.id)}>Accept</button>
+                    <button disabled={!reason.trim()} onClick={()=>edit('reject',r.id)}>Reject</button></li>)}</ul></details>
+            </section>
+            <section className="reviewer__panel">
+                <h2>Repair preview</h2>
+                <label>Preview target <select value={baseline.targetIds[0]} onChange={e=>setPreviewId(e.target.value)}>{[pilot.repair,...pilot.alternatives].map(r=><option key={r.targetIds[0]} value={r.targetIds[0]}>{model.occurrences.find(o=>o.id===r.targetIds[0])?.commonName}</option>)}</select></label>
+                <p>Baseline: {baseline.steps.length} steps, {baseline.disturbedCount} healthy pieces disturbed. {baseline.search.status}; timing {baseline.timing.coverage}.</p>
+                <p role="status" className="reviewer__status">{outcome ? outcome.repair ? `Draft: ${outcome.repair.steps.length} steps, ${outcome.repair.disturbedCount} healthy pieces disturbed. ${outcome.search.status}; replay ${outcome.repair.replay.ok?'passed':'failed'}. Timing: ${outcome.repair.timing.coverage}.` :
+                    `${outcome.search.status}: ${outcome.search.firstUnsatisfied.map(r=>r.reason).join('; ')}` : 'Computing preview…'}</p>
+                <ol>{outcome?.repair?.steps.map(s=><li key={s.stepId}>{s.instruction}</li>)}</ol>
+                {outcome?.repair && <><p>Added moves: {outcome.repair.operationIds.filter(o=>!baseline.operationIds.includes(o)).join(', ') || 'none'}. Removed moves: {baseline.operationIds.filter(o=>!outcome.repair!.operationIds.includes(o)).join(', ') || 'none'}.</p>
+                    <button onClick={()=>setRehearsal({repair:outcome.repair!,session:createManualSession(outcome.repair!)})}>Rehearse draft locally</button></>}
+                <div style={{display:'flex',flexWrap:'wrap',gap:'var(--rs-space-1)'}}>
+                    <button onClick={()=>exportJson('review-patch.json',patch)}>Export draft</button>
+                    <button onClick={()=>exportJson('resolved-graph.json',model)}>Export graph</button>
+                    <button onClick={()=>update({...patch,edits:[]})}>Restore baseline</button>
+                </div>
+                <label>Import draft <input type="file" accept="application/json" onChange={async e=>{
+                    const f=e.target.files?.[0]; if(!f)return;
+                    try {update(JSON.parse(await f.text()));} catch {setMessage('Malformed draft. Existing edits kept.');}
+                }}/></label>
+                <p aria-live="polite">{message}</p>
+            </section>
+        </div>
+        <div className="reviewer__right">
+            <section className="reviewer__panel">
+                <h2>Relationship graph</h2>
+                <div className="assembly-diagram"><AssemblyDiagram model={model} id={selected} select={select}/></div>
+            </section>
+            {model.occurrences.some(p=>p.id===selected && p.kind==='piece') && <section className="reviewer__panel">
+                <h2>Selected piece</h2>
+                <div className="review-scene"><StudScene url={geometry}
+                    target={selected} start={zero} end={zero} focus={true} replay={0} reset={0} onPick={()=>{}}/></div>
+            </section>}
+        </div>
+    </main>;
 }

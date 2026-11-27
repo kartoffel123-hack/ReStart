@@ -218,7 +218,7 @@ npm run progress:screenshot -- --title "<what this commit changes>" --rows V04 \
 ```
 
 The PNGs and `notes.md` land in `docs/progress/<yyyy-mm-dd>-<slug>/` and are committed with the
-change they document. A capture has to *highlight the newly introduced change*, and three
+change they document. A capture has to *highlight the newly introduced change*, and four
 addenda make that checkable rather than a matter of judgement:
 
 - **§8.1** compares each capture's pixels against the same scenario in the previous commit; at
@@ -230,6 +230,8 @@ addenda make that checkable rather than a matter of judgement:
   and pass `--evidence-file .tmp/evidence.txt`; the tool renders it into
   `evidence--laptop-1280x800.png` and reproduces it in `notes.md`. Numbers as printed, the
   witness or hash that shows they are right, then what still needs review and its ticket.
+- **§8.4** drops a placeholder capture that repeats the previous commit's, once a fresh panel
+  carries the change. The route stays recorded in `notes.md`; the identical PNG is not committed.
 
 `--note` explains a capture set in `notes.md`; it no longer excuses one that shows nothing new.
 Nothing under `docs/progress/` is read by a test, and captures satisfy no V-row — the frozen

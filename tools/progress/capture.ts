@@ -10,7 +10,7 @@
 import { createServer } from 'vite';
 import { chromium, type Page } from '@playwright/test';
 import { createHash } from 'node:crypto';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { resolve } from 'node:path';
 import { findPreviousCapture } from './previous-capture.js';
@@ -26,6 +26,7 @@ import {
     layoutId,
     layoutSignature,
     placeholderFiles,
+    redundantStubs,
     sameLayoutGroups,
     type ScreenNode
 } from './screen-signature.js';
@@ -322,26 +323,41 @@ async function main(): Promise<void> {
 
     const changed = git(['status', '--porcelain']);
     const entries = panel === undefined ? written : [...written, panel];
+
+    // Which captures repeat the previous commit's capture of the same scenario. Byte equality
+    // proves nothing, so this is the pixel fraction from png-diff, not a hash comparison.
+    const repeats = entries.filter(
+        (entry) =>
+            entry.previous !== undefined && entry.previous.fraction <= VISUALLY_IDENTICAL_FRACTION
+    );
+    // §8.3: a panel that repeats the previous commit's panel evidences nothing either.
+    const freshPanel = panel !== undefined && !repeats.includes(panel);
+
+    // §8.3: neither does a re-shot placeholder. When the panel carries the change, the stubs that
+    // repeat are dropped from the folder instead of committed beside it, so the trail stops
+    // filling with pictures of a screen that has not been built yet.
+    const dropped = redundantStubs(
+        entries.map((entry) => ({ file: entry.file, stub: entry.stub, unchanged: repeats.includes(entry) })),
+        freshPanel
+    );
+    for (const file of dropped) rmSync(resolve(directory, file), { force: true });
+    const shown = entries.filter((entry) => !dropped.includes(entry.file));
+
     const setDigest = createHash('sha256')
-        .update(entries.map((entry) => entry.digest).join('\n'))
+        .update(shown.map((entry) => entry.digest).join('\n'))
         .digest('hex');
 
     // Two things must hold for a capture set to evidence a change: the captures differ from
     // each other where the scenarios claim they do, and at least one differs from the
-    // previous commit's capture of the same scenario. Byte equality proves neither.
-    const duplicates = identicalGroups(entries);
+    // previous commit's capture of the same scenario.
+    const duplicates = identicalGroups(shown);
     const sharedLayouts = sameLayoutGroups(
-        entries.map((entry) => ({ file: entry.file, viewport: entry.viewport.name, layout: entry.layout }))
+        shown.map((entry) => ({ file: entry.file, viewport: entry.viewport.name, layout: entry.layout }))
     );
-    const stubs = placeholderFiles(entries.map((entry) => ({ file: entry.file, stub: entry.stub })));
+    const stubs = placeholderFiles(shown.map((entry) => ({ file: entry.file, stub: entry.stub })));
     const allStubs = written.length > 0 && stubs.length === written.length;
-    const unchanged = entries.filter(
-        (entry) =>
-            entry.previous !== undefined && entry.previous.fraction <= VISUALLY_IDENTICAL_FRACTION
-    );
-    const fresh = entries.length - unchanged.length;
-    // §8.3: a panel that repeats the previous commit's panel evidences nothing either.
-    const freshPanel = panel !== undefined && !unchanged.includes(panel);
+    const unchanged = shown.filter((entry) => repeats.includes(entry));
+    const fresh = shown.length - unchanged.length;
 
     const lines: string[] = [
         `# ${args.title}`,
@@ -350,7 +366,7 @@ async function main(): Promise<void> {
         `- HEAD at capture: \`${head || 'unknown'}\` (commit this folder with the change it documents)`,
         `- Server: Vite dev server at ${address}`,
         `- Capture set digest: \`${setDigest.slice(0, 16)}\``,
-        `- Captures that differ from the previous capture set: **${fresh} of ${entries.length}**`,
+        `- Captures that differ from the previous capture set: **${fresh} of ${shown.length}**`,
         '',
         ...(panelBody === undefined
             ? []
@@ -384,7 +400,7 @@ async function main(): Promise<void> {
         '',
         '| File | Viewport | Layout | Δ vs previous capture | Highlight |',
         '| --- | --- | --- | --- | --- |',
-        ...entries.map(
+        ...shown.map(
             (entry) =>
                 `| \`${entry.file}\` | ${entry.viewport.name} | \`${layoutId(entry.layout)}\`${
                     entry.stub ? ' placeholder' : ''
@@ -405,7 +421,7 @@ async function main(): Promise<void> {
                   '',
                   ...stubs.map((file) => `- \`${file}\``),
                   '',
-                  `**${stubs.length} of ${entries.length}** captures are placeholders.`
+                  `**${stubs.length} of ${shown.length}** captures are placeholders.`
               ].join('\n'),
         '',
         '## Captures that share one layout',
@@ -429,6 +445,22 @@ async function main(): Promise<void> {
                   'Either the surface really is unchanged (say so in the Note) or the scenarios need distinct content.',
                   '',
                   ...duplicates.map((files) => `- identical: ${files.map((f) => `\`${f}\``).join(', ')}`)
+              ].join('\n'),
+        '',
+        '## Placeholder captures dropped from this folder',
+        '',
+        dropped.length === 0
+            ? [
+                  'Nothing was dropped: every capture in this folder is either a built screen, a',
+                  'capture that differs from the previous commit, or the only image this commit has.'
+              ].join('\n')
+            : [
+                  'These routes are still rendered by a placeholder and their capture was identical',
+                  'to the previous commit\u2019s, so committing them would add pictures that highlight',
+                  'nothing while the evidence panel above carries the change (plan \u00a78.3). The',
+                  'routes and the tickets that will replace them stay recorded here:',
+                  '',
+                  ...dropped.map((file) => `- \`${file}\``)
               ].join('\n'),
         '',
         '## Unchanged since the previous capture',
@@ -463,7 +495,7 @@ async function main(): Promise<void> {
     ];
 
     writeFileSync(resolve(directory, 'notes.md'), `${lines.join('\n')}\n`);
-    console.log(`captured ${entries.length} image(s) -> ${directory}`);
+    console.log(`captured ${shown.length} image(s) -> ${directory}`);
     if (panel !== undefined) {
         console.log(
             freshPanel
@@ -487,6 +519,12 @@ async function main(): Promise<void> {
     }
     if (stubs.length > 0) {
         console.warn(`note: ${stubs.length} capture(s) render a placeholder, not a built screen.`);
+    }
+    if (dropped.length > 0) {
+        console.log(
+            `dropped ${dropped.length} unchanged placeholder capture(s); the evidence panel is\n` +
+                'the image for this commit, and the routes are recorded in notes.md (plan §8.3).'
+        );
     }
     // §8 requires an image that highlights the change. Two ways a set can fail that: every
     // capture renders a placeholder, which shows routing rather than behaviour (§8.2), or every

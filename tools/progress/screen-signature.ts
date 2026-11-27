@@ -83,3 +83,25 @@ export function sameLayoutGroups(captures: readonly CaptureLayout[]): string[][]
 export function placeholderFiles(captures: readonly { file: string; stub: boolean }[]): string[] {
     return captures.filter((capture) => capture.stub).map((capture) => capture.file);
 }
+
+/**
+ * Stub captures that repeat the previous commit's capture and therefore evidence nothing,
+ * given that a fresh evidence panel is present to carry the change (plan §8.3, fifth addendum).
+ *
+ * A placeholder is a stand-in for a screen that does not exist yet, so re-photographing it at
+ * every commit adds a picture that is identical to the last commit's. §8.3 already says a panel
+ * that repeats evidences nothing and must be replaced rather than re-shot; this applies the same
+ * rule to stubs, so the trail holds one image that shows the change instead of two that do not.
+ *
+ * Nothing is dropped when the panel is absent or repeats: then a stub is the only image the
+ * commit has, and §8.2's "routing only" record is better than an empty folder.
+ */
+export function redundantStubs(
+    captures: readonly { file: string; stub: boolean; unchanged: boolean }[],
+    panelIsFresh: boolean
+): string[] {
+    if (!panelIsFresh) return [];
+    return captures
+        .filter((capture) => capture.stub && capture.unchanged)
+        .map((capture) => capture.file);
+}

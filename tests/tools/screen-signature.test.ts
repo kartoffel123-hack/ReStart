@@ -13,6 +13,7 @@ import {
     isPlaceholderStub,
     layoutSignature,
     placeholderFiles,
+    redundantStubs,
     sameLayoutGroups,
     type ScreenNode
 } from '../../tools/progress/screen-signature.js';
@@ -166,5 +167,34 @@ describe('grouping a capture set by what it actually shows', () => {
             { file: 'gallery--laptop.png', stub: false }
         ]);
         expect(stubs).toEqual(['manual--laptop.png']);
+    });
+
+    describe('dropping a placeholder capture that repeats', () => {
+        const stub = { file: 'manual--laptop.png', stub: true, unchanged: true };
+        const builtScreen = { file: 'manual--phone.png', stub: false, unchanged: true };
+        const changedStub = { file: 'manual--wide.png', stub: true, unchanged: false };
+        const panel = { file: 'evidence--laptop.png', stub: false, unchanged: false };
+
+        it('drops a stub that repeats, once the panel carries the change', () => {
+            expect(redundantStubs([stub, builtScreen, changedStub, panel], true)).toEqual([
+                'manual--laptop.png'
+            ]);
+        });
+
+        it('keeps every capture when there is no fresh panel to replace it', () => {
+            // Without the panel a stub is the only image the commit has, and §8.2's "routing
+            // only" record is better than an empty folder.
+            expect(redundantStubs([stub, builtScreen, changedStub], false)).toEqual([]);
+        });
+
+        it('keeps a capture of a built screen even when it repeats', () => {
+            // A built screen that did not change this commit still shows what the app looks like;
+            // only a stand-in for a screen that does not exist yet is noise.
+            expect(redundantStubs([builtScreen, panel], true)).toEqual([]);
+        });
+
+        it('keeps a stub whose capture actually differs', () => {
+            expect(redundantStubs([changedStub, panel], true)).toEqual([]);
+        });
     });
 });

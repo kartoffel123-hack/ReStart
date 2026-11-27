@@ -362,6 +362,39 @@ What this means at commit time:
    until the graph view and the reviewer exist.
 6. Nothing changes about status: still a trail, read by no test, satisfying no V-row.
 
+### 8.4 A placeholder that repeats is dropped rather than committed
+
+> **Fifth addendum to §8, added 2026-11-27 during implementation.** §8.3 gave a commit with no
+> rendered surface an image of its own measured output, and said a panel that repeats the
+> previous commit's panel evidences nothing. The same rule was not applied to the stub captures
+> beside it, so every build-side commit still wrote two PNGs of the shared placeholder that were
+> byte-identical to the previous commit's. The folder filled with pictures that highlight nothing,
+> which is what §8 has been trying to prevent since §8.1.
+
+When the capture set contains a **fresh evidence panel**, a capture that is both
+
+- rendered by a placeholder (`data-placeholder`, §8.2), **and**
+- visually identical to the previous commit's capture of the same scenario (§8.1)
+
+is **removed from the folder** instead of committed. `notes.md` records the route under
+**Placeholder captures dropped from this folder**, so the trail still states which routes are
+stubs and which ticket will replace them; it simply no longer files a photograph of a screen
+that does not exist yet.
+
+What this does not do:
+
+1. It never drops anything when the panel is absent or repeats the previous panel. Then a stub is
+   the only image the commit has, and §8.2's "routing only" record beats an empty folder.
+2. It never drops a capture of a **built** screen that repeats. That shows what the application
+   currently looks like; only a stand-in is noise.
+3. It never drops a stub whose capture actually differs, which is what a landing screen does.
+4. Status is unchanged: still a commit-time trail, read by no test, satisfying no V-row. The
+   decision itself is pure and tested in `tests/tools/screen-signature.test.ts`.
+
+The real fix for "every capture is a placeholder" is not in the capture tool: it is ticket 4
+(the mechanic screen) and ticket 8 (the reviewer screen). Until they land, the evidence panel is
+the image that highlights the change, and this addendum keeps the stubs from crowding it out.
+
 ## Addendum to §4.7: what the search report promises
 
 > **Recorded 2026-11-27 during implementation (Ticket 6), after an advisor consultation.**

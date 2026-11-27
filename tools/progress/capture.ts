@@ -136,6 +136,20 @@ async function capture(
 ): Promise<{ layout: string; stub: boolean }> {
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
     await page.goto(`${origin}/${scenario.route}`, { waitUntil: 'networkidle' });
+    if(scenario.setup==='buried-pin') {
+        await page.evaluate(()=>sessionStorage.clear());await page.reload();
+        await page.getByRole('combobox',{name:'Occurrence'}).selectOption('30465/NAUO33/NAUO38');
+        await page.getByRole('button',{name:/Select friction pin with stud/i}).click();
+        await page.getByRole('button',{name:'Confirm this step'}).click();
+        await page.locator('.rs-manual__instruction').filter({hasText:'pull the blue pin'}).waitFor();
+    }
+    if(scenario.setup==='blocked-preview') {
+        await page.getByRole('button',{name:'Restore baseline'}).click();
+        await page.getByRole('status').filter({hasText:'Draft: 4 steps'}).waitFor();
+        await page.getByLabel('Reason',{exact:true}).fill('The handle needs this connection released.');
+        await page.getByRole('button',{name:'Add blocker'}).click();
+        await page.getByRole('status').filter({hasText:'Draft: 6 steps'}).waitFor();
+    }
     if (scenario.waitFor !== undefined) {
         await page.waitForSelector(scenario.waitFor, { timeout: 15_000 });
     }

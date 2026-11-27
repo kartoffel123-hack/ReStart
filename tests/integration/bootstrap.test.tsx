@@ -12,12 +12,11 @@ describe('bootstrap shell', () => {
         expect(screen.getByRole('heading', { name: /mechanic manual/i })).toBeInTheDocument();
     });
 
-    it('keeps the reviewer route a labelled placeholder until ticket 8', () => {
+    it('opens the graph reviewer on its own route', async () => {
         window.location.hash = '#/review';
         render(<App />);
-        expect(screen.getByRole('heading', { name: /reviewer/i })).toBeInTheDocument();
-        // Distinct words are not a distinct screen: the marker tells a capture so (plan §8.2).
-        expect(document.querySelector('[data-placeholder]')).not.toBeNull();
+        expect(await screen.findByRole('heading', { name: /reviewer/i })).toBeInTheDocument();
+        expect(document.querySelector('[data-placeholder]')).toBeNull();
     });
 
     it('resolves the concept route to the gallery, which renders the production screen', () => {

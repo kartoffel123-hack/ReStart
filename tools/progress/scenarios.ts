@@ -25,6 +25,7 @@ export type Scenario = Readonly<{
     highlights: string;
     /** Selector that must exist before capturing; keeps captures deterministic. */
     waitFor?: string;
+    setup?: 'blocked-preview' | 'buried-pin';
     viewports?: readonly Viewport[];
     fullPage?: boolean;
 }>;
@@ -43,9 +44,17 @@ export const SCENARIOS: readonly Scenario[] = [
         label: 'Reviewer route',
         route: '#/review',
         highlights:
-            '#/review survives a hard refresh on a static host; its screen is still the shared '
-            + 'placeholder (ticket 8).',
-        waitFor: '[data-route="review"]'
+            'The local reviewer shows the selected occurrence and its labeled relationships.',
+        waitFor: '[data-route="review"] .react-flow__node'
+    },
+    {
+        id:'buried-pin-step',label:'Blue friction pin exposed',route:'#/',setup:'buried-pin',
+        waitFor:'[data-screen="manual"][data-phase="remove"] canvas',
+        highlights:'After the cap is parked, the diagram highlights the blue friction pin and its withdrawal stroke.'
+    },
+    {
+        id:'review-diff',label:'Draft changes the access path',route:'#/review',setup:'blocked-preview',
+        waitFor:'[data-route="review"]',highlights:'A new blocker changes the direct stud swap into a six-step detour disturbing the pin.'
     },
     {
         id: 'concept-route',

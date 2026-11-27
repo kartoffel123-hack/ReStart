@@ -5,7 +5,7 @@
  * The concept gallery is development-only, so a production build never ships it: the route
  * resolves to the same placeholder the mechanic route uses until ticket 7 wires the real loader.
  */
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { PlaceholderScreen, type PlaceholderRoute } from '../presentation/placeholder-screen.js';
 import { ConceptGallery } from '../concept/gallery.js';
@@ -20,6 +20,7 @@ export function readRoute(hash: string): RouteId {
 }
 
 const DEV_ONLY = import.meta.env.DEV;
+const Reviewer = lazy(async () => ({default:(await import('./reviewer.js')).Reviewer}));
 
 export function App(): ReactNode {
     const [route, setRoute] = useState<RouteId>(() => readRoute(window.location.hash));
@@ -31,6 +32,7 @@ export function App(): ReactNode {
     }, []);
 
     if (route === 'manual') return <div data-route="manual"><StudPilot /></div>;
+    if (route === 'review') return <Suspense fallback={<p>Loading reviewer…</p>}><Reviewer/></Suspense>;
     if (route === 'concept' && DEV_ONLY) {
         return (
             <div className="rs-app" data-route={route}>

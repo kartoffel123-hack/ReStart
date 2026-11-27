@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { z } from 'zod';
 import {
     buildDependencyTree,
@@ -75,6 +75,8 @@ export function DependencyGraphScreen() {
     const [inspectedId, setInspectedId] = useState('');
     const [query, setQuery] = useState('');
     const [onlyModeled, setOnlyModeled] = useState(false);
+    const [panel, setPanel] = useState<'parts' | 'overview' | 'details'>('overview');
+    const overviewButton = useRef<HTMLButtonElement>(null);
     const [explode, setExplode] = useState(0);
 
     const [includeRequires, setIncludeRequires] = useState(true);
@@ -238,6 +240,8 @@ export function DependencyGraphScreen() {
     const selectRoot = (pieceId: string): void => {
         setRootId(pieceId);
         setInspectedId(pieceId);
+        if (panel !== 'overview') overviewButton.current?.focus();
+        setPanel('overview');
     };
     const indirectRemovalCount = tree.nodes.filter((node) => node.isIndirectRemoval).length;
     const directRemovalCount = Math.max(0, tree.plan.releasedPieceIds.length - indirectRemovalCount);
@@ -247,38 +251,46 @@ export function DependencyGraphScreen() {
             <header className="rs-graph-header">
                 <div className="rs-graph-header__title">
                     <h1>Dependency Graph · 30465</h1>
-                    <span>Vollständiger transitiver Baum für jedes Teil</span>
+                    <span className="rs-graph-header__sub">
+                        Zielteil: {tree.nodes.find((node) => node.id === rootId)?.commonName}{' '}
+                        <code>{rootId.split('/').at(-1)}</code>
+                    </span>
                 </div>
-                <nav className="rs-graph-header__nav">
-                    <a href="#/">Mechanic manual</a>
-                    <a href="#/dof">DOF &amp; Zeiten (Tabelle)</a>
-                    <a href={`#/review?piece=${encodeURIComponent(rootId)}`}>Repair reviewer</a>
-                    <button
-                        type="button"
-                        onClick={() =>
-                            exportJson(`dependency-tree-${rootId.split('/').at(-1)}.json`, {
-                                rootId,
-                                graphRevision: model.graphRevision,
-                                datasetRevision: model.source.datasetRevision,
-                                tree,
-                                manual: activeRepair ?? null
-                            })
-                        }
-                    >
-                        Export tree + plan JSON
-                    </button>
-                    {dofCatalog && (
+                <details className="rs-graph-menu">
+                    <summary>Menü</summary>
+                    <nav className="rs-graph-header__nav">
+                        <a href="#/">Mechanic manual</a>
+                        <a href="#/dof">DOF &amp; Zeiten (Tabelle)</a>
+                        <a href={`#/review?piece=${encodeURIComponent(rootId)}`}>Repair reviewer</a>
                         <button
                             type="button"
-                            onClick={() => exportJson('connection-dof.json', dofCatalog)}
+                            onClick={() =>
+                                exportJson(`dependency-tree-${rootId.split('/').at(-1)}.json`, {
+                                    rootId,
+                                    graphRevision: model.graphRevision,
+                                    datasetRevision: model.source.datasetRevision,
+                                    tree,
+                                    manual: activeRepair ?? null
+                                })
+                            }
                         >
-                            Export DOF JSON
+                            Export tree + plan JSON
                         </button>
-                    )}
-                </nav>
+                        {dofCatalog && (
+                            <button type="button" onClick={() => exportJson('connection-dof.json', dofCatalog)}>
+                                Export DOF JSON
+                            </button>
+                        )}
+                    </nav>
+                </details>
             </header>
 
-            <div className="rs-graph-workspace">
+            <nav className="rs-graph-panels" aria-label="Arbeitsbereich">
+                <button type="button" aria-pressed={panel === 'parts'} onClick={() => setPanel('parts')}>Teile</button>
+                <button type="button" ref={overviewButton} aria-pressed={panel === 'overview'} onClick={() => setPanel('overview')}>Graph &amp; 3D</button>
+                <button type="button" aria-pressed={panel === 'details'} onClick={() => setPanel('details')}>Details</button>
+            </nav>
+            <div className="rs-graph-workspace" data-panel={panel}>
                 <aside className="rs-graph-sidebar">
                     <h2>Teile ({pieces.length} / 70)</h2>
                     <input
@@ -290,7 +302,8 @@ export function DependencyGraphScreen() {
                         aria-label="Teile durchsuchen"
                     />
 
-                    <div className="rs-graph-filters">
+                    <details className="rs-graph-options rs-graph-filters">
+                        <summary>Filter &amp; Baumoptionen</summary>
                         <label>
                             <input
                                 type="checkbox"
@@ -362,7 +375,7 @@ export function DependencyGraphScreen() {
                                 aria-label="Maximale Baumtiefe"
                             />
                         </div>
-                    </div>
+                    </details>
 
                     <ul className="rs-graph-piece-list" aria-label="Liste aller Teile">
                         {pieces.map((piece) => {
@@ -372,6 +385,7 @@ export function DependencyGraphScreen() {
                                 <li key={piece.id}>
                                     <button
                                         type="button"
+                                        aria-pressed={piece.id === rootId}
                                         className={`rs-graph-piece-btn ${
                                             piece.id === rootId ? 'rs-graph-piece-btn--selected' : ''
                                         }`}
@@ -395,6 +409,7 @@ export function DependencyGraphScreen() {
                             );
                         })}
                     </ul>
+                    {pieces.length === 0 && <p role="status">Keine passenden Teile. Suche oder Filter ändern.</p>}
                 </aside>
 
                 <section className="rs-graph-center">
@@ -423,7 +438,9 @@ export function DependencyGraphScreen() {
                             )}
                             <strong>{tree.plan.intactUnits.length}</strong> intakte Baugruppen
                         </div>
-                        <div className="rs-graph-legend">
+                        <button className="rs-graph-legend-trigger" type="button" popoverTarget="graph-relations">Kantenlegende</button>
+                        <div id="graph-relations" popover="auto" aria-label="Kantenlegende">
+                            <strong>Kantenlegende</strong>
                             <span className="rs-graph-legend__item">
                                 <span className="rs-graph-swatch rs-graph-swatch--requires" />
                                 requires ({tree.stats.byRelation.requires})
@@ -448,6 +465,7 @@ export function DependencyGraphScreen() {
                                 <span className="rs-graph-swatch rs-graph-swatch--connection-release" />
                                 Verbindung lösen ({tree.stats.byRelation['connection-release']})
                             </span>
+                            <button type="button" popoverTarget="graph-relations" popoverTargetAction="hide">Schließen</button>
                         </div>
                     </div>
 
@@ -469,20 +487,19 @@ export function DependencyGraphScreen() {
                                 <div className="rs-graph-legend">
                                     <span className="rs-graph-legend__item">
                                         <span className="rs-graph-dot rs-graph-dot--target" />
-                                        <strong>Rot:</strong> Gesuchtes Bauteil (1)
+                                        Zielteil
                                     </span>
                                     <span className="rs-graph-legend__item">
                                         <span className="rs-graph-dot rs-graph-dot--remove" />
-                                        <strong>Gelb:</strong> direkt zu bewegen ({directRemovalCount})
+                                        Direkt bewegen ({directRemovalCount})
                                     </span>
                                     <span className="rs-graph-legend__item">
                                         <span className="rs-graph-dot rs-graph-dot--remove-indirect" />
-                                        <strong>Hellgelb:</strong> zusätzlich räumlich nötig ({indirectRemovalCount})
+                                        Indirekt bewegen ({indirectRemovalCount})
                                     </span>
                                     <span className="rs-graph-legend__item">
                                         <span className="rs-graph-dot rs-graph-dot--stay" />
-                                        <strong>Grün:</strong> Nicht einzeln gelöst (
-                                        {Math.max(0, 70 - 1 - tree.plan.releasedPieceIds.length)})
+                                        Bleibt ({Math.max(0, 70 - 1 - tree.plan.releasedPieceIds.length)})
                                     </span>
                                 </div>
                                 <label className="rs-graph-explode">

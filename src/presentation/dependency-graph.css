@@ -2,8 +2,9 @@
    tokens.css, matching the mechanic manual landing page and reviewer. */
 .rs-graph-page {
     display: grid;
-    grid-template-rows: auto 1fr;
-    min-height: 100vh;
+    grid-template-rows: auto minmax(0, 1fr);
+    height: 100vh;
+    height: 100dvh;
     box-sizing: border-box;
     font: var(--rs-body-size)/1.5 var(--rs-font-body);
     color: var(--rs-ink);
@@ -23,8 +24,8 @@
     background: var(--rs-paper);
     border-bottom: 2px solid var(--rs-ink);
 }
-.rs-graph-header__title { display: flex; align-items: baseline; gap: var(--rs-space-2); }
-.rs-graph-header h1 { font: 700 clamp(2rem, 4vw, 3.5rem)/1.1 var(--rs-font-numeral); }
+.rs-graph-header__title { flex: 1; min-width: 0; }
+.rs-graph-header h1 { font: 700 clamp(1.25rem, 2.5vw, 2rem)/1.1 var(--rs-font-numeral); }
 .rs-graph-header__sub { color: var(--rs-muted); font-size: .875rem; }
 .rs-graph-header__nav { display: flex; flex-wrap: wrap; align-items: center; gap: var(--rs-space-1) var(--rs-space-2); }
 .rs-graph-header__nav a, .rs-graph-header__nav button {
@@ -41,14 +42,19 @@
     cursor: pointer;
 }
 .rs-graph-header__nav a:hover, .rs-graph-header__nav button:hover { border-color: var(--rs-focus); color: var(--rs-focus); }
+.rs-graph-menu { position: relative; align-self: center; }
+.rs-graph-menu summary, .rs-graph-options summary { cursor: pointer; padding: 10px 8px; min-height: var(--rs-min-hit); font-weight: 600; }
+.rs-graph-menu nav { position: absolute; top: 100%; right: 0; z-index: 10; width: max-content; max-width: 90vw; max-height: 65dvh; overflow: auto; display: grid; padding: 8px; border: 1px solid var(--rs-muted); background: var(--rs-paper); }
+.rs-graph-panels { display: none; }
 
 /* --- workspace ---------------------------------------------------------- */
 .rs-graph-workspace {
     display: grid;
-    grid-template-columns: 260px minmax(0, 1fr) 300px;
+    grid-template-columns: minmax(210px, 19fr) minmax(0, 55fr) minmax(250px, 26fr);
+    grid-template-rows: minmax(0, 1fr);
     min-height: 0;
-    gap: var(--rs-space-3);
-    padding: var(--rs-space-3);
+    gap: var(--rs-space-2);
+    padding: var(--rs-space-2);
 }
 .rs-graph-sidebar, .rs-graph-inspector {
     display: flex;
@@ -79,19 +85,18 @@
     font: inherit;
     min-height: 40px;
 }
-.rs-graph-page :is(input, select, button):focus-visible {
+.rs-graph-page :is(input, select, button, summary, a):focus-visible {
     outline: 3px solid var(--rs-focus);
     outline-offset: 2px;
 }
 .rs-graph-filters {
-    display: flex;
-    flex-direction: column;
-    gap: var(--rs-space-1);
-    padding: var(--rs-space-2);
+    padding: 0 var(--rs-space-1);
     background: var(--rs-build-field);
     border: 1px solid var(--rs-hairline);
     border-radius: var(--rs-radius);
 }
+.rs-graph-filters[open] > :not(summary) { margin-bottom: var(--rs-space-1); }
+.rs-graph-filter-row :is(select, input) { min-width: 0; max-width: 65%; }
 .rs-graph-filters label { display: flex; align-items: center; gap: var(--rs-space-1); font-size: .875rem; cursor: pointer; }
 .rs-graph-filter-row { display: flex; align-items: center; justify-content: space-between; gap: var(--rs-space-1); font-size: .875rem; }
 
@@ -104,7 +109,7 @@
     flex-direction: column;
     gap: 4px;
     overflow-y: auto;
-    flex: 1;
+    flex: 1 0 6rem;
 }
 .rs-graph-piece-btn {
     width: 100%;
@@ -128,7 +133,7 @@
 .rs-graph-badge--candidate { background: var(--rs-parts-inset); color: var(--rs-warn); }
 
 /* --- center ------------------------------------------------------------- */
-.rs-graph-center { display: flex; flex-direction: column; min-width: 0; min-height: 0; gap: var(--rs-space-2); }
+.rs-graph-center { display: grid; grid-template-rows: auto minmax(0, 1fr) minmax(0, 1fr); min-width: 0; min-height: 0; gap: var(--rs-space-1); }
 .rs-graph-statsbar {
     display: flex;
     flex-wrap: wrap;
@@ -143,6 +148,10 @@
 }
 .rs-graph-legend { display: flex; flex-wrap: wrap; gap: var(--rs-space-2); font-size: .875rem; color: var(--rs-muted); }
 .rs-graph-legend__item { display: inline-flex; align-items: center; gap: 5px; }
+.rs-graph-legend-trigger, #graph-relations button { min-height: var(--rs-min-hit); padding-inline: var(--rs-space-1); border: 1px solid var(--rs-muted); border-radius: var(--rs-radius); background: var(--rs-paper); color: var(--rs-ink); font: inherit; cursor: pointer; }
+#graph-relations:popover-open { display: grid; gap: var(--rs-space-1); padding: var(--rs-space-2); border: 1px solid var(--rs-muted); border-radius: var(--rs-radius); color: var(--rs-ink); background: var(--rs-paper); }
+#graph-relations::backdrop { background: rgb(23 33 39 / 20%); }
+.rs-graph-visual__bar .rs-graph-legend { gap: 4px var(--rs-space-1); }
 .rs-graph-swatch { width: 18px; height: 3px; display: inline-block; border-radius: 2px; }
 .rs-graph-swatch--requires { background: var(--rs-motion-arrow); }
 .rs-graph-swatch--candidate { border-top: 2px dashed var(--rs-warn); height: 0; }
@@ -152,16 +161,14 @@
 .rs-graph-swatch--connection-release { background: var(--rs-warn); }
 .rs-graph-swatch--contains { border-top: 2px dashed var(--rs-muted); height: 0; }
 .rs-tree-canvas {
-    flex: 1 1 56%;
-    min-height: 260px;
+    min-height: 0;
     width: 100%;
     background: var(--rs-build-field);
     border: 1px solid var(--rs-hairline);
     border-radius: var(--rs-radius);
 }
 .rs-graph-visual {
-    flex: 0 0 42%;
-    min-height: 220px;
+    min-height: 0;
     display: flex;
     flex-direction: column;
     border: 1px solid var(--rs-hairline);
@@ -180,8 +187,9 @@
     border-bottom: 1px solid var(--rs-hairline);
     font-size: .875rem;
 }
-.rs-graph-visual__scene { flex: 1; min-height: 180px; position: relative; }
-.rs-graph-visual__scene .stud-scene { height: 100%; min-height: 180px; }
+.rs-graph-visual__scene { flex: 1; min-height: 0; position: relative; }
+.rs-graph-visual__scene .stud-scene { height: 100%; min-height: 0; }
+.rs-graph-visual__scene canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
 .rs-graph-dot { width: 12px; height: 12px; border-radius: 999px; display: inline-block; border: 1px solid rgba(23, 33, 39, .3); }
 .rs-graph-dot--target { background: #c81e1e; }
 .rs-graph-dot--remove { background: #f5c518; }
@@ -255,14 +263,19 @@
 .rs-manual-graph-bg__head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--rs-space-2); margin-bottom: var(--rs-space-1); }
 
 /* --- responsive --------------------------------------------------------- */
-@media (max-width: 1120px) {
-    .rs-graph-workspace { grid-template-columns: 260px minmax(0, 1fr); grid-template-rows: minmax(460px, 68vh) auto; }
-    .rs-graph-sidebar { max-height: 68vh; }
-    .rs-graph-inspector { grid-column: 1 / -1; border-left: 0; border-top: 1px solid var(--rs-hairline); }
+@media (max-width: 60rem) {
+    .rs-graph-page { grid-template-rows: auto auto minmax(0, 1fr); }
+    .rs-graph-header { padding: var(--rs-space-1) var(--rs-space-2); }
+    .rs-graph-panels { display: flex; background: var(--rs-paper); }
+    .rs-graph-panels button { flex: 1; min-height: var(--rs-min-hit); border: 0; border-bottom: 3px solid transparent; background: transparent; color: var(--rs-ink); font: inherit; cursor: pointer; }
+    .rs-graph-panels button[aria-pressed="true"] { border-color: var(--rs-ink); background: var(--rs-parts-inset); font-weight: 700; }
+    .rs-graph-workspace { grid-template-columns: minmax(0, 1fr); padding: var(--rs-space-1); }
+    .rs-graph-workspace:not([data-panel="parts"]) .rs-graph-sidebar,
+    .rs-graph-workspace:not([data-panel="overview"]) .rs-graph-center,
+    .rs-graph-workspace:not([data-panel="details"]) .rs-graph-inspector { display: none; }
+    .rs-graph-center .react-flow__minimap { display: none; }
 }
-@media (max-width: 720px) {
-    .rs-graph-workspace { grid-template-columns: minmax(0, 1fr); gap: var(--rs-space-2); padding: var(--rs-space-2); }
-    .rs-graph-center { order: -1; }
-    .rs-graph-sidebar { max-height: 320px; }
-    .rs-tree-canvas { height: 55vh; }
+@media (min-aspect-ratio: 3/2) and (max-height: 34rem) {
+    .rs-graph-center { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: auto minmax(0, 1fr); }
+    .rs-graph-statsbar { grid-column: 1 / -1; }
 }

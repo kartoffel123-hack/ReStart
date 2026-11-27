@@ -32,6 +32,14 @@ export type Scenario = Readonly<{
 
 export const SCENARIOS: readonly Scenario[] = [
     {
+        id: 'dependency-graph',
+        label: 'Dependency graph workspace',
+        route: '#/graph?piece=30465%2FNAUO9',
+        highlights: 'The NAUO9 dependency tree and helicopter share the viewport, with direct and indirect movements identified.',
+        waitFor: '[data-route="graph"] canvas[data-target-point]',
+        fullPage: false
+    },
+    {
         id: 'manual-route',
         label: 'Mechanic manual route',
         route: '#/',

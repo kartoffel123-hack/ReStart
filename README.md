@@ -139,6 +139,7 @@ own measured output instead ([plan §8.3](docs/plans/0.1.0/02-software-design-im
 | Bill of materials | 70 rows, same multiset of pieces as the assembly but only 7 positions aligned, so 54 rows join at type level and are marked ambiguous |
 | Timing lookup | 62 connection classes, English and German sheets agree by `Row_ID`; the times are **fictitious** challenge data |
 | Interface features | **1,295 cylindrical faces** over all 31 definitions (2,451 faces total), 64 candidate travel axes, each face named by its STEP entity ([RV-003](data/review/interface-features.md)) |
+| Mating interfaces | 2,312 placed cylindrical faces across the 70 pieces pair into **8,102 coaxial candidates** — deliberately not a joint count, because two empty bores on one line are in it; confirming that the two faces actually touch is the next package ([RV-003](data/review/interface-features.md)) |
 
 ## Stack
 

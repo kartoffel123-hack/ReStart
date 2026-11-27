@@ -77,3 +77,40 @@ centre instead.
    materials' 70 distinct functional-unit labels.
 4. Nothing here has been checked against the physical kit. A generated move becomes *reviewed*
    only with a bench record, and *physically verified* only with a linked one.
+
+## RV-003 · step 4 measurement: coaxial pairing yields candidates, not joints
+
+Added 2026-11-27 during implementation, with `tools/lib/interfaces.ts`.
+
+Placing every cylindrical face of every occurrence gives **2,312 placed faces** across the 70
+pieces (the 1,295 cylinders belong to 31 definitions, and a definition is used more than once).
+Pairing faces from different occurrences that are coaxial within 0.1 mm and matched in radius
+within 0.1 mm yields **8,102 candidates**.
+
+That is more joints than a 70-piece helicopter has, and the reason is visible in the fixtures:
+
+- two empty bores bored along one line satisfy the rule exactly;
+- a beam resting face-to-face against another beam whose holes happen to line up satisfies it
+  too;
+- a face's *trim* is not in the feature table — `CYLINDRICAL_SURFACE` is an infinite surface —
+  so nothing here knows that a 7 mm hole stops 7 mm along the axis.
+
+So this list is an input to review, not the graph. Reading it as one would put a requirement on
+a move that no geometry supports, and the planner would then tell a mechanic to remove a healthy
+part for nothing — the failure mode the whole objective is built to avoid.
+
+**What confirmation requires.** A candidate becomes a joint when the two faces are shown to
+touch: take the triangles belonging to each face (vertices lying on that cylinder within the
+tessellation uncertainty), and measure the distance between the two triangle sets. Under the
+0.1 mm pose tolerance is a joint; over it is two bores that never met. That also recovers what
+the surface geometry cannot give — the engagement depth, which is the axial span where the two
+sets are in contact — and the release stroke follows from it.
+
+Until that lands, `model:import` prints the number as *candidates*, and both
+`tests/data/interfaces.test.ts` and `tests/integration/import-package.test.ts` assert it so a
+revision change is loud.
+
+The Stage 1 axle witness holds: every candidate naming `30465/NAUO1/NAUO79` has it as the male
+side at radius 2.35 mm against a 2.4 mm bore, a radial gap of 0.05 mm, and an axis offset within
+tolerance — which is LEGO's line-to-line fit and the reason 0.1 mm is the right radius
+tolerance and 0.5 mm would not be.

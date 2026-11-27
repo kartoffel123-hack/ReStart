@@ -43,6 +43,19 @@ describe('model:import package', () => {
         expect(report.features.diagnostics).toEqual([]);
     });
 
+    it('names the candidate mating interfaces and does not call them joints', () => {
+        // §3C step 4, from the same pass as the features it reads. The candidate count is
+        // pinned because it is the number a reviewer has to be able to see and distrust: 8,102
+        // coaxial radius-matched pairs is more joints than a 70-piece helicopter has, so the
+        // report says "candidates" and the confirmation step has to collapse it.
+        expect(report.interfaces.faces).toBe(2312);
+        expect(report.interfaces.candidates).toBe(8102);
+        expect(report.interfaces.fitToleranceMm).toBe(0.1);
+        expect(report.interfaces.axisToleranceMm).toBe(0.1);
+        const classified = Object.values(report.interfaces.kindCounts).reduce((total, n) => total + n, 0);
+        expect(classified).toBe(report.interfaces.candidates);
+    });
+
     it('proves every piece has its own mesh and its own pickable node', () => {
         expect(report.crosswalk.matched).toBe(EXPECTED_OCCURRENCES);
         expect(report.crosswalk.issues).toEqual([]);

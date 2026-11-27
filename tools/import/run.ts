@@ -44,6 +44,12 @@ async function main(): Promise<void> {
         `${report.features.cylinders} cylinders over ${report.features.definitions} definitions, ` +
             `${report.features.travelAxes} candidate travel axes`
     );
+    row(
+        'mating interfaces',
+        `${report.interfaces.candidates} candidates from ${report.interfaces.faces} placed faces ` +
+            `(coaxial ≤ ${report.interfaces.axisToleranceMm} mm, radius match ≤ ${report.interfaces.fitToleranceMm} mm) — ` +
+            `candidates only, confirmation by face contact is the next package`
+    );
     row('glb', `${report.glb.bytes} bytes, ${report.glb.instances} pickable instances, sha256 ${report.glb.sha256.slice(0, 16)}`);
     row(
         'type catalog',

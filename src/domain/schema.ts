@@ -75,6 +75,7 @@ export const connectionKindSchema = z.enum([
     'stud-tube',
     'other'
 ]);
+export type ConnectionKind = z.infer<typeof connectionKindSchema>;
 
 /** A connection identifies both endpoints and the interface between them. */
 export const connectionSchema = z.object({

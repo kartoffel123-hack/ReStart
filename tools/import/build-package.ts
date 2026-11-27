@@ -15,6 +15,7 @@ import { resolve } from 'node:path';
 import { parseStepEntities } from '../lib/step-file.js';
 import { STEP_SHA256, buildAssemblyTree, type AssemblyTree } from '../lib/step-tree.js';
 import { extractFeatureTable } from '../lib/features.js';
+import { extractCandidateInterfaces } from '../lib/interfaces.js';
 import { tessellateStep, reachableMeshes, TESSERATION_OPTIONS, type TessellationOptions } from '../lib/step-meshes.js';
 import { buildCrosswalk, type Crosswalk } from '../lib/crosswalk.js';
 import { buildAssemblyGlb, inspectAssemblyGlb, type GlbReport } from '../lib/glb.js';
@@ -77,6 +78,18 @@ export type ImportReport = Readonly<{
         definitionsWithoutCylinder: readonly string[];
         diagnostics: ReadonlyArray<Readonly<{ code: string; message: string; definitionId?: string }>>;
     }>;
+    /**
+     * Ticket 3C-4: candidate mating interfaces from coaxial faces (plan 02 §3C step 4).
+     * `candidates` counts coaxial radius-matched face pairs across pieces; it is deliberately
+     * not called a joint count, because two empty bores on one line are in it.
+     */
+    interfaces: Readonly<{
+        faces: number;
+        candidates: number;
+        fitToleranceMm: number;
+        axisToleranceMm: number;
+        kindCounts: Readonly<Record<string, number>>;
+    }>;
     /** Ticket 2: type catalog, row references, candidate units and timing coverage. */
     sources: Readonly<{
         types: number;
@@ -131,6 +144,9 @@ export async function buildImportPackage(
     // Candidate interface features (plan 02 §3C step 1): the geometry the move generator is
     // allowed to reason about, with the STEP entity behind every face it cites.
     const features = extractFeatureTable(index, tree);
+    // Candidate mating interfaces (plan 02 §3C step 4): which pieces are fitted together, and
+    // along what line. Confirmation that the two faces actually touch is the next package.
+    const mating = extractCandidateInterfaces(features, tree);
     if (tree.diagnostics.length > 0) {
         throw new Error(
             `assembly tree reported ${tree.diagnostics.length} unresolved usage(s):\n` +
@@ -226,6 +242,13 @@ export async function buildImportPackage(
                 message: issue.message,
                 ...(issue.definitionId === undefined ? {} : { definitionId: issue.definitionId })
             }))
+        },
+        interfaces: {
+            faces: mating.facesConsidered,
+            candidates: mating.candidates.length,
+            fitToleranceMm: mating.fitToleranceMm,
+            axisToleranceMm: mating.axisToleranceMm,
+            kindCounts: mating.kindCounts
         },
         glb: {
             sha256: sha256(glb),

@@ -225,6 +225,11 @@ npm run test:e2e
 > progress trail, not release evidence: they do not satisfy any V-row below, and no test
 > reads them. A missing capture for a commit that had a visible surface is treated the same
 > as a missing test run — fix it before committing.
+>
+> Per [§8.1](02-software-design-implementation-plan.md) the capture also has to *differ*:
+> `notes.md` reports the fraction of pixels that changed against each other capture and
+> against the same scenario in the previous capture folder, so a commit that re-shoots an
+> unchanged screen is visible in the trail instead of looking like progress.
 
 During development run one named Vitest file or case before the full suite. A routine code change runs typecheck, fixtures and relevant UI tests. Changes to the importer, graph, review data, solver or geometry run the 70-target batch. Release CI also verifies reproducibility from source, checks the exact shipped bundle, and exercises the real browser. Configure the browser test runner to start the preview server and wait for readiness.
 

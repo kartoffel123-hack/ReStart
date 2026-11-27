@@ -61,6 +61,7 @@ docs/plans/0.1.0/                        the plan set
   01-software-design-plan.md               product decisions, architecture, evidence meaning
   02-software-design-implementation-plan.md handoff, tickets, 48-hour schedule, commands
   03-software-verification-plan.md         V01–V10 acceptance matrix and run order
+docs/progress/                            one screenshot folder per commit (plan 02 §8)
 src/                                      the app, bootstrapped at the repository root
   domain/                                 assembly state, graph, search, replay, evidence — pure TS
   app/                                    loaders, session controller, view-model selectors, adapters
@@ -68,6 +69,8 @@ src/                                      the app, bootstrapped at the repositor
   scene/ graph-view/                      Three.js and graph render adapters (IDs back to the app)
   concept/                                development gallery at `#/concept` over the same screens
 tools/{import,compile,verify}/            build-side STEP + workbook import, batch verification
+tools/lib/                               STEP parse, assembly tree, tessellation, crosswalk, GLB
+tools/progress/                           pre-commit capture tool and its PNG difference metric
 data/review/                              versioned crosswalk decisions, motion evidence, bench records
 public/models/30465/                      the published content-hashed dataset (manifest, GLB, graphs, manuals)
 tests/{data,domain,geometry,ui,review,integration,release}/  Vitest suites
@@ -81,9 +84,16 @@ adapters. See [AGENTS.md](AGENTS.md).
 [implementation plan §1](docs/plans/0.1.0/02-software-design-implementation-plan.md) is
 bootstrapped and green — pinned dependencies, strict TypeScript, the Vite app shell, the
 instruction-sheet design tokens, and Vitest with a Node default and jsdom for DOM suites.
-The STEP importer, the repair model and planner, the mechanic and reviewer screens, and the
-70-target batch are the open tickets; plan §1 records the measured STEP-import baseline they
-must reproduce.
+Built since: the STEP importer expands the pinned snapshot into **70 placed occurrences**,
+tessellates them, matches every occurrence to its own mesh (**70/70**, lowest winning score
+0.9912) and writes a GLB with one pickable node per occurrence ID; the repair model, state
+transitions, replay and metrics are pure `src/domain/`; and the planner minimises *distinct
+healthy pieces disturbed* while reporting one of four honest statuses
+(`proved-minimum`, `best-route-found`, `search-incomplete`, `no-feasible-route`).
+Not built yet: the workbook import, move and constraint generation, the mechanic and reviewer
+screens (all three routes still render one placeholder screen — Tickets 4 and 8 replace it),
+the Three.js scene, the reviewer, and the 70-target `model:compile` / `model:verify` batch.
+Plan §1 records the measured STEP-import baseline the remaining tickets must reproduce.
 
 ## The assembly, as measured
 
@@ -92,7 +102,8 @@ must reproduce.
 | STEP SHA-256 | `e15deb431d0ece9baf411cec7612f00d1a49e3e536ea183893b6792f6dfc7588` |
 | Structure | 1 root, 13 assembly definitions, 31 distinct leaf definitions, 81 usage records |
 | Physical pieces | **70 expanded leaf occurrences**, identified by their usage-ID path from the root |
-| Tessellation | `occt-import-js@0.0.23`, mm, linear deflection 0.12, angular 0.4 → 70 meshes, 37 mesh nodes, ~111,646 triangles |
+| Tessellation | `occt-import-js@0.0.23`, mm, linear deflection 0.12, angular 0.4 → 70 meshes over 37 mesh-bearing nodes, **48,874 triangles** |
+| Shipped geometry | one GLB node per occurrence ID, source axes preserved, mm → m at build time |
 | Identity check | usage paths matched to transformed B-rep vertices: **70/70**, lowest winning vertex-match fraction 0.9912 |
 | Witnesses | Stage 1 axle `NAUO1/NAUO79` bounds centre ≈ `[0, 0, 32]` mm; both rotor blades centre at Y ≈ 47.5 mm |
 
@@ -108,8 +119,12 @@ needs no model service, no CAD installation, and no server.
 ## Getting started
 
 **Node 24.22.3** is the pinned baseline (`.nvmrc` and `engines`). Anything newer resolves
-dependencies differently, so activate it before installing. On macOS with Homebrew,
-`node@24` is keg-only and must go on `PATH` explicitly:
+dependencies differently, so activate it before installing. On macOS use Homebrew's
+`node@24`, which is a **keg-only** formula: it installs into
+`/opt/homebrew/opt/node@24` and is deliberately *not* symlinked into `/opt/homebrew/bin`, so
+it can never shadow the default `node`. Putting its `bin` directory on `PATH` is Homebrew's
+documented activation step — nothing is downloaded into the repository and no runtime is
+vendored:
 
 ```sh
 brew install node@24
@@ -125,8 +140,9 @@ npm ci
 npm run dev                  # app; the design concept gallery is at #/concept
 ```
 
-Currently runnable: `npm run dev`, `npm run typecheck`, `npm test`, `npm run build`. The
-`model:*` scripts and `test:e2e` are declared but land with their tickets.
+Currently runnable: `npm run dev`, `npm run typecheck`, `npm test`, `npm run build`,
+`npm run progress:screenshot`. The `model:*` scripts and `test:e2e` are declared and land
+with their tickets.
 
 Full release run order:
 
@@ -150,6 +166,19 @@ Read [AGENTS.md](AGENTS.md) first — it records the layer boundaries, the read-
 rules, the fixture/evidence discipline, and the Conventional Commits convention used here.
 Pick one ticket from the implementation handoff, write its failing test first, and hand off
 the changed interface plus the smallest failing fixture and the commands you ran.
+
+Before **every** commit, capture what the change made visible
+([plan 02 §8](docs/plans/0.1.0/02-software-design-implementation-plan.md)):
+
+```sh
+npm run progress:screenshot -- --title "<what this commit changes>" --rows V01 \
+  --commands "npm run typecheck, npm test"
+```
+
+That writes PNGs plus `notes.md` into `docs/progress/<yyyy-mm-dd>-<slug>/`; commit them with
+the change. The tool decodes its own PNGs and reports how much each capture differs from the
+same scenario in the previous commit, so a screenshot that repeats the last one is called out
+instead of passing as progress (§8.1).
 
 ## Notes on the data
 

@@ -218,10 +218,15 @@ npm run progress:screenshot -- --title "<what this commit changes>"
 That writes PNGs plus `notes.md` to `docs/progress/<yyyy-mm-dd>-<slug>/`; commit them with
 the change they document so the trail is reviewable without running anything. Add the
 scenario that shows the newly introduced behaviour to `tools/progress/scenarios.ts` — the
-capture is meant to highlight the change, not to re-shoot the same screen. Nothing under
-`docs/progress/` is read by a test, and a capture is never release evidence for a V-row. If a
-commit's surface does not exist yet, say so in `notes.md` and name the ticket that makes it
-capturable.
+capture is meant to highlight the change, not to re-shoot the same screen. "Highlight" is
+measured, not asserted (plan §8.1): the tool decodes the PNGs and reports the fraction of
+pixels that differ from each other and from the same scenario in the previous capture
+folder. A capture at or below 0.2 % is the same screen as before, and a set where every
+capture repeats the previous one exits nonzero unless `--note` explains that the commit has
+no visible surface yet. Byte-identical files are not the test — identical pixels are. Nothing
+under `docs/progress/` is read by a test, and a capture is never release evidence for a
+V-row. If a commit's surface does not exist yet, say so in `notes.md` and name the ticket
+that makes it capturable.
 
 ## Hackathon constraints
 

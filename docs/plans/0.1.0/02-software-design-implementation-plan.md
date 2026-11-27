@@ -240,3 +240,41 @@ the newly introduced behaviour without running anything.
 
 This is a commit gate, not a release gate: the V01–V10 rows in the verification plan still
 decide release, and the §5 visual review still uses its own frozen baselines.
+
+### 8.1 A capture has to differ to count as highlighting something
+
+> **Second addendum to §8, added 2026-11-27 during implementation.** §8 asked for "the
+> scenario that shows the newly introduced behaviour" and left that to judgement. Three
+> captures of one shared placeholder screen satisfied it on paper, so the requirement now
+> carries a measurement. Nothing above changes: same folder, same command, same gate role.
+
+`npm run progress:screenshot` decodes every PNG it writes (`tools/progress/png-diff.ts`) and
+records two pixel comparisons in `notes.md`:
+
+| Comparison | Reported under | What it rules out |
+| --- | --- | --- |
+| Δ between captures in one set, per viewport | *Captures that look the same* | two scenarios that render the same screen while claiming to differ |
+| Δ against the same scenario in the previous capture folder | *Unchanged since the previous capture* | a commit whose captures repeat the previous commit's |
+
+Δ is the fraction of pixels whose samples differ by more than 8/255. At or below **0.2 %**
+the two renders count as the same screen. Byte equality is deliberately not the test: the
+same pixels encoded with a different scanline filter are the same screen, and different
+bytes are not evidence of a change.
+
+What this means at commit time:
+
+1. Every commit still gets one folder under `docs/progress/<yyyy-mm-dd>-<slug>/`, written
+   before `git commit`, with the change it documents.
+2. A capture listed under *Unchanged since the previous capture* evidences nothing new.
+   Either show the state the commit introduces — add a scenario or state in
+   `tools/progress/scenarios.ts`, narrow the set with `--only` — or state why there is
+   nothing to see.
+3. If **every** capture repeats the previous set and no `--note` was passed, the tool exits
+   nonzero. Commits with no visible surface are normal here (importer, graph and planner
+   work precedes the screens), and that is exactly what
+   `--note "no rendered surface yet — Ticket 4 makes it visible"` records. The refusal
+   exists to stop a silent repeat, not to block build-side work.
+4. The Δ column is read with the diff. A small Δ is not automatically wrong — a changed
+   caption is a real change — but it has to be explainable from the commit subject.
+5. Screenshots stay a trail, not a gate: no test reads them, they satisfy no V-row, and the
+   frozen §5 design-review baselines stay in Playwright.

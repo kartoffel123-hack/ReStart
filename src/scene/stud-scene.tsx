@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowHelper, Box3, Color, DirectionalLight, EdgesGeometry, Group, HemisphereLight, LineBasicMaterial, LineSegments, Mesh, MeshStandardMaterial, MeshBasicMaterial, PerspectiveCamera, Raycaster, Scene, Vector2, Vector3, WebGLRenderer } from 'three';
+import { ArrowHelper, Box3, Color, DirectionalLight, EdgesGeometry, Group, HemisphereLight, LineBasicMaterial, LineSegments, Mesh, MeshStandardMaterial, MeshBasicMaterial, OrthographicCamera, Raycaster, Scene, Vector2, Vector3, WebGLRenderer } from 'three';
 import { partInset } from './part-inset.js';
 import { xrManual,type XrStep } from './xr-manual.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -35,8 +35,10 @@ export function StudScene(props: Props) {
         const scene = new Scene();
         const display=new Group();scene.add(display);
         scene.background = new Color(0xe6e6e6);
-        const camera = new PerspectiveCamera(38, 1, 0.0001, 2);
+        const camera = new OrthographicCamera(-1, 1, 1, -1, 0.0001, 2);
         const controls = new OrbitControls(camera, renderer.domElement);
+        controls.minZoom = 0.4;
+        controls.maxZoom = 12;
         el.appendChild(renderer.domElement);
         scene.add(new HemisphereLight(0xffffff, 0x87959c, 2));
         const light = new DirectionalLight(0xffffff, 2);
@@ -63,13 +65,31 @@ export function StudScene(props: Props) {
                 for (const m of Array.isArray(n.material) ? n.material : [n.material]) m.dispose();
             }
         });
+        // Orthographic projection: world units map to the same number of pixels on every
+        // axis, so the assembly is never foreshortened by depth. The frustum is the fit
+        // quantity now — there is no FOV, and camera distance only has to clear clipping.
+        let aspect = 1, fitRadius = 0.125;
+        const applyFrustum = () => {
+            const halfHeight = fitRadius / Math.min(1, aspect);
+            camera.left = -halfHeight * aspect;
+            camera.right = halfHeight * aspect;
+            camera.top = halfHeight;
+            camera.bottom = -halfHeight;
+            camera.updateProjectionMatrix();
+        };
         const frameCamera = () => {
             const focused = latest.current.focus;
             const p=latest.current;
             controls.target.copy(focused ? center.clone().addScaledVector(new Vector3(...p.start).add(new Vector3(...p.end)),0.0005) : new Vector3(0,0.012,0));
             const halfStroke=new Vector3(...p.start).distanceTo(new Vector3(...p.end))*0.0005;
-            const distance=Math.max(0.040,1.3*(targetRadius+halfStroke)/(Math.tan(camera.fov*Math.PI/360)*Math.min(1,camera.aspect)));
-            camera.position.copy(controls.target).add(focused ? new Vector3(-1,0.65,-1.5).normalize().multiplyScalar(distance) : new Vector3(-0.23,0.14,-0.22));
+            // 0.125 m half-height reproduces the picker framing of the old 0.36 m @ 38° view;
+            // 0.014 m is the floor that a 40 mm minimum camera distance used to give a small part.
+            fitRadius = focused ? Math.max(0.014,1.3*(targetRadius+halfStroke)) : 0.125;
+            camera.zoom = 1;
+            applyFrustum();
+            // A true isometric axis (35.26° elevation, 45° azimuth) in the corner the view
+            // already looked from. Distance is fixed because orthographic scale ignores it.
+            camera.position.copy(controls.target).add(new Vector3(-1,1,-1).normalize().multiplyScalar(0.4));
             controls.update();
         };
         new GLTFLoader().load(props.url, gltf => {
@@ -89,8 +109,9 @@ export function StudScene(props: Props) {
             const w = el.clientWidth, h = el.clientHeight;
             if (!w || !h) return;
             renderer.setSize(w,h,false);
-            camera.aspect = w/h;
-            camera.updateProjectionMatrix();
+            aspect = w/h;
+            // Refit only the frustum: a resize keeps the operator's zoom, unlike frameCamera.
+            applyFrustum();
         });
         resize.observe(el);
         const pick = (event: MouseEvent) => {

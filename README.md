@@ -103,8 +103,15 @@ equal-count tie enumeration is reported separately from the proof
 ([plan §4.7 addendum](docs/plans/0.1.0/02-software-design-implementation-plan.md)). The search
 is checked against an exhaustive oracle that re-derives legality, cost and the complete-job
 goal from hand-worked fixtures, plus three mutation faults an oracle must be able to catch.
-Not built yet: move and constraint generation, the mechanic and reviewer screens, the Three.js
-scene, the reviewer, and the 70-target `model:compile` / `model:verify` batch.
+and the swept-volume clearance primitive the automatic graph is generated from
+(`tools/lib/sweep.ts`), which tests every interval between two sampled frames instead of
+trusting the sample grid: a 0.4 mm obstruction sitting between 1 mm samples is still reported as
+a hit, while a stroke through the empty corner of a concave neighbour is still clear — the two
+failure modes that would respectively delete a step from a manual or tell a mechanic to strip
+healthy parts for nothing.
+Not built yet: the move and constraint generator that consumes it, the mechanic and reviewer
+screens, the Three.js scene, the reviewer, and the 70-target `model:compile` / `model:verify`
+batch.
 Plan §1 records the measured STEP-import baseline the remaining tickets must reproduce.
 
 **The screens are not built, and the progress trail now says so instead of implying

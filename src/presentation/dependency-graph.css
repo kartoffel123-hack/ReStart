@@ -239,6 +239,20 @@
     background: var(--rs-focus);
 }
 
+.rs-graph-swatch--unit-interface {
+    border-top: 2px dotted var(--rs-warn);
+    height: 0;
+}
+
+.rs-graph-swatch--spatial-blocker {
+    border-top: 2px dashed #7b4ab5;
+    height: 0;
+}
+
+.rs-graph-swatch--connection-release {
+    background: var(--rs-warn);
+}
+
 .rs-graph-swatch--contains {
     border-top: 2px dashed var(--rs-muted);
     height: 0;
@@ -297,6 +311,10 @@
 
 .rs-graph-dot--remove {
     background: #f5c518;
+}
+
+.rs-graph-dot--remove-indirect {
+    background: #fff0ae;
 }
 
 .rs-graph-dot--stay {
@@ -382,6 +400,16 @@
     margin-top: 3px;
     font-size: 0.72rem;
     color: var(--rs-muted);
+}
+
+.rs-tree-node__location {
+    overflow: hidden;
+    margin-top: 2px;
+    color: var(--rs-muted);
+    font-size: 0.66rem;
+    line-height: 1.15;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .rs-graph-card {

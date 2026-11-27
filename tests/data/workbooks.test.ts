@@ -198,11 +198,21 @@ describe('MTM timing lookup', () => {
         expect(timing.crossCheckIssues).toEqual([]);
     });
 
-    it('is labelled fictitious and returns unknown rather than an estimate', () => {
+    it('keeps the base and worst-case MTM values and uses the rounded connection lookup by ID', () => {
         expect(timing.provenance).toBe(TIMING_PROVENANCE);
         expect(TIMING_PROVENANCE).toMatch(/fictitious|challenge/i);
         expect(timing.secondsFor('does-not-exist')).toBeNull();
         expect(timing.secondsFor('ST-mittel')).toBe(3);
+
+        const small = timing.rows.find((row) => row.rowId === 'ST-klein');
+        expect(small?.germanBaseSeconds).toBeCloseTo(1.08, 2);
+        expect(small?.germanWorstCaseSeconds).toBeCloseTo(1.404, 3);
+        expect(small?.secondsPerConnection).toBe(2);
+
+        const medium = timing.rows.find((row) => row.rowId === 'ST-mittel');
+        expect(medium?.germanBaseSeconds).toBeCloseTo(1.62, 2);
+        expect(medium?.germanWorstCaseSeconds).toBeCloseTo(2.106, 3);
+        expect(medium?.secondsPerConnection).toBe(3);
     });
 
     it('cross-checks by ID, so reordering the German sheet changes nothing', async () => {

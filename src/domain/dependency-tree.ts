@@ -28,7 +28,10 @@ export type DependencyRelation =
     | 'connected-to'
     | 'contains'
     | 'candidate-blocker'
-    | 'intact-unit';
+    | 'intact-unit'
+    | 'unit-interface'
+    | 'spatial-blocker'
+    | 'connection-release';
 
 export type DependencyNodeRole = 'target' | 'blocker' | 'free' | 'assembly' | 'intact-unit';
 
@@ -54,6 +57,7 @@ export type DependencyTreeNode = Readonly<{
     label: string;
     commonName: string;
     locationLabel: string;
+    parentLabel: string | null;
     kind: Occurrence['kind'];
     depth: number;
     role: DependencyNodeRole;
@@ -63,6 +67,7 @@ export type DependencyTreeNode = Readonly<{
     manualStepOrdinals: readonly number[];
     removalOrder: number | null;
     reassemblyOrder: number | null;
+    isIndirectRemoval: boolean;
     dofStatus: PieceDofSummary['status'] | null;
     remainingTranslationalDof: number | null;
     connectionCount: number;
@@ -104,9 +109,30 @@ export type DependencyPlanStep = Readonly<{
     commonName: string;
     depth: number;
     isTarget: boolean;
+    actionKind?: 'remove' | 'slide' | undefined;
+    directionLabel?: string | undefined;
     isUnit?: boolean | undefined;
     memberCount?: number | undefined;
     evidenceTier: EvidenceRef['tier'] | 'unmodeled';
+}>;
+
+export type ReviewedDependencyAction = Readonly<{
+    pieceId: string;
+    actionKind: 'remove' | 'slide';
+    /** For a slide, describes the disassembly movement in plain language. */
+    directionLabel?: string;
+    /** Reverse movement used when restoring the assembly. */
+    restoreDirectionLabel?: string;
+    /** Piece whose removal is blocked by this action (e.g. washers block a beam). */
+    blockerPieceId?: string;
+}>;
+
+export type ReviewedDependencyPlan = Readonly<{
+    targetId: string;
+    /** Ordered access actions before the target itself is removed. */
+    actions: readonly ReviewedDependencyAction[];
+    /** Remove every direct connection from these parts when they are taken out individually. */
+    disconnectPieceIds: readonly string[];
 }>;
 
 export type ReleasedConnectionItem = Readonly<{
@@ -127,7 +153,7 @@ export type IntactUnitItem = Readonly<{
 
 export type RemovalReassemblyPlan = Readonly<{
     targetId: string;
-    source: 'modeled-manual' | 'candidate-tree';
+    source: 'modeled-manual' | 'candidate-tree' | 'reviewed-procedure';
     additionalPartsCount: number;
     releasedPieceIds: readonly string[];
     releasedConnections: readonly ReleasedConnectionItem[];
@@ -154,6 +180,7 @@ export type DependencyTreeOptions = Readonly<{
     repair?: Repair | undefined;
     candidates?: readonly MotionCandidateSummary[] | undefined;
     dofCatalog?: ConnectionDofCatalog | undefined;
+    reviewedPlan?: ReviewedDependencyPlan | undefined;
 }>;
 
 const DEFAULT_MAX_DEPTH = 12;
@@ -341,7 +368,10 @@ export function buildDependencyTree(
                     'connected-to': 0,
                     contains: 0,
                     'candidate-blocker': 0,
-                    'intact-unit': 0
+                    'intact-unit': 0,
+                    'unit-interface': 0,
+                    'spatial-blocker': 0,
+                    'connection-release': 0
                 }
             },
             plan: {
@@ -468,6 +498,10 @@ export function buildDependencyTree(
         return matched;
     };
 
+    const reviewedPlan =
+        !options.repair && options.reviewedPlan?.targetId === rootId
+            ? options.reviewedPlan
+            : undefined;
     const queue: string[] = [rootId];
     let queueIndex = 0;
 
@@ -483,7 +517,11 @@ export function buildDependencyTree(
             edgeById.set(edge.id, { ...edge, isCycle });
         }
 
-        if (edge.relation === 'requires' || edge.relation === 'candidate-blocker') {
+        if (
+            edge.relation === 'requires' ||
+            edge.relation === 'candidate-blocker' ||
+            edge.relation === 'spatial-blocker'
+        ) {
             hasOutgoingBlocker.add(edge.source);
         }
 
@@ -503,7 +541,7 @@ export function buildDependencyTree(
             evidenceByNode.set(currentId, removeOps[0]!.evidence.tier);
         }
 
-        if (includeRequires) {
+        if (includeRequires && !(reviewedPlan && currentId === rootId)) {
             for (const op of removeOps) {
                 const reqs = nonTrivialRequires(op);
                 for (const req of reqs) {
@@ -547,7 +585,11 @@ export function buildDependencyTree(
             }
         }
 
-        if (includeCandidates && removeOps.length === 0) {
+        if (
+            includeCandidates &&
+            removeOps.length === 0 &&
+            !(reviewedPlan && currentId === rootId)
+        ) {
             const pieceCandidates = candidatesByPiece.get(currentId) ?? [];
             const currentName = occurrenceById.get(currentId)?.commonName;
             const best = selectBestCandidate(
@@ -572,6 +614,22 @@ export function buildDependencyTree(
 
                     if (isExternalSubassembly && blockerOcc.parent) {
                         const unitId = blockerOcc.parent;
+                        if (!blocker.connectionId) {
+                            if (!depthById.has(blocker.obstacleId)) {
+                                depthById.set(blocker.obstacleId, currentDepth + 1);
+                            }
+                            addEdge(
+                                {
+                                    id: `spatial:${currentId}->${blocker.obstacleId}:${blocker.sourceKey}`,
+                                    source: currentId,
+                                    target: blocker.obstacleId,
+                                    relation: 'spatial-blocker',
+                                    label: `Räumliche Blockade (${blocker.label})`,
+                                    evidenceTier: 'generated'
+                                },
+                                false
+                            );
+                        }
                         const unitOcc = occurrenceById.get(unitId);
                         const unitName = unitOcc?.commonName ?? unitId;
                         let unitEntry = intactUnitById.get(unitId);
@@ -617,12 +675,23 @@ export function buildDependencyTree(
                         recordReleasedConnection(blocker.connectionId, 'blocker-release');
                     }
                     recordConnectionsBetween(currentId, blocker.obstacleId, 'blocker-release');
+                    if (!blocker.connectionId) {
+                        // A spatially blocking piece that is removed individually must
+                        // also be freed from its own mating connections, not only from a
+                        // hypothetical direct connection to the target. For blockers in
+                        // an intact unit, only the unit's external interfaces are released.
+                        for (const conn of connectionsByPiece.get(blocker.obstacleId) ?? []) {
+                            recordReleasedConnection(conn.id, 'blocker-release');
+                        }
+                    }
 
                     const blockerDof = dofPieceById.get(blocker.obstacleId);
                     const blockerHasModeledOps = (removeOpsByPiece.get(blocker.obstacleId) ?? []).length > 0;
                     // Only keep expanding a candidate blocker if it is kinematically locked (DOF 0)
                     // or has modeled requirements; axially slidable fasteners (DOF 1) can be pulled directly.
+                    const isSpatialBlocker = blocker.connectionId === undefined;
                     const shouldExpand =
+                        isSpatialBlocker ||
                         !preserveIntactUnits ||
                         blockerHasModeledOps ||
                         blockerDof === undefined ||
@@ -633,8 +702,10 @@ export function buildDependencyTree(
                             id: `candidate:${currentId}->${blocker.obstacleId}:${blocker.sourceKey}`,
                             source: currentId,
                             target: blocker.obstacleId,
-                            relation: 'candidate-blocker',
-                            label: blocker.label,
+                            relation: isSpatialBlocker ? 'spatial-blocker' : 'candidate-blocker',
+                            label: isSpatialBlocker
+                                ? `Räumliche Blockade (${blocker.label})`
+                                : blocker.label,
                             evidenceTier: 'generated',
                             connectionKind: blocker.connectionKind,
                             connectionId: blocker.connectionId
@@ -664,6 +735,67 @@ export function buildDependencyTree(
                         connectionId: conn.id
                     },
                     true
+                );
+            }
+        }
+    }
+
+    if (reviewedPlan) {
+        const validActions = reviewedPlan.actions.filter((action) => occurrenceById.has(action.pieceId));
+        for (const action of validActions) {
+            if (!action.blockerPieceId && !depthById.has(action.pieceId)) {
+                depthById.set(action.pieceId, 1);
+            }
+        }
+        for (const action of validActions) {
+            const blockerId = action.blockerPieceId;
+            if (!depthById.has(action.pieceId)) {
+                depthById.set(action.pieceId, blockerId ? (depthById.get(blockerId) ?? 1) + 1 : 1);
+            }
+            if (blockerId && occurrenceById.has(blockerId)) {
+                if (!depthById.has(blockerId)) depthById.set(blockerId, 1);
+                addEdge(
+                    {
+                        id: `reviewed-spatial:${blockerId}->${action.pieceId}`,
+                        source: blockerId,
+                        target: action.pieceId,
+                        relation: 'spatial-blocker',
+                        label: `Räumliche Blockade (${action.actionKind === 'remove' ? 'vor Ausbau freimachen' : 'Zugang freimachen'})`,
+                        evidenceTier: 'generated'
+                    },
+                    false
+                );
+            }
+        }
+        for (const pieceId of reviewedPlan.disconnectPieceIds) {
+            for (const conn of connectionsByPiece.get(pieceId) ?? []) {
+                recordReleasedConnection(conn.id, 'blocker-release');
+            }
+        }
+
+        // The target's own connections are recorded before this block. Add every direct
+        // connection of the target and each moved item to the drawing: released interfaces
+        // are distinct from still-connected neighbours that constrain a slide.
+        for (const pieceId of [rootId, ...validActions.map((action) => action.pieceId)]) {
+            const pieceDepth = depthById.get(pieceId) ?? 0;
+            for (const conn of connectionsByPiece.get(pieceId) ?? []) {
+                const neighbourId = conn.a === pieceId ? conn.b : conn.a;
+                if (!depthById.has(neighbourId)) depthById.set(neighbourId, pieceDepth + 1);
+                const isReleased = releasedConnMap.has(conn.id);
+                addEdge(
+                    {
+                        id: `reviewed-connection:${conn.id}`,
+                        source: pieceId,
+                        target: neighbourId,
+                        relation: isReleased ? 'connection-release' : 'connected-to',
+                        label: isReleased
+                            ? `Lösen (${conn.kind} ${formatAxisLabel(conn.axis)})`
+                            : `Anschluss vorhanden (${conn.kind} ${formatAxisLabel(conn.axis)}; Verschiebung prüfen)`,
+                        evidenceTier: conn.evidence.tier,
+                        connectionKind: conn.kind,
+                        connectionId: conn.id
+                    },
+                    false
                 );
             }
         }
@@ -699,7 +831,7 @@ export function buildDependencyTree(
         }
     }
 
-    const edges = [...edgeById.values()].sort((a, b) => compareStrings(a.id, b.id));
+    let edges = [...edgeById.values()].sort((a, b) => compareStrings(a.id, b.id));
 
     // Determine which pieces and intact subassemblies are required to be removed for this target
     // (reachable via `requires`, `candidate-blocker`, or `intact-unit` edges from rootId).
@@ -714,9 +846,16 @@ export function buildDependencyTree(
             if (
                 edge.relation !== 'requires' &&
                 edge.relation !== 'candidate-blocker' &&
-                edge.relation !== 'intact-unit'
+                edge.relation !== 'intact-unit' &&
+                edge.relation !== 'spatial-blocker'
             ) {
                 continue;
+            }
+            if (edge.relation === 'spatial-blocker') {
+                const blocker = occurrenceById.get(edge.target);
+                // The whole intact unit is already scheduled for movement; do not also
+                // schedule its colliding member as an individual removal.
+                if (blocker?.parent && intactUnitById.has(blocker.parent)) continue;
             }
             if (!requiredDepthById.has(edge.target)) {
                 requiredDepthById.set(edge.target, curD + 1);
@@ -738,10 +877,32 @@ export function buildDependencyTree(
             for (const conn of model.connections) {
                 const aIn = memberSet.has(conn.a);
                 const bIn = memberSet.has(conn.b);
-                if (aIn !== bIn) {
-                    recordReleasedConnection(conn.id, 'unit-interface');
-                    u.interfaceConnectionIds.add(conn.id);
+                if (aIn === bIn) continue;
+
+                recordReleasedConnection(conn.id, 'unit-interface');
+                u.interfaceConnectionIds.add(conn.id);
+
+                // Show the actual piece on the far side of the assembly boundary in the
+                // graph. This is a connection that must be separated, not a claim that the
+                // outside piece itself must be removed. Keep it out of the removal-order BFS.
+                const externalPieceId = aIn ? conn.b : conn.a;
+                const unitDepth = depthById.get(u.unitId) ?? 0;
+                if (!depthById.has(externalPieceId)) {
+                    depthById.set(externalPieceId, unitDepth + 1);
                 }
+                addEdge(
+                    {
+                        id: `unit-interface:${u.unitId}:${conn.id}`,
+                        source: u.unitId,
+                        target: externalPieceId,
+                        relation: 'unit-interface',
+                        label: `Baugruppen-Grenze lösen (${conn.kind} ${formatAxisLabel(conn.axis)})`,
+                        evidenceTier: conn.evidence.tier,
+                        connectionKind: conn.kind,
+                        connectionId: conn.id
+                    },
+                    false
+                );
             }
             return {
                 unitId: u.unitId,
@@ -751,21 +912,35 @@ export function buildDependencyTree(
             };
         });
     const intactUnitLookup = new Map(intactUnits.map((u) => [u.unitId, u]));
+    // Unit-interface edges are added while collecting each intact unit's external links.
+    edges = [...edgeById.values()].sort((a, b) => compareStrings(a.id, b.id));
 
     // Build removal order (deepest leaves / intact units first -> target last) and exact reverse reassembly order.
-    const orderedRequiredIds = [...requiredDepthById.entries()]
-        .filter(([id]) => {
-            const occ = occurrenceById.get(id);
-            return occ?.kind === 'piece' || intactUnitLookup.has(id);
-        })
-        .sort(([idA, dA], [idB, dB]) => {
-            if (dA !== dB) return dB - dA;
-            return compareStrings(idA, idB);
-        })
-        .map(([id]) => id);
+    const orderedRequiredIds = reviewedPlan
+        ? [
+              ...new Set([
+                  ...reviewedPlan.actions
+                      .map((action) => action.pieceId)
+                      .filter((id) => occurrenceById.has(id)),
+                  rootId
+              ])
+          ]
+        : [...requiredDepthById.entries()]
+              .filter(([id]) => {
+                  const occ = occurrenceById.get(id);
+                  return occ?.kind === 'piece' || intactUnitLookup.has(id);
+              })
+              .sort(([idA, dA], [idB, dB]) => {
+                  if (dA !== dB) return dB - dA;
+                  return compareStrings(idA, idB);
+              })
+              .map(([id]) => id);
 
     const removalIndexById = new Map<string, number>();
     const reassemblyIndexById = new Map<string, number>();
+    const reviewedActionById = new Map(
+        (reviewedPlan?.actions ?? []).map((action) => [action.pieceId, action])
+    );
     const removalOrder: DependencyPlanStep[] = orderedRequiredIds.map((id, idx) => {
         const order = idx + 1;
         removalIndexById.set(id, order);
@@ -778,6 +953,14 @@ export function buildDependencyTree(
             commonName: occ.commonName,
             depth: requiredDepthById.get(id) ?? 0,
             isTarget: id === rootId,
+            ...(reviewedActionById.has(id)
+                ? {
+                      actionKind: reviewedActionById.get(id)!.actionKind,
+                      ...(reviewedActionById.get(id)!.directionLabel
+                          ? { directionLabel: reviewedActionById.get(id)!.directionLabel }
+                          : {})
+                  }
+                : {}),
             ...(unit ? { isUnit: true, memberCount: unit.memberIds.length } : {}),
             evidenceTier: evidenceByNode.get(id) ?? 'generated'
         };
@@ -797,6 +980,14 @@ export function buildDependencyTree(
                 commonName: occ.commonName,
                 depth: requiredDepthById.get(id) ?? 0,
                 isTarget: id === rootId,
+                ...(reviewedActionById.has(id)
+                    ? {
+                          actionKind: reviewedActionById.get(id)!.actionKind,
+                          ...(reviewedActionById.get(id)!.restoreDirectionLabel
+                              ? { directionLabel: reviewedActionById.get(id)!.restoreDirectionLabel }
+                              : {})
+                      }
+                    : {}),
                 ...(unit ? { isUnit: true, memberCount: unit.memberIds.length } : {}),
                 evidenceTier: evidenceByNode.get(id) ?? 'generated'
             };
@@ -832,6 +1023,12 @@ export function buildDependencyTree(
         }
     }
     const releasedPieceIds = [...releasedPieceSet].sort(compareStrings);
+    const indirectRemovalSet = new Set(
+        edges
+            .filter((edge) => edge.relation === 'spatial-blocker' && edge.source !== rootId)
+            .map((edge) => edge.target)
+            .filter((id) => releasedPieceSet.has(id))
+    );
 
     const nodes: DependencyTreeNode[] = [...depthById.entries()]
         .sort(([idA, depthA], [idB, depthB]) => {
@@ -880,6 +1077,7 @@ export function buildDependencyTree(
                 label: `${occ.commonName} (${shortId})`,
                 commonName: occ.commonName,
                 locationLabel: occ.locationLabel,
+                parentLabel: occ.parent ? occurrenceById.get(occ.parent)?.commonName ?? null : null,
                 kind: occ.kind,
                 depth,
                 role,
@@ -889,6 +1087,7 @@ export function buildDependencyTree(
                 manualStepOrdinals: stepOrdinals,
                 removalOrder: removalIndexById.get(id) ?? null,
                 reassemblyOrder: reassemblyIndexById.get(id) ?? null,
+                isIndirectRemoval: indirectRemovalSet.has(id),
                 dofStatus: dofSummary?.status ?? null,
                 remainingTranslationalDof: dofSummary?.remainingTranslationalDof ?? null,
                 connectionCount: (connectionsByPiece.get(id) ?? []).length,
@@ -902,7 +1101,10 @@ export function buildDependencyTree(
         'connected-to': 0,
         contains: 0,
         'candidate-blocker': 0,
-        'intact-unit': 0
+        'intact-unit': 0,
+        'unit-interface': 0,
+        'spatial-blocker': 0,
+        'connection-release': 0
     };
     let cycleEdgeCount = 0;
     for (const edge of edges) {
@@ -930,7 +1132,11 @@ export function buildDependencyTree(
         },
         plan: {
             targetId: rootId,
-            source: options.repair ? 'modeled-manual' : 'candidate-tree',
+            source: options.repair
+                ? 'modeled-manual'
+                : reviewedPlan
+                  ? 'reviewed-procedure'
+                  : 'candidate-tree',
             additionalPartsCount: releasedPieceIds.length,
             releasedPieceIds,
             releasedConnections,

@@ -462,6 +462,11 @@ export type TimingRow = Readonly<{
     secondsPerConnection: number | null;
     mappingQuality: string;
     rationale: string;
+    /** German MTM sheet's unrounded base time before the worst-case allowance. */
+    germanBaseSeconds: number | null;
+    /** German MTM sheet's worst-case estimate (+30%); selected for the dependency graph. */
+    germanWorstCaseSeconds: number | null;
+    /** Rounded German display value, cross-checked against the English lookup. */
     germanSeconds: number | null;
 }>;
 
@@ -477,9 +482,9 @@ const ENGLISH_SHEET = 'Vorschlag_2_Grid_EN';
 const GERMAN_SHEET = 'Vorschlag_2_Raster';
 
 /**
- * Read the connection timing lookup. The English sheet is authoritative and keyed by
- * `Row_ID`; the German sheet is cross-checked **by ID**, never by row position, because the
- * two sheets are independent copies and a shared row number proves nothing.
+ * Read the connection timing lookup. The English sheet supplies the rounded `Time_per_Connection`
+ * keyed by `Row_ID`; the German sheet supplies exact base/worst-case values and is cross-checked
+ * **by ID**, never by row position, because the two sheets are independent copies.
  */
 export async function readTimingLookup(path: string): Promise<TimingLookup> {
     const english = await sheet(path, ENGLISH_SHEET);
@@ -502,15 +507,34 @@ export async function readTimingLookup(path: string): Promise<TimingLookup> {
 
     const germanHeaderRow = findHeaderRow(german, 'Zeilen_ID');
     const germanIdColumn = columnByHeader(german, germanHeaderRow, 'Zeilen_ID');
+    const germanBaseSecondsColumn = columnByHeader(german, germanHeaderRow, 'Zeit_Sekunden');
+    const germanWorstCaseSecondsColumn = columnByHeader(
+        german,
+        germanHeaderRow,
+        'Worst_Case_Sekunden (+30%)'
+    );
     const germanSecondsColumn = columnByHeader(german, germanHeaderRow, 'Zeiten je Verbindung');
-    const germanSeconds = new Map<string, number | null>();
+    const germanTiming = new Map<
+        string,
+        { baseSeconds: number | null; worstCaseSeconds: number | null; roundedSeconds: number | null }
+    >();
     for (let row = germanHeaderRow + 1; row <= german.rowCount; row += 1) {
         const id = germanIdColumn === undefined ? '' : cellText(german.getCell(row, germanIdColumn)).trim();
         if (id === '') continue;
-        germanSeconds.set(
-            id,
-            germanSecondsColumn === undefined ? null : cellNumber(german.getCell(row, germanSecondsColumn))
-        );
+        germanTiming.set(id, {
+            baseSeconds:
+                germanBaseSecondsColumn === undefined
+                    ? null
+                    : cellNumber(german.getCell(row, germanBaseSecondsColumn)),
+            worstCaseSeconds:
+                germanWorstCaseSecondsColumn === undefined
+                    ? null
+                    : cellNumber(german.getCell(row, germanWorstCaseSecondsColumn)),
+            roundedSeconds:
+                germanSecondsColumn === undefined
+                    ? null
+                    : cellNumber(german.getCell(row, germanSecondsColumn))
+        });
     }
 
     const rows: TimingRow[] = [];
@@ -519,12 +543,12 @@ export async function readTimingLookup(path: string): Promise<TimingLookup> {
         const rowId = readColumn(english, row, column.rowId);
         if (rowId === '') continue;
         const seconds = cellNumber(english.getCell(row, column.seconds ?? 1));
-        const germanValue = germanSeconds.get(rowId);
-        if (!germanSeconds.has(rowId)) {
+        const germanValue = germanTiming.get(rowId);
+        if (!germanTiming.has(rowId)) {
             crossCheckIssues.push(`${rowId}: absent from the German sheet`);
-        } else if (germanValue !== seconds) {
+        } else if (germanValue?.roundedSeconds !== seconds) {
             crossCheckIssues.push(
-                `${rowId}: English ${seconds ?? 'blank'} s, German ${germanValue ?? 'blank'} s`
+                `${rowId}: English ${seconds ?? 'blank'} s, German ${germanValue?.roundedSeconds ?? 'blank'} s`
             );
         }
         rows.push({
@@ -541,7 +565,9 @@ export async function readTimingLookup(path: string): Promise<TimingLookup> {
             secondsPerConnection: seconds,
             mappingQuality: readColumn(english, row, column.quality),
             rationale: readColumn(english, row, column.rationale),
-            germanSeconds: germanValue ?? null
+            germanBaseSeconds: germanValue?.baseSeconds ?? null,
+            germanWorstCaseSeconds: germanValue?.worstCaseSeconds ?? null,
+            germanSeconds: germanValue?.roundedSeconds ?? null
         });
     }
 

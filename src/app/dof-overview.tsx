@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { z } from 'zod';
 import {
     buildDependencyTree,
-    type MotionCandidateSummary
+    type MotionCandidateSummary,
+    type ReviewedDependencyPlan
 } from '../domain/dependency-tree.js';
 import {
     computeDofTimingSummary,
@@ -14,10 +15,26 @@ import {
     type ConnectionTimingOverrides
 } from '../domain/dof.js';
 import type { AssemblyModel, ConnectionKind } from '../domain/schema.js';
+import nauo9AccessPlanRaw from '../../data/review/nauo9-access-plan.json';
 import { exportJson } from './export-json.js';
 import { loadPackage } from './package-loader.js';
 import { pilotBase, type PilotData } from './pilot-data.js';
 import '../presentation/dof-overview.css';
+
+const reviewedDependencyPlanSchema = z.object({
+    targetId: z.string(),
+    actions: z.array(
+        z.object({
+            pieceId: z.string(),
+            actionKind: z.enum(['remove', 'slide']),
+            directionLabel: z.string().optional(),
+            restoreDirectionLabel: z.string().optional(),
+            blockerPieceId: z.string().optional()
+        })
+    ),
+    disconnectPieceIds: z.array(z.string())
+});
+const nauo9AccessPlan = reviewedDependencyPlanSchema.parse(nauo9AccessPlanRaw) as ReviewedDependencyPlan;
 
 const candidateSchema = z.array(
     z.object({
@@ -115,7 +132,8 @@ export function DofOverviewScreen() {
                 includeContains: false,
                 repair: repairByTarget.get(piece.pieceId),
                 candidates,
-                dofCatalog
+                dofCatalog,
+                reviewedPlan: nauo9AccessPlan
             });
 
             const planReleaseSeconds = Number(
@@ -264,7 +282,7 @@ export function DofOverviewScreen() {
                         <div className="rs-dof-kpi__value">
                             {formatSeconds(timingSummary.totalReleaseSeconds)}
                         </div>
-                        <div className="rs-dof-kpi__sub">MTM-Basis × Faktor 2 (Demontage)</div>
+                        <div className="rs-dof-kpi__sub">MTM-Worst-Case (+30%), ohne zusätzlichen Faktor</div>
                     </div>
                     <div className="rs-dof-kpi">
                         <div className="rs-dof-kpi__label">Gesamtzeit Zusammenbau</div>
@@ -335,7 +353,7 @@ export function DofOverviewScreen() {
                                                 type="number"
                                                 className="rs-dof-num-input"
                                                 min={0}
-                                                step={0.5}
+                                                step={0.001}
                                                 value={row.secondsPerConnection}
                                                 aria-label={`Sekunden für ${row.kind}`}
                                                 onChange={(e) => updateRate(row.kind, e.target.value)}

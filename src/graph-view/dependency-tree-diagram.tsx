@@ -39,6 +39,9 @@ const RELATION_STYLE: Record<
     requires: { stroke: '#b92324', strokeWidth: 2.2 },
     'candidate-blocker': { stroke: '#c58f00', strokeWidth: 2, strokeDasharray: '4 3' },
     'intact-unit': { stroke: '#14683d', strokeWidth: 2, strokeDasharray: '6 3' },
+    'unit-interface': { stroke: '#c58f00', strokeWidth: 2.2, strokeDasharray: '2 3' },
+    'spatial-blocker': { stroke: '#7b4ab5', strokeWidth: 2.2, strokeDasharray: '7 3' },
+    'connection-release': { stroke: '#c58f00', strokeWidth: 2.4 },
     'connected-to': { stroke: '#0b57d0', strokeWidth: 1.5 },
     contains: { stroke: '#5c666d', strokeWidth: 1.2, strokeDasharray: '6 4' }
 };
@@ -46,7 +49,8 @@ const RELATION_STYLE: Record<
 function nodeBackground(node: DependencyTreeNode): string {
     if (node.role === 'target') return '#fde8e8';
     if (node.role === 'intact-unit') return '#e8f7ee';
-    if (node.removalOrder !== null) return '#fff4cc';
+    if (node.isIndirectRemoval) return '#fff0ae';
+    if (node.removalOrder !== null) return '#f5d85e';
     if (node.role === 'assembly') return '#f3f5f6';
     return '#e8f7ee';
 }
@@ -60,6 +64,7 @@ function nodeBorder(
     if (isHighlighted) return '3px solid #0b57d0';
     if (node.role === 'target') return '2.5px solid #c81e1e';
     if (node.role === 'intact-unit') return '2px solid #14683d';
+    if (node.isIndirectRemoval) return '2px solid #d5b854';
     if (node.removalOrder !== null) return '2px solid #c58f00';
     if (node.role === 'assembly') return '1.5px dashed #5c666d';
     return '2px solid #14683d';
@@ -72,11 +77,13 @@ function renderNodeLabel(node: DependencyTreeNode, isActiveStep: boolean) {
             ? 'GESUCHT'
             : node.role === 'intact-unit'
               ? 'INTAKTE BAUGRUPPE'
-              : node.removalOrder !== null
-                ? 'VERBINDUNG LÖSEN'
-                : node.role === 'assembly'
-                  ? 'BAUGRUPPE'
-                  : 'BLEIBT';
+              : node.isIndirectRemoval
+                ? 'ZUSATZTEIL · RÄUMLICH'
+                : node.removalOrder !== null
+                  ? 'VERBINDUNG LÖSEN'
+                  : node.role === 'assembly'
+                    ? 'BAUGRUPPE'
+                    : 'BLEIBT';
 
     const orderBadge =
         node.removalOrder !== null && node.reassemblyOrder !== null
@@ -114,6 +121,7 @@ function renderNodeLabel(node: DependencyTreeNode, isActiveStep: boolean) {
                 <span>·</span>
                 <span>{dofLabel}</span>
             </div>
+            {node.parentLabel && <div className="rs-tree-node__location">in {node.parentLabel}</div>}
         </div>
     );
 }

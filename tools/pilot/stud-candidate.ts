@@ -8,6 +8,8 @@ import { sha256Hex } from '../../src/domain/hash.js';
 import { checkPinGeometry } from './pin-geometry.js';
 import { addPinOperations } from './pin-model.js';
 import { addInstalledExits } from '../compile/installed-exits.js';
+import { addCrossBlockRepair, CROSS_BLOCK } from '../compile/cross-block.js';
+import { verifyTranslationJob } from '../verify/route-geometry.js';
 
 export async function buildStudCandidate({ report, glb, catalog }: ImportPackage) {
 const { travel, radialClearance, pieces } = await checkStudGeometry(glb);
@@ -56,7 +58,12 @@ if (!model.occurrences.some(o => o.id === '30465')) {
 }
 const pinGeometry=await checkPinGeometry(glb);
 addPinOperations(model,pinGeometry.travel,pinGeometry.park,new Map(pieces.map(p=>[p.id,p.bounds])));
-const {checks,survey}=await addInstalledExits({report,glb,catalog},model,new Map(pieces.map(p=>[p.id,p.bounds])));
+const bounds = new Map(pieces.map(p => [p.id, p.bounds]));
+const {checks,survey}=await addInstalledExits({report,glb,catalog},model,bounds);
+const crossBlock = addCrossBlockRepair(model, bounds, catalog.joints);
+const crossBlockIssues = await verifyTranslationJob(glb, model, {operationIds:crossBlock.route}, catalog.joints);
+if (crossBlockIssues.length) throw new Error(`Invalid cross-block route: ${crossBlockIssues.join('; ')}`);
+checks[CROSS_BLOCK] = crossBlock.check;
 model.graphRevision = sha256Hex(JSON.stringify(model));
 const { repair } = planRepair(model, [TARGET], { maxExpandedStates: 1000, allowIncumbent: false });
 if (!repair || !replay(model, repair).ok || repair.operationIds.join() !== 'release,exchange,reseat') throw new Error('Invalid light-stud repair');
@@ -71,11 +78,12 @@ const motionPaths=Object.fromEntries(model.operations.map(op=>{
     return [op.id,frames.map(f=>f.frame.translation.map((v,i)=>v-origin[i]!))];
 }));
 const exposedRepairs=Object.entries(checks).map(([id,check])=>{
-    const r=planRepair(model,[id],{maxExpandedStates:100000,allowIncumbent:false},{functionCheckId:check}).repair;
+    // The pilot needs a feasible manual, not a proof over all access histories.
+    const r=planRepair(model,[id],{maxExpandedStates:id === CROSS_BLOCK ? 256 : 100000,allowIncumbent:true},{functionCheckId:check,...(id === CROSS_BLOCK ? {incumbentRoute:crossBlock.route} : {})}).repair;
     if(!r?.replay.ok) throw new Error(`Invalid axial exit: ${id}`);
     return r;
 });
-return {model,survey,checks, pilot:{
+return {model,survey,checks, referenceRoutes:new Map([[CROSS_BLOCK,crossBlock.route]]), pilot:{
     geometry, target: TARGET, pin: PIN, signedRadialGapMm: radialClearance,
     paths: motionPaths, repair, alternatives:[pinRepair,...exposedRepairs], jointRepair, movers:Object.fromEntries(model.operations.map(op=>[op.id,op.members[0]!]))
 }};

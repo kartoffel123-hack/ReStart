@@ -6,6 +6,7 @@ import { translationWitness } from '../lib/translation-contact.js';
 import { axialFitAllowance } from '../compile/axial-fit.js';
 import type { Joint } from '../lib/joints.js';
 import { prismaticExit } from '../compile/prismatic-fit.js';
+import { crossBlockFit } from './cross-block-fit.js';
 
 /** Fresh verifier for authored single-member translational strokes. Deliberately
  * refuses unsupported kinematics instead of linearising a rotation or moving a
@@ -13,6 +14,7 @@ import { prismaticExit } from '../compile/prismatic-fit.js';
 export async function verifyTranslationJob(glb:Uint8Array,model:AssemblyModel,repair:Pick<Repair,'operationIds'>,joints:readonly Joint[]) {
     const pieces=await readWorldMeshes(glb);
     const offsets=new Map(pieces.map(p=>[p.id,new Vector3()]));
+    const engaged = new Set(model.connections.filter(c => c.installedEngaged).map(c => c.id));
     const tolerance=1e-5;
     const issues:string[]=[];
     for(const id of repair.operationIds) {
@@ -38,7 +40,28 @@ export async function verifyTranslationJob(glb:Uint8Array,model:AssemblyModel,re
         const current=offsets.get(moving.id)!, home=new Vector3(...moving.frame.translation);
         const poses=motion.frames.map(f=>new Vector3(...f.frame.translation).sub(home));
         const end=model.poses.find(p=>p.id===op.to.find(a=>a.occurrenceId===moving.id)?.poseId);
+        const partial = end?.kind === 'retracted' || model.poses.some(p => p.kind === 'retracted' && op.from.some(a => a.poseId === p.id));
         if (!end || poses[0]!.distanceTo(current)>tolerance || poses.at(-1)!.clone().add(home).distanceTo(new Vector3(...end.frame.translation))>tolerance) return [`${id}: discontinuous path or wrong endpoint`];
+        if (end.kind === 'retracted') {
+            // A partial shaft stroke must clear the released sleeve and still
+            // carry each retained one. Measure from meshes, not the stop label.
+            for (const joint of joints.filter(j => engaged.has(j.id) && j.pieces.includes(moving.id))) {
+                const sleeve = joint.pieces.find(p => p !== moving.id)!;
+                if (joint.roles.length !== 1 || joint.roles[0]!.maleOccurrenceId !== moving.id) return [`${id}: unsupported partial fit ${joint.id}`];
+                const axis = new Vector3(...joint.axis), point = new Vector3();
+                const offset = poses.at(-1)!.clone().sub(offsets.get(sleeve)!).sub(new Vector3(...joint.origin));
+                let min = Infinity, max = -Infinity;
+                for (let k = 0; k < moving.positions.length; k += 3) {
+                    const projection = point.fromArray(moving.positions,k).add(offset).dot(axis);
+                    min = Math.min(min, projection); max = Math.max(max, projection);
+                }
+                const [near, far] = joint.holderSpanMm;
+                const overlap = Math.min(max, far) - Math.max(min, near);
+                if (op.releasesConnectionIds.includes(joint.id) ? overlap > -0.1 : overlap < Math.min(4, joint.engagementMm) - tolerance) {
+                    issues.push(`${id}: partial stop at ${sleeve} has ${overlap.toFixed(2)} mm axial overlap`);
+                }
+            }
+        }
         if (motion.frames.some(f=>f.frame.rotation.some((v,i)=>Math.abs(v-moving.frame.rotation[i]!)>1e-8))) return [`${id}: rotational sweep not supported`];
         for(let i=1;i<poses.length;i++) {
             const from=poses[i-1]!,delta=poses[i]!.clone().sub(from);
@@ -51,13 +74,18 @@ export async function verifyTranslationJob(glb:Uint8Array,model:AssemblyModel,re
                 const obstacle=buildObstacle(other,{translation:offset.toArray() as Vec3,rotation:[0,0,0,1]});
                 try {
                     const allow=offset.lengthSq()<1e-18 ? motion.allowedContacts.filter(c=>[c.a,c.b].sort().join() === [moving.id,other.id].sort().join()).flatMap(c=>{
-                        const j=joints.find(j=>j.id===c.region && j.pieces.includes(moving.id) && j.pieces.includes(other.id));
+                         const j=joints.find(j=>j.id===c.region && j.pieces.includes(moving.id) && j.pieces.includes(other.id));
+                         if (j && c.fitModel) {
+                             const fit = crossBlockFit(c.fitModel, j, moving.id, from, delta);
+                             return fit ? [fit] : [];
+                         }
                         if(j && j.roles.length===1) {
                             const dir=delta.clone().normalize().multiplyScalar(op.isReturn?-1:1);
                             const begin=from.dot(dir),finish=poses[i]!.dot(dir);
                             const role=j.roles[0]!;
                             const certificate=prismaticExit(j,moving.id,dir.toArray(),pieces.find(p=>p.id===role.maleOccurrenceId)!.positions,pieces.find(p=>p.id===role.femaleOccurrenceId)!.positions);
-                            if(certificate && from.clone().cross(dir).length()<tolerance && Math.min(begin,finish)>=-tolerance && Math.max(begin,finish)>=certificate.strokeToExit+tolerance) return [()=>true];
+                             // A checked partial stop follows a prefix of exactly the same monotone shaft.
+                             if(certificate && from.clone().cross(dir).length()<tolerance && Math.min(begin,finish)>=-tolerance && (partial || Math.max(begin,finish)>=certificate.strokeToExit+tolerance)) return [()=>true];
                         }
                         return j ? [axialFitAllowance(j,moving.id,from,delta)] : [];
                     }):[];
@@ -67,6 +95,8 @@ export async function verifyTranslationJob(glb:Uint8Array,model:AssemblyModel,re
             }
         }
         offsets.set(moving.id,poses.at(-1)!);
+        op.releasesConnectionIds.forEach(j => engaged.delete(j));
+        op.establishesConnectionIds.forEach(j => engaged.add(j));
     }
     if([...offsets.values()].some(v=>v.length()>tolerance)) issues.push('Nonzero final mesh displacement');
     return issues;

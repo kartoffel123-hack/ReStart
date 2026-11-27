@@ -25,7 +25,7 @@ export type Scenario = Readonly<{
     highlights: string;
     /** Selector that must exist before capturing; keeps captures deterministic. */
     waitFor?: string;
-    setup?: 'blocked-preview' | 'buried-pin';
+    setup?: 'blocked-preview' | 'buried-pin' | 'cross-block';
     viewports?: readonly Viewport[];
     fullPage?: boolean;
 }>;
@@ -51,6 +51,11 @@ export const SCENARIOS: readonly Scenario[] = [
         id:'buried-pin-step',label:'Blue friction pin exposed',route:'#/',setup:'buried-pin',
         waitFor:'[data-screen="manual"][data-phase="remove"] canvas',
         highlights:'After the cap is parked, the diagram highlights the blue friction pin and its withdrawal stroke.'
+    },
+    {
+        id:'cross-block-release',label:'Stage-10 cross block exposed',route:'#/',setup:'cross-block',
+        waitFor:'[data-screen="manual"][data-phase="remove"] canvas',
+        highlights:'The selected NAUO56 block slides sideways off the short axle after the rotor shaft is lowered.'
     },
     {
         id:'review-diff',label:'Draft changes the access path',route:'#/review',setup:'blocked-preview',

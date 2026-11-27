@@ -136,6 +136,14 @@ async function capture(
 ): Promise<{ layout: string; stub: boolean }> {
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
     await page.goto(`${origin}/${scenario.route}`, { waitUntil: 'networkidle' });
+    if (scenario.setup === 'cross-block') {
+        await page.evaluate(() => sessionStorage.clear());
+        await page.reload();
+        await page.getByRole('combobox', {name:'Occurrence'}).selectOption('30465/NAUO17/NAUO56');
+        await page.getByRole('button', {name:/select cross block/i}).click();
+        for (let i = 0; i < 14; i++) await page.getByRole('button', {name:'Confirm this step'}).click();
+        await page.getByRole('region', {name:'This step'}).getByText(/slide the cross block sideways/i).first().waitFor();
+    }
     if(scenario.setup==='buried-pin') {
         await page.evaluate(()=>sessionStorage.clear());await page.reload();
         await page.getByRole('combobox',{name:'Occurrence'}).selectOption('30465/NAUO33/NAUO38');

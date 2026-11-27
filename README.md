@@ -119,7 +119,9 @@ failure modes that would respectively delete a step from a manual or tell a mech
 healthy parts for nothing.
 The compiler surveys 166 directional options and checks supported direct and single-blocker
 jobs. The 70-target verifier reopens the serialized meshes and manuals; it currently reports
-12 modeled candidates awaiting review and 58 missing motions. These are not release approvals.
+13 modeled candidates awaiting review and 57 missing motions. The stage-10 cross block
+(`30465/NAUO17/NAUO56`) uses a 23 mm partial rotor-shaft withdrawal and slides sideways
+off its short axle. These are model results, not release approvals.
 Plan §1 records the measured STEP-import baseline the remaining tickets must reproduce.
 
 **Which screens are real, and how the trail keeps that honest.** The mechanic screen is built

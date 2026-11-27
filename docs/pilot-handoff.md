@@ -8,8 +8,8 @@ the progress screenshots to decide what is verified.
 | --- | --- |
 | Geometry and inventory | 70 selectable usage IDs, 31 inventory types, 84 inferred connections |
 | Directional survey | 166 straight-stroke options (diagnostic, not 166 repairs) |
-| Single-target jobs | 12 modeled, geometrically checked against the serialized meshes; 58 lack a complete motion model |
-| Disturbance | Six jobs disturb no healthy piece; five park a gear or beam; one parks the red stud to exchange the blue pin |
+| Single-target jobs | 13 modeled, geometrically checked against the serialized meshes; 57 lack a complete motion model |
+| Disturbance | Six jobs disturb no healthy piece; five park a gear or beam; one parks the red stud to exchange the blue pin; NAUO56 moves 14 healthy pieces and leaves its short axle installed |
 | Shared job | Blue pin plus red stud use one access path, two exchanges, and one restoration; not counted in single-target coverage |
 | Physical evidence | No reviewed procedures or uncoached bench trials in `data/review/procedures.json` |
 | Development-time classification | 63 development and 21 held-out interfaces split by family; no measured accuracy without independent labels and recorded predictions |

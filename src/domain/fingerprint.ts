@@ -40,7 +40,7 @@ function physicalAction(model: AssemblyModel, operationId: string): string {
         supports.join('|') || '-',
         returnMotion,
         JSON.stringify(model.motions.filter(m => m.id === operation.motionId).map(m =>
-            [m.curveFrame, m.frames.map(f=>[f.atMm,f.frame.translation,f.frame.rotation]), m.toleranceMm, m.allowedContacts.map(c => [c.a,c.b,c.region]), m.evidence.note])),
+            [m.curveFrame, m.frames.map(f=>[f.atMm,f.frame.translation,f.frame.rotation]), m.toleranceMm, m.allowedContacts.map(c => c.fitModel ? [c.a,c.b,c.region,c.fitModel] : [c.a,c.b,c.region]), m.evidence.note])),
         JSON.stringify(model.tools.find(t => t.id === operation.toolId)?.envelope),
         JSON.stringify(operation.requires.filter(r => r.role === 'support').map(r => r.reason).sort())
     ].join('~');

@@ -161,6 +161,7 @@ export const allowedContactSchema = z.object({
     b: z.string(),
     /** Only the mating interface may touch, in this direction, until reviewed otherwise. */
     region: z.string(),
+    fitModel: z.enum(['cross-block-keyed-axle', 'cross-block-split-pin']).optional(),
     evidence: evidenceRefSchema
 });
 

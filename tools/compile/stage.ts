@@ -37,8 +37,12 @@ export async function stageAssembly(root: string, patch?: unknown) {
     const model = result.model;
     const manuals: Repair[] = [];
     const missing: string[] = [];
+    const exchangeable = new Set(model.operations.map(op => op.fitsReplacementOf));
     for (const p of input.catalog.pieces) {
-        const route = planRepair(model,[p.id],{maxExpandedStates:100000,allowIncumbent:true},{functionCheckId:authors.targetChecks[p.id] ?? built.checks[p.id] ?? (p.id===PIN?'pin-fit':p.id===TARGET?'stud-fit':null)});
+        // No search can fit a replacement when the catalog contains no exchange.
+        if (!exchangeable.has(p.id)) { missing.push(p.id); continue; }
+        const incumbentRoute = built.referenceRoutes.get(p.id);
+        const route = planRepair(model,[p.id],{maxExpandedStates:100000,allowIncumbent:true},{...(incumbentRoute ? {incumbentRoute} : {}),functionCheckId:authors.targetChecks[p.id] ?? built.checks[p.id] ?? (p.id===PIN?'pin-fit':p.id===TARGET?'stud-fit':null)});
         if (route.repair?.replay.ok) manuals.push(route.repair);
         else missing.push(p.id);
     }

@@ -95,6 +95,18 @@ export function replay(model: AssemblyModel, repair: Repair): ReplayReport {
     for (const difference of differences) issues.push(`terminal: ${difference}`);
 
     const disturbed = disturbedFromWalk(model, repair);
+    if(repair.disturbedCount!==disturbed.length) issues.push(`disturbance count ${repair.disturbedCount} does not match trace ${disturbed.length}`);
+    const check=repair.functionCheckId===null ? undefined : model.functionChecks.find(c=>c.id===repair.functionCheckId);
+    if(repair.functionCheckId!==null && !check) issues.push('Unknown function check');
+    const expectedSteps=[...repair.operationIds,...(check?[`check:${check.id}`]:[])];
+    if(repair.steps.length!==expectedSteps.length || repair.steps.some((s,i)=>s.ordinal!==i+1 || s.operationId!==expectedSteps[i]) || new Set(repair.steps.map(s=>s.stepId)).size!==repair.steps.length) issues.push('Displayed step sequence disagrees with operation trace');
+    if(check && (repair.steps.at(-1)?.phase!=='check' || repair.steps.at(-1)?.instruction!==`${check.instruction} Expect ${check.expectedBehaviour}.`)) issues.push('Displayed function check disagrees with bound check');
+    for(const [i,id] of repair.operationIds.entries()) {
+        const op=model.operations.find(o=>o.id===id),step=repair.steps[i];
+        if(!op || !step) continue;
+        if(step.phase!==op.phase || step.stopLandmark!==op.stopLandmark || step.directionLabel!==op.directionLabel ||
+            step.instruction!==`${op.directionLabel} until ${op.stopLandmark}.` || step.toolLabel!==(model.tools.find(t=>t.id===op.toolId)?.name ?? op.toolId)) issues.push(`step ${i+1}: operator instruction differs from the modeled action`);
+    }
     for (const id of disturbed) {
         if (!repair.disturbedIds.includes(id)) issues.push(`disturbed set omits ${id}`);
     }

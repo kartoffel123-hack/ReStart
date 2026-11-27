@@ -76,7 +76,7 @@ export function ManualScreen({ step, actions, scene, partInset }: ManualScreenPr
                             type="button"
                             className="rs-manual__replay"
                             aria-label="Replay the motion"
-                            title="Replay"
+                            data-tooltip="Replay motion"
                             onClick={() => actions.replayMotion()}
                         >
                             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -88,7 +88,7 @@ export function ManualScreen({ step, actions, scene, partInset }: ManualScreenPr
                             type="button"
                             className="rs-manual__replay"
                             aria-label="Previous step"
-                            title="Previous step"
+                            data-tooltip={step.canGoBack ? 'Go back one step' : 'No confirmed step to go back to'}
                             disabled={!step.canGoBack}
                             onClick={() => actions.goBackOneStep()}
                         >

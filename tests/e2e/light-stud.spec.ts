@@ -22,6 +22,9 @@ test('a mechanic exchanges the light stud, reseats it and checks the fit', async
     await page.getByRole('button', { name: /replace light stud/i }).click();
     await expect(page.getByLabel('Assembly view').locator('canvas')).toBeVisible();
     await expect(page.getByRole('img', { name: 'Full helicopter overview' })).toBeVisible();
+    const replay = page.getByRole('button', { name: 'Replay the motion' });
+    await replay.hover();
+    await expect.poll(() => replay.evaluate((button) => getComputedStyle(button, '::after').visibility)).toBe('visible');
     const viewBounds = (await page.locator('.rs-manual__field').boundingBox())!;
     const cardBounds = (await page.getByRole('region', { name: 'This step' }).boundingBox())!;
     expect(viewBounds.x).toBe(0);
@@ -49,6 +52,7 @@ test('a mechanic exchanges the light stud, reseats it and checks the fit', async
         await page.getByRole('button', { name: /confirm this step/i }).click();
     }
     await expect(page.getByRole('heading', { name: /repair complete/i })).toBeVisible();
+    await expect(page.locator('.stud-complete__confetti')).toHaveAttribute('aria-hidden', 'true');
     await expect(page.getByText(/0 healthy pieces disturbed/i)).toBeVisible();
     await expect(page.getByRole('region', { name: 'Restored helicopter' }).locator('canvas')).toBeVisible();
     await page.getByText('Repair details', { exact: true }).click();

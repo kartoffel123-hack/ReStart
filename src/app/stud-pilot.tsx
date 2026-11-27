@@ -107,12 +107,17 @@ export function StudPilot() {
     }
     if (session && !step && data && job) return <main className="stud-picker stud-complete">
         <header className="stud-picker__header"><div>
-            <h1>Repair complete</h1>
+            <div className="stud-complete__title">
+                <h1>Repair complete</h1>
+                <div className="stud-complete__confetti" aria-hidden="true">
+                    {Array.from({length:12},(_,index)=><span key={index}/>)}
+                </div>
+            </div>
             <p>Re-Start / Mechanic Manual · LEGO Technic helicopter 30465</p>
         </div></header>
         <section className="stud-picker__drawing" aria-label="Restored helicopter">
             <StudScene url={geometryUrl} target={target} colors={colors} start={zero} end={zero}
-                focus={false} replay={0} reset={0} onPick={()=>{}}/>
+                focus={false} replay={0} reset={0} idleAutoRotate onPick={()=>{}}/>
         </section>
         <section className="stud-complete__record" aria-label="Repair record">
         <div className="stud-picker__selection">

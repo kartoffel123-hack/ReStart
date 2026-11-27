@@ -212,6 +212,7 @@
 }
 
 .rs-manual__replay {
+    position: relative;
     display: grid;
     place-items: center;
     width: var(--rs-min-hit);
@@ -222,6 +223,30 @@
     background: var(--rs-paper);
     color: var(--rs-ink);
     cursor: pointer;
+}
+
+.rs-manual__replay::after {
+    position: absolute;
+    z-index: 4;
+    top: 50%;
+    left: calc(100% + var(--rs-space-1));
+    padding: 0.375rem 0.625rem;
+    border-radius: var(--rs-radius);
+    background: var(--rs-ink);
+    color: var(--rs-paper);
+    content: attr(data-tooltip);
+    font: 0.8125rem/1.25 var(--rs-font-body);
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-50%);
+}
+
+.rs-manual__replay:hover::after,
+.rs-manual__replay:focus-visible::after {
+    opacity: 1;
+    visibility: visible;
 }
 
 .rs-manual__replay:disabled {

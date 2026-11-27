@@ -156,6 +156,8 @@ async function capture(
             for (const phase of ['replace', 'restore', 'check']) {
                 await page.locator(`[data-phase="${phase}"]`).getByRole('button', {name:'Confirm this step'}).click();
             }
+            await page.emulateMedia({ reducedMotion: 'no-preference' });
+            await page.waitForTimeout(800);
         }
     }
     if (scenario.setup === 'selected-picker') {

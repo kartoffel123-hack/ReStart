@@ -36,7 +36,7 @@ export const SCENARIOS: readonly Scenario[] = [
         label: 'Completed light stud repair',
         route: '#/',
         setup: 'repair-complete',
-        highlights: 'The restored helicopter and repair record show the replaced light stud and confirmed fit check.',
+        highlights: 'The restored helicopter slowly rotates behind the repair record while confetti falls across the full screen.',
         waitFor: '[aria-label="Restored helicopter"] canvas[data-target-point]'
     },
     {

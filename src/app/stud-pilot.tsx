@@ -14,6 +14,7 @@ import '../presentation/dependency-graph.css';
 import { loadCheckpoint, restoreSession, storeCheckpoint } from './checkpoint.js';
 import { exportJson } from './export-json.js';
 import { DescriptionPicker } from './description-picker.js';
+import { removedInstances } from './manual-scene-state.js';
 
 const zero: Vec3 = [0,0,0];
 export function StudPilot() {
@@ -87,7 +88,8 @@ export function StudPilot() {
         const member=data?.movers[s.operationId], to=data?.paths[s.operationId]?.[1];
         if(member && to) offsets[member]=to;
     }
-    const scene = data && target && <StudScene url={geometryUrl} target={(step && data.movers[step.operationId]) || target} offsets={offsets} colors={colors} isolate={!session && isolate} explode={session ? 0 : explode} idleAutoRotate={!session && history===null} highlight={hovered}
+    const removed = session ? removedInstances(session.steps, session.confirmedCount, data?.movers ?? {}) : new Set<string>();
+    const scene = data && target && <StudScene url={geometryUrl} target={(step && data.movers[step.operationId]) || target} removed={removed} offsets={offsets} colors={colors} isolate={!session && isolate} explode={session ? 0 : explode} idleAutoRotate={!session && history===null} highlight={hovered}
         xrStep={step ? {id:step.stepId,text:`${step.ordinal}. ${step.instruction}`,replay:()=>play(n=>n+1),confirm:()=>{if(history===null && !checkFailed)setSession(s=>s && confirmStep(s,step.stepId));}} : undefined}
         start={path?.[0] ?? zero} end={path?.[1] ?? zero} focus={!!step}
         replay={replay} reset={reset} onPick={id => { if (!session && !checkpoint) {select(id);begin(id);} }} />;

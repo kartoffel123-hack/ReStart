@@ -67,7 +67,8 @@ export const SCENARIOS: readonly Scenario[] = [
     {
         id:'buried-pin-step',label:'Blue friction pin exposed',route:'#/',setup:'buried-pin',
         waitFor:'[data-screen="manual"][data-phase="remove"] canvas',
-        highlights:'After the cap is parked, the diagram highlights the blue friction pin and its withdrawal stroke.'
+        highlights:'After the cap removal is confirmed, the cap disappears from the assembly and the diagram highlights the blue friction pin and its withdrawal stroke.',
+        viewports:[GATE_VIEWPORTS[0]!]
     },
     {
         id:'cross-block-release',label:'Stage-10 cross block exposed',route:'#/',setup:'cross-block',

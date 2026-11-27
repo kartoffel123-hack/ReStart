@@ -13,6 +13,7 @@ type Props = {
     idleAutoRotate?:boolean;
     highlight?:string;
     offsets?:Readonly<Record<string,Vec3>>;
+    removed?:ReadonlySet<string>;
     xrStep?:XrStep|undefined;
 };
 
@@ -241,9 +242,9 @@ void main() {
                     }
                 }
             }
-            if(previous?.explode!==p.explode || previous?.isolate!==p.isolate || previous?.offsets!==p.offsets || !previous) {
+            if(previous?.explode!==p.explode || previous?.isolate!==p.isolate || previous?.offsets!==p.offsets || previous?.removed!==p.removed || !previous) {
                 for(const [mesh,entry] of meshPoses) {
-                    mesh.visible=!p.isolate || mesh===stud;
+                    mesh.visible=!p.removed?.has(String(mesh.userData.instanceId)) && (!p.isolate || mesh===stud);
                     mesh.position.copy(entry.pose).addScaledVector(entry.explode,p.explode ?? 0);
                     const offset=p.offsets?.[String(mesh.userData.instanceId)];
                     if(offset) mesh.position.addScaledVector(new Vector3(...offset),0.001);

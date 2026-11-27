@@ -86,14 +86,24 @@ bootstrapped and green — pinned dependencies, strict TypeScript, the Vite app 
 instruction-sheet design tokens, and Vitest with a Node default and jsdom for DOM suites.
 Built since: the STEP importer expands the pinned snapshot into **70 placed occurrences**,
 tessellates them, matches every occurrence to its own mesh (**70/70**, lowest winning score
-0.9912) and writes a GLB with one pickable node per occurrence ID; the repair model, state
-transitions, replay and metrics are pure `src/domain/`; and the planner minimises *distinct
-healthy pieces disturbed* while reporting one of four honest statuses
+0.9912) and writes a GLB with one pickable node per occurrence ID; the three supplied workbooks
+join those occurrences — 31 inventory rows summing to 70, a 70-row bill of materials and a
+62-row timing lookup — with two reconciliation findings recorded in
+[RV-002](data/review/source-joins.md); the repair model, state transitions, replay and metrics
+are pure `src/domain/`; and the planner minimises *distinct healthy pieces disturbed* while
+reporting one of four honest statuses
 (`proved-minimum`, `best-route-found`, `search-incomplete`, `no-feasible-route`).
-Not built yet: the workbook import, move and constraint generation, the mechanic and reviewer
-screens (all three routes still render one placeholder screen — Tickets 4 and 8 replace it),
-the Three.js scene, the reviewer, and the 70-target `model:compile` / `model:verify` batch.
+Not built yet: move and constraint generation, the mechanic and reviewer screens, the Three.js
+scene, the reviewer, and the 70-target `model:compile` / `model:verify` batch.
 Plan §1 records the measured STEP-import baseline the remaining tickets must reproduce.
+
+**The screens are not built, and the progress trail now says so instead of implying
+otherwise.** `#/`, `#/review` and `#/concept` all render one shared placeholder component with
+different wording, so their screenshots look like three screens while the application is one
+card; Tickets 4 and 8 replace it. Each capture now records the *layout identity* of the screen
+it rendered and whether that screen is still a placeholder, so a capture set made entirely of
+placeholders is refused rather than filed as progress
+([plan §8.2](docs/plans/0.1.0/02-software-design-implementation-plan.md)).
 
 ## The assembly, as measured
 
@@ -184,7 +194,9 @@ npm run progress:screenshot -- --title "<what this commit changes>" --rows V01 \
 That writes PNGs plus `notes.md` into `docs/progress/<yyyy-mm-dd>-<slug>/`; commit them with
 the change. The tool decodes its own PNGs and reports how much each capture differs from the
 same scenario in the previous commit, so a screenshot that repeats the last one is called out
-instead of passing as progress (§8.1).
+instead of passing as progress (§8.1). Because a renamed screen is not a new screen, it also
+records each capture's layout identity and whether the screen is still a placeholder, and
+refuses a set that shows nothing but placeholders (§8.2).
 
 ## Notes on the data
 

@@ -2,6 +2,7 @@
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "types": ["node"],
+        "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "allowImportingTsExtensions": false
   },
   "include": ["tools", "vite.config.ts", "playwright.config.ts"]

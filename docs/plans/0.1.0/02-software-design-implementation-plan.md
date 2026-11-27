@@ -278,3 +278,35 @@ What this means at commit time:
    caption is a real change — but it has to be explainable from the commit subject.
 5. Screenshots stay a trail, not a gate: no test reads them, they satisfy no V-row, and the
    frozen §5 design-review baselines stay in Playwright.
+
+### 8.2 A placeholder is not a screen
+
+> **Third addendum to §8, added 2026-11-27 during implementation.** §8.1 measures pixels and
+> was still satisfiable by a stub: three routes rendering one shared placeholder with
+> different copy produced three different pictures, so every capture "differed" while the
+> application was one screen. This closes that gap. Same folder, same command, same gate role.
+
+A renamed screen is not a new screen, and a pixel comparison cannot tell the two apart. The
+capture tool therefore records a second, structural fact about every capture:
+
+| Fact | Where | What it rules out |
+| --- | --- | --- |
+| **Layout identity** — tags, classes and nesting of the mounted screen, with all text and attribute values excluded (`tools/progress/screen-signature.ts`) | *Layout* column and *Captures that share one layout* in `notes.md` | scenarios that claim distinct screens while rendering one structure with different wording |
+| **Placeholder marker** — the screen root carries `data-placeholder` while a stub stands in for a built screen | *Screens still rendered by a placeholder* in `notes.md` | a capture of a stub counting as evidence of new behaviour |
+
+What this means at commit time:
+
+1. A capture whose screen is a placeholder evidences **routing only**. It proves the hash
+   route resolved to the right screen component; it says nothing about behaviour.
+2. If **every** capture in the set renders a placeholder and no `--note` was passed, the tool
+   exits nonzero, alongside the §8.1 rule for a set that repeats the previous commit.
+3. Changing a stub's copy is not a change of screen. A commit that only rewords a placeholder
+   must not present its captures as a new screen, and `notes.md` will show the layout unchanged.
+4. Until Ticket 4 (mechanic screen) and Ticket 8 (reviewer screen) land, all three routes
+   render the one shared stub, so the trail reads "0 built screens". That is the accurate
+   state of the build and is preferred to three pictures that look like three screens.
+5. Layout identity compares captures at the same viewport size only, and ignores class order,
+   so a stylesheet edit is not reported as a new screen.
+
+This stays a commit-time trail, not a release gate: no test reads `docs/progress/`, and the §5
+design-review baselines stay in Playwright.

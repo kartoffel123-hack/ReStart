@@ -22,6 +22,13 @@ highlight per capture, and the working tree at capture time.
   count as the same screen; if every capture in the set repeats the previous set, the run
   exits nonzero unless `--note` says why this commit has no visible surface.
   ([plan §8.1](../plans/0.1.0/02-software-design-implementation-plan.md))
+- Pixels alone cannot tell a new screen from a renamed old one, so each capture also records a
+  **layout identity** — the tags, classes and nesting of the mounted screen, ignoring all text
+  and attribute values. `notes.md` prints it per capture, groups captures that share one layout
+  at the same viewport size, and lists every screen still rendered by a placeholder (marked
+  `placeholder` in the table). A placeholder capture evidences routing only, and a set made
+  entirely of placeholders exits nonzero unless `--note` names the ticket that builds the
+  screen. ([plan §8.2](../plans/0.1.0/02-software-design-implementation-plan.md))
 - Captures run against the Vite dev server in a real Chromium with reduced motion, so
   `#/concept` states are reachable. Animation time and camera are pinned by the scenario.
 - Nothing under `docs/progress/` is read by a test. These are a progress trail, not release

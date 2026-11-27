@@ -231,6 +231,13 @@ npm run test:e2e
 > against the same scenario in the previous capture folder, so a commit that re-shoots an
 > unchanged screen is visible in the trail instead of looking like progress.
 
+> **Second addendum, added 2026-11-27 during implementation.** Pixels alone were still
+> satisfiable by a stub, so [§8.2](02-software-design-implementation-plan.md) adds a
+> structural check: each capture also records the *layout identity* of the screen it rendered
+> and whether that screen is still a placeholder. A capture of a placeholder evidences routing
+> only, and a capture set made entirely of placeholders exits nonzero without a `--note`.
+> Nothing here becomes a V-row: the trail still satisfies no acceptance gate below.
+
 During development run one named Vitest file or case before the full suite. A routine code change runs typecheck, fixtures and relevant UI tests. Changes to the importer, graph, review data, solver or geometry run the 70-target batch. Release CI also verifies reproducibility from source, checks the exact shipped bundle, and exercises the real browser. Configure the browser test runner to start the preview server and wait for readiness.
 
 Record build/lockfile revision, source fingerprints, model settings, generated route report, test results, screenshots, device/browser results, physical records and stretch status. Treat any unselectable target, incomplete restoration, stale physical evidence, missing critical asset, or failed hands-on route as a release failure. Record and label searches that found a feasible route without proving the minimum. Use the last passing build while fixing a failing release candidate.

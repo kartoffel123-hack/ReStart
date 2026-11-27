@@ -1,8 +1,9 @@
 /**
  * Route placeholder shown until each screen lands with its own ticket. It is
- * deliberately distinct per route: the progress captures under docs/progress/
- * have to show which route resolved, otherwise every capture is the same
- * picture and the trail proves nothing (implementation plan §8).
+ * labelled per route so a capture shows which route resolved, but every route here is
+ * still ONE screen with different words. The marker below says so in the DOM, because a
+ * renamed stub otherwise passes a pixel comparison as a new screen
+ * (implementation plan §8.1).
  */
 import type { ReactNode } from 'react';
 import './placeholder-screen.css';
@@ -30,7 +31,12 @@ const COPY: Record<PlaceholderRoute, Readonly<{ heading: string; ticket: string;
 export function PlaceholderScreen({ route }: Readonly<{ route: PlaceholderRoute }>): ReactNode {
     const copy = COPY[route];
     return (
-        <section className="rs-placeholder" data-route={route} aria-labelledby="rs-placeholder-heading">
+        <section
+            className="rs-placeholder"
+            data-route={route}
+            data-placeholder={route}
+            aria-labelledby="rs-placeholder-heading"
+        >
             <p className="rs-placeholder__kicker">ReStart · 30465</p>
             <h1 className="rs-placeholder__heading" id="rs-placeholder-heading">
                 {copy.heading}

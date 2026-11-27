@@ -223,7 +223,12 @@ measured, not asserted (plan §8.1): the tool decodes the PNGs and reports the f
 pixels that differ from each other and from the same scenario in the previous capture
 folder. A capture at or below 0.2 % is the same screen as before, and a set where every
 capture repeats the previous one exits nonzero unless `--note` explains that the commit has
-no visible surface yet. Byte-identical files are not the test — identical pixels are. Nothing
+no visible surface yet. Byte-identical files are not the test — identical pixels are.
+
+Pixels alone still cannot tell a new screen from a renamed old one, so each capture also records
+the screen's **layout identity** (tags, classes and nesting, ignoring text) and whether it is
+still a placeholder; a renamed stub is the same screen, and a set made entirely of placeholders
+exits nonzero unless `--note` names the ticket that builds the screen (plan §8.2). Nothing
 under `docs/progress/` is read by a test, and a capture is never release evidence for a
 V-row. If a commit's surface does not exist yet, say so in `notes.md` and name the ticket
 that makes it capturable.

@@ -11,7 +11,7 @@ describe('bootstrap shell', () => {
         expect(screen.getByRole('heading', { name: /mechanic manual/i })).toBeInTheDocument();
     });
 
-    it('renders a visibly different placeholder for each hash route', () => {
+    it('labels each hash route, while every route is still one placeholder', () => {
         for (const [hash, heading] of [
             ['#/review', /reviewer/i],
             ['#/concept', /concept gallery/i]
@@ -20,6 +20,8 @@ describe('bootstrap shell', () => {
             cleanup();
             render(<App />);
             expect(screen.getByRole('heading', { name: heading })).toBeInTheDocument();
+            // Distinct words are not a distinct screen: the marker tells a capture so.
+            expect(document.querySelector('[data-placeholder]')).not.toBeNull();
         }
     });
 });

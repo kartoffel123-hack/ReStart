@@ -12,6 +12,14 @@ import { execFileSync } from 'node:child_process';
 import { resolve } from 'node:path';
 import { findPreviousCapture } from './previous-capture.js';
 import { VISUALLY_IDENTICAL_FRACTION, comparePngBuffers } from './png-diff.js';
+import {
+    isPlaceholderStub,
+    layoutId,
+    layoutSignature,
+    placeholderFiles,
+    sameLayoutGroups,
+    type ScreenNode
+} from './screen-signature.js';
 import { GATE_VIEWPORTS, SCENARIOS, type Scenario, type Viewport } from './scenarios.js';
 
 type Args = Readonly<{
@@ -73,13 +81,65 @@ async function capture(
     scenario: Scenario,
     viewport: Viewport,
     file: string
-): Promise<void> {
+): Promise<{ layout: string; stub: boolean }> {
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
     await page.goto(`${origin}/${scenario.route}`, { waitUntil: 'networkidle' });
     if (scenario.waitFor !== undefined) {
         await page.waitForSelector(scenario.waitFor, { timeout: 15_000 });
     }
+    // Read the structure before the pixels: a screen that only differs in wording has to
+    // be reported as the same screen, which no pixel comparison can establish on its own.
+    const screen = await readScreen(page);
     await page.screenshot({ path: file, fullPage: scenario.fullPage ?? false });
+    return { layout: layoutSignature(screen), stub: isPlaceholderStub(screen) };
+}
+
+/**
+ * Walk the mounted screen into a `ScreenNode` tree. Text and attributes are dropped on the
+ * way out, so the result describes layout only; `data-placeholder` survives as the stub flag.
+ */
+async function readScreen(page: Page): Promise<ScreenNode> {
+    return page.evaluate(() => {
+        // No inner named function goes in here: the bundler preserves function names by
+        // calling a `__name` helper that exists in Node but not inside the page, so a
+        // recursive `walk` serialises into a ReferenceError. This loop stays function-free.
+        type Mutable = {
+            tag: string;
+            classes: string[];
+            placeholder?: boolean;
+            children: Mutable[];
+        };
+        type Pending = { element: Element; depth: number; parent: Mutable[] };
+        const MAX_NODES = 800;
+        const MAX_DEPTH = 16;
+        const rootElement = document.querySelector('#root') ?? document.body;
+        const root: Mutable = {
+            tag: rootElement.tagName.toLowerCase(),
+            classes: Array.from(rootElement.classList),
+            children: []
+        };
+        if (rootElement.hasAttribute('data-placeholder')) root.placeholder = true;
+        const pending: Pending[] = [{ element: rootElement, depth: 0, parent: root.children }];
+        let seen = 0;
+        while (pending.length > 0 && seen < MAX_NODES) {
+            const current = pending.pop();
+            if (current === undefined) break;
+            if (current.depth >= MAX_DEPTH) continue;
+            for (const child of Array.from(current.element.children)) {
+                if (seen >= MAX_NODES) break;
+                seen += 1;
+                const node: Mutable = {
+                    tag: child.tagName.toLowerCase(),
+                    classes: Array.from(child.classList),
+                    children: []
+                };
+                if (child.hasAttribute('data-placeholder')) node.placeholder = true;
+                current.parent.push(node);
+                pending.push({ element: child, depth: current.depth + 1, parent: node.children });
+            }
+        }
+        return root;
+    });
 }
 
 /** Captures that render the same pixels, compared only within one viewport size. */
@@ -126,6 +186,10 @@ async function main(): Promise<void> {
         viewport: Viewport;
         digest: string;
         bytes: Buffer;
+        /** Layout identity of the rendered screen; wording is excluded. */
+        layout: string;
+        /** True while a placeholder stands in for the screen this scenario names. */
+        stub: boolean;
         /** Pixels differing from this scenario's capture in the previous folder. */
         previous?: { folder: string; fraction: number };
     }[] = [];
@@ -135,7 +199,13 @@ async function main(): Promise<void> {
         for (const scenario of selected) {
             for (const viewport of scenario.viewports ?? GATE_VIEWPORTS) {
                 const file = `${scenario.id}--${viewport.name}.png`;
-                await capture(page, address, scenario, viewport, resolve(directory, file));
+                const { layout, stub } = await capture(
+                    page,
+                    address,
+                    scenario,
+                    viewport,
+                    resolve(directory, file)
+                );
                 const bytes = readFileSync(resolve(directory, file));
                 const digest = createHash('sha256').update(bytes).digest('hex');
                 const earlier = findPreviousCapture(root, folderName, file);
@@ -145,6 +215,8 @@ async function main(): Promise<void> {
                     viewport,
                     digest,
                     bytes,
+                    layout,
+                    stub,
                     ...(earlier === undefined
                         ? {}
                         : {
@@ -170,6 +242,11 @@ async function main(): Promise<void> {
     // each other where the scenarios claim they do, and at least one differs from the
     // previous commit's capture of the same scenario. Byte equality proves neither.
     const duplicates = identicalGroups(written);
+    const sharedLayouts = sameLayoutGroups(
+        written.map((entry) => ({ file: entry.file, viewport: entry.viewport.name, layout: entry.layout }))
+    );
+    const stubs = placeholderFiles(written.map((entry) => ({ file: entry.file, stub: entry.stub })));
+    const allStubs = stubs.length === written.length && written.length > 0;
     const unchanged = written.filter(
         (entry) =>
             entry.previous !== undefined && entry.previous.fraction <= VISUALLY_IDENTICAL_FRACTION
@@ -200,16 +277,43 @@ async function main(): Promise<void> {
         `Δ is the fraction of pixels differing from the same scenario in the previous capture`,
         `folder; at or below ${(VISUALLY_IDENTICAL_FRACTION * 100).toFixed(1)} % the two renders count as the same screen.`,
         '',
-        '| File | Viewport | Δ vs previous capture | Highlight |',
-        '| --- | --- | --- | --- |',
+        '| File | Viewport | Layout | Δ vs previous capture | Highlight |',
+        '| --- | --- | --- | --- | --- |',
         ...written.map(
             (entry) =>
-                `| \`${entry.file}\` | ${entry.viewport.name} | ${
+                `| \`${entry.file}\` | ${entry.viewport.name} | \`${layoutId(entry.layout)}\`${
+                    entry.stub ? ' placeholder' : ''
+                } | ${
                     entry.previous === undefined
                         ? 'first capture'
                         : `${(entry.previous.fraction * 100).toFixed(2)} % since \`${entry.previous.folder}\``
                 } | ${entry.scenario.highlights} |`
         ),
+        '',
+        '## Screens still rendered by a placeholder',
+        '',
+        stubs.length === 0
+            ? 'Every capture renders a screen that exists.'
+            : [
+                  'These scenarios name a screen that is not built yet, so their PNGs show a labelled stub.',
+                  'They confirm routing only: they cannot evidence behaviour introduced by this commit.',
+                  '',
+                  ...stubs.map((file) => `- \`${file}\``),
+                  '',
+                  `**${stubs.length} of ${written.length}** captures are placeholders.`
+              ].join('\n'),
+        '',
+        '## Captures that share one layout',
+        '',
+        sharedLayouts.length === 0
+            ? 'Each scenario renders a structurally different screen at its viewport size.'
+            : [
+                  'These render the same structure with different wording, so they are one screen, not',
+                  'several. A pixel comparison calls them distinct because the text differs; the layout',
+                  'identity does not. Build the screens or capture a state that genuinely differs.',
+                  '',
+                  ...sharedLayouts.map((files) => `- one layout: ${files.map((f) => `\`${f}\``).join(', ')}`)
+              ].join('\n'),
         '',
         '## Captures that look the same',
         '',
@@ -262,6 +366,23 @@ async function main(): Promise<void> {
         for (const entry of unchanged) {
             console.warn(`  ${entry.file} unchanged since ${entry.previous?.folder}`);
         }
+    }
+    if (sharedLayouts.length > 0) {
+        console.warn(`warning: ${sharedLayouts.length} group(s) of captures render one shared layout:`);
+        for (const files of sharedLayouts) console.warn(`  ${files.join(' == ')}`);
+    }
+    if (stubs.length > 0) {
+        console.warn(`note: ${stubs.length} capture(s) render a placeholder, not a built screen.`);
+    }
+    // A capture set made entirely of placeholders shows routing, not behaviour. Like a set
+    // that repeats the previous commit, it evidences nothing new, so it needs --note.
+    if (allStubs && args.note === undefined) {
+        console.error(
+            'refusing: every capture renders a placeholder screen, so nothing here shows\n' +
+                'behaviour introduced by this commit. Build the screen, capture a state that\n' +
+                'differs structurally, or pass --note "which ticket replaces the stub".'
+        );
+        process.exitCode = 1;
     }
     // A capture set that repeats the previous one in full evidences nothing. That is only
     // acceptable when the commit had no visible surface, which is what --note is for.

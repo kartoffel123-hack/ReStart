@@ -34,21 +34,21 @@ export const SCENARIOS: readonly Scenario[] = [
         id: 'manual-route',
         label: 'Mechanic manual route',
         route: '#/',
-        highlights: 'The manual route renders its own screen, not a shared placeholder.',
+        highlights: '#/ resolves to the mechanic route; its screen is still the shared placeholder (Ticket 4).',
         waitFor: '[data-route="manual"]'
     },
     {
         id: 'review-route',
         label: 'Reviewer route',
         route: '#/review',
-        highlights: 'A hard refresh on #/review resolves the reviewer screen on a static host.',
+        highlights: '#/review survives a hard refresh on a static host; its screen is still the shared placeholder (Ticket 8).',
         waitFor: '[data-route="review"]'
     },
     {
         id: 'concept-route',
         label: 'Concept gallery route',
         route: '#/concept',
-        highlights: 'The development-only gallery is reachable at #/concept.',
+        highlights: '#/concept is reachable in development; the gallery has no states until the screens exist (Ticket 4).',
         waitFor: '[data-route="concept"]'
     }
 ];

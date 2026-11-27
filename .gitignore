@@ -17,6 +17,7 @@ dist-ssr/
 # Note: the published dataset under public/models/30465/ IS committed on purpose.
 .tmp/
 .staging/
+public/models/30465/pilot/
 staging/
 .cache/
 .tools-cache/

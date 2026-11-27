@@ -72,6 +72,11 @@ export type Occurrence = Readonly<{
     worldPlacement: Placement;
     /** Axis-aligned bounds of the definition's topological vertices, in the part frame. */
     localBounds: Readonly<{ min: Vec3; max: Vec3; centre: Vec3 }>;
+    /**
+     * Unique topological vertex points in the part frame. The geometry crosswalk matches
+     * these, transformed by {@link worldPlacement}, against the tessellated mesh.
+     */
+    vertices: readonly Vec3[];
     /** {@link localBounds} transformed into assembly coordinates. */
     boundsMin: Vec3;
     boundsMax: Vec3;
@@ -461,6 +466,16 @@ function indexDefinitionGeometry(index: StepIndex): Map<number, StepEntity> {
     return resolved;
 }
 
+/** The definition's vertex points expressed in assembly coordinates. */
+export function worldVertices(occurrence: Occurrence): readonly Vec3[] {
+    const rotation: Rotation = {
+        x: occurrence.worldPlacement.xAxis,
+        y: occurrence.worldPlacement.yAxis,
+        z: occurrence.worldPlacement.zAxis
+    };
+    return occurrence.vertices.map((point) => add(occurrence.worldPlacement.translation, rotate(rotation, point)));
+}
+
 /**
  * Expand the snapshot into occurrences. Nothing is inferred beyond the source: a usage
  * whose transformation cannot be resolved is reported, and its subtree is skipped, so a
@@ -628,6 +643,7 @@ export function buildAssemblyTree(index: StepIndex): AssemblyTree {
                 localPlacement: resolved.childToParent,
                 worldPlacement: installed,
                 localBounds,
+                vertices,
                 boundsMin: toWorld(localBounds.min),
                 boundsMax: toWorld(localBounds.max),
                 boundsCentre: toWorld(localBounds.centre),

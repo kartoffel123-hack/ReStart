@@ -629,6 +629,7 @@ export function buildAssemblyTree(index: StepIndex): AssemblyTree {
                 z: installed.zAxis
             };
             const toWorld = (point: Vec3): Vec3 => add(installed.translation, rotate(rotation, point));
+            const worldBounds = boundsOf(vertices.map(toWorld))!;
             occurrences.push({
                 id,
                 usageIds,
@@ -644,8 +645,8 @@ export function buildAssemblyTree(index: StepIndex): AssemblyTree {
                 worldPlacement: installed,
                 localBounds,
                 vertices,
-                boundsMin: toWorld(localBounds.min),
-                boundsMax: toWorld(localBounds.max),
+                boundsMin: worldBounds.min,
+                boundsMax: worldBounds.max,
                 boundsCentre: toWorld(localBounds.centre),
                 handedness: installed.handedness,
                 vertexCount: vertices.length

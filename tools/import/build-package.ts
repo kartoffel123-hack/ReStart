@@ -17,7 +17,7 @@ import { STEP_SHA256, buildAssemblyTree, type AssemblyTree } from '../lib/step-t
 import { extractFeatureTable } from '../lib/features.js';
 import { extractCandidateInterfaces } from '../lib/interfaces.js';
 import { confirmInterfaces, worldMesh, type WorldMesh } from '../lib/contacts.js';
-import { aggregateJoints } from '../lib/joints.js';
+import { aggregateJoints, type Joint } from '../lib/joints.js';
 import { tessellateStep, reachableMeshes, TESSERATION_OPTIONS, type TessellationOptions } from '../lib/step-meshes.js';
 import { buildCrosswalk, type Crosswalk } from '../lib/crosswalk.js';
 import { buildAssemblyGlb, inspectAssemblyGlb, type GlbReport } from '../lib/glb.js';
@@ -157,7 +157,15 @@ export type ImportReport = Readonly<{
     }>;
 }>;
 
-export type ImportPackage = Readonly<{ report: ImportReport; glb: Uint8Array<ArrayBufferLike> }>;
+export type ImportPackage = Readonly<{
+    report: ImportReport; glb: Uint8Array<ArrayBufferLike>;
+    catalog: {
+        pieces: Array<Omit<AssemblyTree['occurrences'][number], 'vertices'> & { meshIndex: number; score: number }>;
+        modules: AssemblyTree['modules']; joints: readonly Joint[];
+        inventory: ReturnType<typeof joinSources>['types'];
+        times: Awaited<ReturnType<typeof readTimingLookup>>['rows'];
+    };
+}>;
 
 export function sha256(bytes: Uint8Array<ArrayBufferLike>): string {
     return createHash('sha256').update(bytes).digest('hex');
@@ -379,5 +387,11 @@ export async function buildImportPackage(
             provenance: { materials: MATERIAL_PROVENANCE, timing: TIMING_PROVENANCE }
         }
     };
-    return { report, glb };
+    return { report, glb, catalog: {
+        pieces: tree.occurrences.map(({ vertices: _, ...p }) => {
+            const match = crosswalk.byOccurrence.get(p.id)!;
+            return { ...p, meshIndex: match.meshIndex, score: match.score };
+        }),
+        modules: tree.modules, joints: folded.joints, inventory: joined.types, times: timing.rows
+    } };
 }

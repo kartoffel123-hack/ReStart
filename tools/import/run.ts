@@ -17,12 +17,13 @@ const STAGING = '.tmp/import';
 
 async function main(): Promise<void> {
     const started = Date.now();
-    const { report, glb } = await buildImportPackage(STEP_PATH);
+    const { report, glb, catalog } = await buildImportPackage(STEP_PATH);
     const directory = resolve(STAGING);
     mkdirSync(directory, { recursive: true });
 
     const glbName = `geometry-${report.glb.sha256.slice(0, 16)}.glb`;
     writeFileSync(resolve(directory, glbName), glb);
+    writeFileSync(resolve(directory, 'catalog.json'), JSON.stringify(catalog));
     writeFileSync(resolve(directory, 'import-report.json'), `${JSON.stringify(report, null, 2)}\n`);
 
     const row = (label: string, value: string): void => console.log(`  ${label.padEnd(24)} ${value}`);

@@ -9,8 +9,13 @@
     "npm": ">=11"
   },
   "scripts": {
+    "pilot:build": "tsx tools/pilot/run.ts",
+    "model:classify": "tsx tools/classification/run.ts",
     "dev": "vite",
+    "predev": "tsx tools/pilot/ensure.ts",
+    "pretest": "tsx tools/pilot/ensure.ts",
     "build": "vite build",
+    "prebuild": "npm run typecheck && tsx tools/pilot/ensure.ts && tsx tools/verify/site-run.ts",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.tools.json",
     "test": "vitest run",

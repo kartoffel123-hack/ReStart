@@ -2,8 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { z } from 'zod';
 import {
     buildDependencyTree,
-    type MotionCandidateSummary,
-    type ReviewedDependencyPlan
+    type MotionCandidateSummary
 } from '../domain/dependency-tree.js';
 import {
     connectionDofCatalogSchema,
@@ -11,11 +10,13 @@ import {
     type ConnectionDofCatalog
 } from '../domain/dof.js';
 import type { AssemblyModel, Repair, Vec3 } from '../domain/schema.js';
-import nauo9AccessPlanRaw from '../../data/review/nauo9-access-plan.json';
+import { reviewedAccessPlanFor } from './reviewed-access-plan.js';
+import { buildDisassemblyLayers } from '../domain/disassembly-layers.js';
 import {
     DependencyTreeDiagram,
     type TreeDirection
 } from '../graph-view/dependency-tree-diagram.js';
+import { DisassemblyLayersPanel } from '../presentation/disassembly-layers-panel.js';
 import { StudScene } from '../scene/stud-scene.js';
 import { exportJson } from './export-json.js';
 import { loadPackage } from './package-loader.js';
@@ -23,21 +24,6 @@ import { pilotBase, type PilotData } from './pilot-data.js';
 import '../presentation/dependency-graph.css';
 
 const ZERO: Vec3 = [0, 0, 0];
-
-const reviewedDependencyPlanSchema = z.object({
-    targetId: z.string(),
-    actions: z.array(
-        z.object({
-            pieceId: z.string(),
-            actionKind: z.enum(['remove', 'slide']),
-            directionLabel: z.string().optional(),
-            restoreDirectionLabel: z.string().optional(),
-            blockerPieceId: z.string().optional()
-        })
-    ),
-    disconnectPieceIds: z.array(z.string())
-});
-const nauo9AccessPlan = reviewedDependencyPlanSchema.parse(nauo9AccessPlanRaw) as ReviewedDependencyPlan;
 
 const candidateSchema = z.array(
     z.object({
@@ -153,6 +139,11 @@ export function DependencyGraphScreen() {
 
     const activeRepair = repairsByTarget.get(rootId);
 
+    const assemblyLayers = useMemo(
+        () => (model ? buildDisassemblyLayers(model, candidates, dofCatalog) : undefined),
+        [model, candidates, dofCatalog]
+    );
+
     const tree = useMemo(() => {
         if (!model || !rootId) return undefined;
         return buildDependencyTree(model, rootId, {
@@ -165,7 +156,7 @@ export function DependencyGraphScreen() {
             repair: activeRepair,
             candidates,
             dofCatalog,
-            reviewedPlan: nauo9AccessPlan
+            reviewedPlan: reviewedAccessPlanFor(rootId)
         });
     }, [
         model,
@@ -398,6 +389,14 @@ export function DependencyGraphScreen() {
                 </aside>
 
                 <section className="rs-graph-center">
+                    {assemblyLayers && (
+                        <details className="rs-assembly-layers-panel" open>
+                            <summary>
+                                Assembly-wide removal layers ({assemblyLayers.layers.length} available layers)
+                            </summary>
+                            <DisassemblyLayersPanel layers={assemblyLayers} model={model} />
+                        </details>
+                    )}
                     <div className="rs-graph-statsbar">
                         <div>
                             <strong>{tree.plan.releasedConnections.length}</strong> Verbindungen lösen ·{' '}

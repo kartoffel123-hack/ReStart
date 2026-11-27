@@ -65,6 +65,15 @@ export const SCENARIOS: readonly Scenario[] = [
         waitFor: '[data-route="graph"] .rs-graph-visual'
     },
     {
+        id: 'assembly-disassembly-layers',
+        label: 'Assembly-wide provisional removal layers',
+        route: '#/graph?piece=30465%2FNAUO1%2FNAUO80',
+        highlights:
+            'The assembly graph displays all currently available candidate peel layers, ' +
+            'alternative exits, remaining blockers, and the explicit provisional-not-a-route caveat.',
+        waitFor: '.rs-assembly-layers-panel'
+    },
+    {
         id: 'concept-route',
         label: 'Concept gallery route',
         route: '#/concept',

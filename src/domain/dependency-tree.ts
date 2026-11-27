@@ -189,7 +189,7 @@ function compareStrings(a: string, b: string): number {
     return a < b ? -1 : a > b ? 1 : 0;
 }
 
-type CandidateBlockerEntry = Readonly<{
+export type CandidateBlockerEntry = Readonly<{
     obstacleId: string;
     label: string;
     connectionKind?: ConnectionKind | undefined;
@@ -197,7 +197,7 @@ type CandidateBlockerEntry = Readonly<{
     sourceKey: string;
 }>;
 
-function extractCandidateBlockers(
+export function extractCandidateBlockers(
     cand: MotionCandidateSummary,
     connectionById: ReadonlyMap<string, AssemblyModel['connections'][number]>,
     dofConnections?: readonly ConnectionDof[],

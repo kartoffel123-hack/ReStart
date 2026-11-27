@@ -1,0 +1,38 @@
+{
+  "targetId": "30465/NAUO1/NAUO80",
+  "actions": [
+    {
+      "pieceId": "30465/NAUO34",
+      "actionKind": "remove",
+      "directionLabel": "Pull out in the direction of flight"
+    },
+    {
+      "pieceId": "30465/NAUO30",
+      "actionKind": "remove"
+    },
+    {
+      "pieceId": "30465/NAUO3",
+      "actionKind": "remove"
+    },
+    {
+      "pieceId": "30465/NAUO29/NAUO41",
+      "actionKind": "remove"
+    },
+    {
+      "pieceId": "30465/NAUO29/NAUO40",
+      "actionKind": "remove"
+    },
+    {
+      "pieceId": "30465/NAUO5",
+      "actionKind": "remove"
+    }
+  ],
+  "disconnectPieceIds": [
+    "30465/NAUO34",
+    "30465/NAUO30",
+    "30465/NAUO3",
+    "30465/NAUO29/NAUO41",
+    "30465/NAUO29/NAUO40",
+    "30465/NAUO5"
+  ]
+}

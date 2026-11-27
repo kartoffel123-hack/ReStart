@@ -61,6 +61,74 @@
     padding: var(--rs-space-3);
     gap: var(--rs-space-2);
 }
+
+/* --- assembly-wide provisional peel layers ------------------------------- */
+.rs-assembly-layers-panel {
+    min-width: 0;
+    padding: var(--rs-space-2);
+    background: var(--rs-paper);
+    border: 1px solid var(--rs-hairline);
+    border-radius: var(--rs-radius);
+}
+.rs-assembly-layers-panel > summary {
+    min-height: var(--rs-min-hit);
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-weight: 700;
+}
+.rs-assembly-layers {
+    display: grid;
+    gap: var(--rs-space-2);
+    padding-top: var(--rs-space-2);
+}
+.rs-assembly-layers__disclaimer,
+.rs-assembly-layers__summary {
+    padding: var(--rs-space-1) var(--rs-space-2);
+    background: #fff3cd;
+    border-left: 4px solid #b7791f;
+}
+.rs-assembly-layer {
+    min-width: 0;
+    padding: var(--rs-space-2);
+    border: 1px solid var(--rs-hairline);
+    border-radius: var(--rs-radius);
+}
+.rs-assembly-layer h3 { margin-bottom: var(--rs-space-1); }
+.rs-layer-options {
+    display: grid;
+    gap: var(--rs-space-1);
+    margin: var(--rs-space-1) 0 0;
+    padding: 0;
+    list-style: none;
+}
+.rs-layer-option {
+    min-width: 0;
+    padding: var(--rs-space-1);
+    border-left: 4px solid #247044;
+    background: #edf7ef;
+    overflow-wrap: anywhere;
+}
+.rs-layer-option[data-status="blocked"] {
+    border-left-color: #b7791f;
+    background: #fff8e7;
+}
+.rs-layer-option[data-status="deferred"] {
+    border-left-color: #5b56a6;
+    background: #f2f0ff;
+}
+.rs-layer-option__head,
+.rs-layer-option__meta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 4px var(--rs-space-2);
+}
+.rs-layer-option__status { font-weight: 700; }
+.rs-layer-option__meta,
+.rs-layer-option__note,
+.rs-layer-option__blockers { color: var(--rs-muted); font-size: .875em; }
+.rs-layer-option__blockers { margin: 4px 0 0; padding-left: 20px; }
 .rs-graph-sidebar h2, .rs-graph-inspector h2 {
     font-size: .8125rem;
     text-transform: uppercase;

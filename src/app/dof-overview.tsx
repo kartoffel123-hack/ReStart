@@ -2,8 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { z } from 'zod';
 import {
     buildDependencyTree,
-    type MotionCandidateSummary,
-    type ReviewedDependencyPlan
+    type MotionCandidateSummary
 } from '../domain/dependency-tree.js';
 import {
     computeDofTimingSummary,
@@ -15,26 +14,11 @@ import {
     type ConnectionTimingOverrides
 } from '../domain/dof.js';
 import type { AssemblyModel, ConnectionKind } from '../domain/schema.js';
-import nauo9AccessPlanRaw from '../../data/review/nauo9-access-plan.json';
+import { nauo9AccessPlan } from './reviewed-access-plan.js';
 import { exportJson } from './export-json.js';
 import { loadPackage } from './package-loader.js';
 import { pilotBase, type PilotData } from './pilot-data.js';
 import '../presentation/dof-overview.css';
-
-const reviewedDependencyPlanSchema = z.object({
-    targetId: z.string(),
-    actions: z.array(
-        z.object({
-            pieceId: z.string(),
-            actionKind: z.enum(['remove', 'slide']),
-            directionLabel: z.string().optional(),
-            restoreDirectionLabel: z.string().optional(),
-            blockerPieceId: z.string().optional()
-        })
-    ),
-    disconnectPieceIds: z.array(z.string())
-});
-const nauo9AccessPlan = reviewedDependencyPlanSchema.parse(nauo9AccessPlanRaw) as ReviewedDependencyPlan;
 
 const candidateSchema = z.array(
     z.object({

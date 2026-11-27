@@ -5,8 +5,10 @@ import {
     type MotionCandidateSummary,
     type ReviewedDependencyPlan
 } from '../../src/domain/dependency-tree.js';
+import { buildDisassemblyLayers } from '../../src/domain/disassembly-layers.js';
 import { computeDofTimingSummary, connectionDofCatalogSchema } from '../../src/domain/dof.js';
 import nauo9AccessPlan from '../../data/review/nauo9-access-plan.json';
+import nauo80AccessPlan from '../../data/review/nauo80-access-plan.json';
 import { assemblyModelSchema, type AssemblyModel, type Repair } from '../../src/domain/schema.js';
 
 function makeChainModel(): { model: AssemblyModel; repair: Repair; candidates: MotionCandidateSummary[] } {
@@ -585,6 +587,48 @@ describe('buildDependencyTree', () => {
                 (edge) => edge.relation === 'spatial-blocker' && edge.target === '30465/NAUO3'
             )
         ).toBe(true);
+
+        const reviewedNauo80 = buildDependencyTree(model, '30465/NAUO1/NAUO80', {
+            includeRequires: true,
+            includeCandidates: true,
+            preserveIntactUnits: true,
+            includeConnected: false,
+            includeContains: false,
+            candidates: candidatesRaw,
+            dofCatalog,
+            reviewedPlan: nauo80AccessPlan as ReviewedDependencyPlan
+        });
+        expect(reviewedNauo80.plan.source).toBe('reviewed-procedure');
+        expect(reviewedNauo80.plan.removalOrder.map((step) => step.pieceId)).toEqual([
+            '30465/NAUO34',
+            '30465/NAUO30',
+            '30465/NAUO3',
+            '30465/NAUO29/NAUO41',
+            '30465/NAUO29/NAUO40',
+            '30465/NAUO5',
+            '30465/NAUO1/NAUO80'
+        ]);
+        expect(reviewedNauo80.plan.reassemblyOrder.map((step) => step.pieceId)).toEqual([
+            '30465/NAUO1/NAUO80',
+            '30465/NAUO5',
+            '30465/NAUO29/NAUO40',
+            '30465/NAUO29/NAUO41',
+            '30465/NAUO3',
+            '30465/NAUO30',
+            '30465/NAUO34'
+        ]);
+        expect(reviewedNauo80.plan.removalOrder[0]?.directionLabel).toBe(
+            'Pull out in the direction of flight'
+        );
+        expect(reviewedNauo80.plan.releasedPieceIds).toEqual([
+            '30465/NAUO29/NAUO40',
+            '30465/NAUO29/NAUO41',
+            '30465/NAUO3',
+            '30465/NAUO30',
+            '30465/NAUO34',
+            '30465/NAUO5'
+        ]);
+        expect(reviewedNauo80.plan.releasedConnections).toHaveLength(12);
         expect(
             reviewedNauo9.edges.some(
                 (edge) =>
@@ -620,6 +664,134 @@ describe('buildDependencyTree', () => {
         expect(timing.totalRoundTripSeconds).toBeCloseTo(
             timing.totalReleaseSeconds + timing.totalReassemblySeconds,
             2
+        );
+    });
+});
+
+describe('buildDisassemblyLayers', () => {
+    it('preserves open and blocked exits as alternatives and exposes a new layer after peeling', () => {
+        const { model } = makeChainModel();
+        const candidateModel = { ...model, operations: [] };
+        const candidates: MotionCandidateSummary[] = [
+            {
+                id: 'cand:target:blocked',
+                piece: 'kit/sub/target',
+                axis: [1, 0, 0],
+                proposedStrokeMm: 8,
+                transverseJoints: [],
+                contacts: [{ obstacle: 'kit/sub/blocker', witness: { fromMm: 1, toMm: 2 } }]
+            },
+            {
+                id: 'cand:target:open',
+                piece: 'kit/sub/target',
+                axis: [-1, 0, 0],
+                proposedStrokeMm: 8,
+                transverseJoints: [],
+                contacts: []
+            },
+            {
+                id: 'cand:blocker',
+                piece: 'kit/sub/blocker',
+                axis: [1, 0, 0],
+                proposedStrokeMm: 12,
+                transverseJoints: [],
+                contacts: [{ obstacle: 'kit/sub/leaf', witness: { fromMm: 0, toMm: 1 } }]
+            },
+            {
+                id: 'cand:leaf',
+                piece: 'kit/sub/leaf',
+                axis: [1, 0, 0],
+                proposedStrokeMm: 10,
+                transverseJoints: [],
+                contacts: []
+            }
+        ];
+
+        const result = buildDisassemblyLayers(candidateModel, candidates);
+
+        expect(result.layers.map((layer) => layer.pieceIds)).toEqual([
+            ['kit/sub/leaf', 'kit/sub/target'],
+            ['kit/sub/blocker']
+        ]);
+        const targetAlternatives = result.layers[0]!.options
+            .filter((option) => option.memberIds.includes('kit/sub/target'))
+            .sort((a, b) => a.id.localeCompare(b.id));
+        expect(targetAlternatives.map((option) => [option.id, option.status, option.applied])).toEqual([
+            ['cand:target:blocked', 'blocked', false],
+            ['cand:target:open', 'available', true]
+        ]);
+        expect(result.layers[1]!.options[0]?.blockers).toEqual([]);
+        expect(result.layers.every((layer) => layer.options.every((option) => option.provisional))).toBe(true);
+    });
+
+    it('keeps a supported component in place until the operation that needs it is complete', () => {
+        const { model } = makeChainModel();
+        const operations = model.operations
+            .filter((operation) => operation.id === 'op:remove-leaf' || operation.id === 'op:remove-blocker')
+            .map((operation) =>
+                operation.id === 'op:remove-blocker'
+                    ? {
+                          ...operation,
+                          requires: [{
+                              id: 'req:blocker-needs-leaf-support',
+                              subject: { kind: 'occurrence' as const, id: 'kit/sub/leaf' },
+                              acceptable: ['kit/sub/leaf/installed'],
+                              role: 'support' as const,
+                              reason: 'Keep the leaf installed while the blocker is removed.',
+                              evidence: { tier: 'reviewed' as const, source: 'fixture' }
+                          }]
+                      }
+                    : operation
+            );
+        const supportModel: AssemblyModel = { ...model, operations };
+
+        const result = buildDisassemblyLayers(supportModel, []);
+
+        expect(result.layers.map((layer) => layer.pieceIds)).toEqual([
+            ['kit/sub/blocker'],
+            ['kit/sub/leaf']
+        ]);
+        expect(result.layers[0]!.deferredPieceIds).toContain('kit/sub/leaf');
+        expect(result.remainingPieceIds).toEqual(['kit/sub/target']);
+    });
+
+    it('reports pieces with no candidates as unassessed instead of calling them clear', () => {
+        const { model, candidates } = makeChainModel();
+        const candidateModel = { ...model, operations: [] };
+
+        const result = buildDisassemblyLayers(
+            candidateModel,
+            candidates.filter((candidate) => candidate.piece === 'kit/sub/leaf')
+        );
+
+        expect(result.layers.map((layer) => layer.pieceIds)).toEqual([['kit/sub/leaf']]);
+        expect(result.unassessedPieceIds).toEqual(['kit/sub/blocker', 'kit/sub/target']);
+        expect(result.remainingPieceIds).toEqual(['kit/sub/blocker', 'kit/sub/target']);
+    });
+
+    it('is deterministic when candidate input order changes', () => {
+        const { model } = makeChainModel();
+        const candidateModel = { ...model, operations: [] };
+        const candidates: MotionCandidateSummary[] = [
+            {
+                id: 'cand:a',
+                piece: 'kit/sub/target',
+                axis: [1, 0, 0],
+                proposedStrokeMm: 8,
+                transverseJoints: [],
+                contacts: []
+            },
+            {
+                id: 'cand:b',
+                piece: 'kit/sub/leaf',
+                axis: [-1, 0, 0],
+                proposedStrokeMm: 10,
+                transverseJoints: [],
+                contacts: []
+            }
+        ];
+        expect(buildDisassemblyLayers(candidateModel, candidates)).toEqual(
+            buildDisassemblyLayers(candidateModel, [...candidates].reverse())
         );
     });
 });

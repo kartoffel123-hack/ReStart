@@ -14,6 +14,8 @@ import '../presentation/dependency-graph.css';
 import { loadCheckpoint, restoreSession, storeCheckpoint } from './checkpoint.js';
 import { exportJson } from './export-json.js';
 import { DescriptionPicker } from './description-picker.js';
+import { reviewedAccessPlanFor } from './reviewed-access-plan.js';
+import { ReviewedAccessPanel } from '../presentation/reviewed-access-panel.js';
 
 const zero: Vec3 = [0,0,0];
 export function StudPilot() {
@@ -71,6 +73,7 @@ export function StudPilot() {
                       includeContains: false,
                       maxDepth: 6,
                       repair: job,
+                      reviewedPlan: reviewedAccessPlanFor(target),
                       candidates
                   })
                 : undefined,
@@ -159,6 +162,7 @@ export function StudPilot() {
                     <p>Selected piece</p><strong>{label}</strong><code>{target}</code>
                     {job ? <button className="stud-picker__primary" onClick={()=>begin(target!)}>Select {label.toLowerCase()}</button> : <p>No modeled repair available for this occurrence. <a href={`#/review?piece=${encodeURIComponent(target!)}`}>Inspect its candidate exits</a></p>}
                 </div>
+                {manualTree?.plan.source === 'reviewed-procedure' && <ReviewedAccessPanel plan={manualTree.plan} />}
                 {(target===data.pin || target===data.target) && <button onClick={()=>begin(data.pin,true)}>Replace pin and light stud together</button>}
                 <p className="stud-picker__coverage">{stage==='pilot'?'Generated model routes':'Reviewed model routes'} · {jobs.length} of {data.inventory.length} targets available.</p></> :
                 error ? <><p role="status">The repair inventory could not be loaded.</p><button onClick={() => retry(n => n+1)}>Retry loading repair</button></> : <p role="status">Loading repair…</p>}

@@ -25,7 +25,7 @@ export type Scenario = Readonly<{
     highlights: string;
     /** Selector that must exist before capturing; keeps captures deterministic. */
     waitFor?: string;
-    setup?: 'blocked-preview' | 'buried-pin' | 'cross-block' | 'expand-nauo56-sequence' | 'replacement-preview';
+    setup?: 'blocked-preview' | 'buried-pin' | 'cross-block' | 'expand-nauo56-sequence' | 'replacement-preview' | 'selected-picker';
     viewports?: readonly Viewport[];
     fullPage?: boolean;
 }>;
@@ -64,6 +64,15 @@ export const SCENARIOS: readonly Scenario[] = [
         highlights:
             'During the replace step, the selected replacement part fills the main view, spins with a black outline, and the helicopter overview inset is hidden.',
         waitFor: '[data-screen="manual"][data-phase="replace"] .rs-manual__field canvas'
+    },
+    {
+        id: 'picker-selected-piece',
+        label: 'Selected piece card with replace action',
+        route: '#/',
+        setup: 'selected-picker',
+        highlights:
+            'The selected-piece panel has a transparent outer card, pink piece inset, and a Replace action whose border matches its fill.',
+        waitFor: '[data-route="manual"] .stud-picker__selection:not(.stud-picker__selection--empty)'
     },
     {
         id: 'review-route',

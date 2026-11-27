@@ -58,6 +58,7 @@ layout: they are one production component in three fixture states.
 | Route | What its PNG really shows | Why |
 | --- | --- | --- |
 | `#/` `manual-route` | Real assembly picker awaiting selection | Opens with no selected piece; click the assembly or use Advanced Parameters to choose one. |
+| `#/` `picker-selected-piece` | Selected-piece panel | Shows the pink piece inset and Replace action after selecting a target. |
 | `#/` `manual-replacement-preview` | Full-screen replacement part | During replacement, the isolated part spins in the main view and the overview inset is hidden. |
 | `#/` `buried-pin-step` | Live pin withdrawal | Confirms parking the cap, then captures the blue pin, its start ghost, arrow and part inset. |
 | `#/review` `review-route` | Local reviewer | Loaded occurrence relationships and move-specific editor. |

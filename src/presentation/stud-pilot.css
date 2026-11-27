@@ -56,7 +56,7 @@
     border-radius: var(--rs-radius);
     background: var(--rs-paper);
 }
-.stud-picker__inventory { border: 1px solid var(--rs-hairline); }
+.stud-picker__inventory { border: 0; background: transparent; }
 .stud-picker__drawing { border: 0; }
 .stud-picker__inventory {
     grid-area: inventory;
@@ -77,6 +77,10 @@
     color: var(--rs-ink);
     font: inherit;
 }
+.stud-picker__inventory input {
+    border: 0;
+    background: transparent;
+}
 .stud-picker__inventory :is(input, select) { width: 100%; min-height: 40px; padding-inline: var(--rs-space-1); font-weight: 400; }
 .stud-picker button { min-height: var(--rs-min-hit); padding: var(--rs-space-1) var(--rs-space-2); cursor: pointer; }
 .stud-picker button:disabled { color: var(--rs-muted); cursor: not-allowed; }
@@ -85,14 +89,14 @@
 .stud-picker__selection {
     display: grid;
     padding: var(--rs-space-2);
-    background: var(--rs-parts-inset);
+    background: #ee6388;
     border-radius: var(--rs-radius);
     overflow-wrap: anywhere;
 }
 .stud-picker__selection-title { font-size: 1.125rem; }
 .stud-picker__selection--empty {
     background: transparent;
-    border: 1px dashed var(--rs-muted);
+    border: 0;
     color: var(--rs-muted);
     min-height: 5rem;
     place-items: center;
@@ -112,7 +116,7 @@
     border: 0;
 }
 .stud-picker__selection code { font-size: .875rem; }
-.stud-picker .stud-picker__primary { margin-top: var(--rs-space-1); background: var(--rs-ink); color: var(--rs-paper); font-weight: 700; }
+.stud-picker .stud-picker__primary { margin-top: var(--rs-space-1); border-color: var(--rs-ink); background: var(--rs-ink); color: var(--rs-paper); font-weight: 700; }
 .stud-picker :focus-visible { outline: 3px solid var(--rs-focus); outline-offset: 2px; }
 .occurrence-list { max-height: 15rem; overflow: auto; padding: var(--rs-space-1); }
 .occurrence-list section { display: grid; gap: var(--rs-space-1); margin-block: var(--rs-space-1); }

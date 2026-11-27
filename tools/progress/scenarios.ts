@@ -35,10 +35,8 @@ export const SCENARIOS: readonly Scenario[] = [
         label: 'Mechanic manual route',
         route: '#/',
         highlights:
-            '#/ resolves to the mechanic route. ManualScreen is built and reviewed at '
-            + '#/concept; this route still shows the shared placeholder, because it has no live '
-            + 'assembly view (ticket 7) and no compiled dataset to load (ticket 9).',
-        waitFor: '[data-route="manual"]'
+            'The real assembly picker highlights the light stud, the first playable target.',
+        waitFor: '[data-route="manual"] canvas[data-target-point]'
     },
     {
         id: 'review-route',

@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { PlaceholderScreen, type PlaceholderRoute } from '../presentation/placeholder-screen.js';
 import { ConceptGallery } from '../concept/gallery.js';
+import { StudPilot } from './stud-pilot.js';
 
 export type RouteId = PlaceholderRoute;
 
@@ -29,6 +30,7 @@ export function App(): ReactNode {
         return () => window.removeEventListener('hashchange', onHashChange);
     }, []);
 
+    if (route === 'manual') return <div data-route="manual"><StudPilot /></div>;
     if (route === 'concept' && DEV_ONLY) {
         return (
             <div className="rs-app" data-route={route}>

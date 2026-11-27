@@ -38,13 +38,12 @@ describe('placeholder honesty', () => {
     // which ticket is outstanding. Ticket 4 delivered ManualScreen and the concept gallery,
     // so the manual route must stop claiming ticket 4: what it still lacks is the live scene
     // (ticket 7) and the compiled dataset that feeds it (ticket 9).
-    it('names the ticket that still blocks the mechanic route', () => {
+    it('opens the single-target pilot on the mechanic route', () => {
         // The hash survives cleanup, and an earlier test in this file sets it to #/concept.
         window.location.hash = '#/';
         render(<App />);
-        const promise = document.querySelector('.rs-placeholder__ticket');
-        expect(promise?.textContent).toMatch(/ticket 7/i);
-        expect(promise?.textContent).not.toMatch(/ticket 4/i);
+        expect(document.querySelector('[data-placeholder]')).toBeNull();
+        expect(screen.getByText(/single-target pilot/i)).toBeInTheDocument();
     });
 
     it('says the gallery is development-only rather than naming an unbuilt ticket', () => {

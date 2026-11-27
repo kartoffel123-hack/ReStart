@@ -50,4 +50,7 @@ test('a mechanic exchanges the light stud, reseats it and checks the fit', async
     }
     await expect(page.getByRole('heading', { name: /repair complete/i })).toBeVisible();
     await expect(page.getByText(/0 healthy pieces disturbed/i)).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Restored helicopter' }).locator('canvas')).toBeVisible();
+    await page.getByText('Repair details', { exact: true }).click();
+    await expect(page.getByText(/Procedure:/)).toBeVisible();
 });

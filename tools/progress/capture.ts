@@ -144,7 +144,7 @@ async function capture(
         for (let i = 0; i < 14; i++) await page.getByRole('button', {name:'Confirm this step'}).click();
         await page.getByRole('region', {name:'This step'}).getByText(/slide the cross block sideways/i).first().waitFor();
     }
-    if (scenario.setup === 'replacement-preview') {
+    if (scenario.setup === 'replacement-preview' || scenario.setup === 'repair-complete') {
         await page.evaluate(() => sessionStorage.clear());
         await page.reload();
         await page.getByText('Advanced Parameters').click();
@@ -152,6 +152,11 @@ async function capture(
         await page.getByRole('button', {name:/replace light stud/i}).click();
         await page.getByRole('button', {name:'Confirm this step'}).click();
         await page.locator('[data-screen="manual"][data-phase="replace"] .rs-manual__field canvas').waitFor();
+        if (scenario.setup === 'repair-complete') {
+            for (const phase of ['replace', 'restore', 'check']) {
+                await page.locator(`[data-phase="${phase}"]`).getByRole('button', {name:'Confirm this step'}).click();
+            }
+        }
     }
     if (scenario.setup === 'selected-picker') {
         await page.evaluate(() => sessionStorage.clear());

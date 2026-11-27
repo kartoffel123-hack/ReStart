@@ -124,6 +124,34 @@
 .occurrence-list button { text-align: left; overflow-wrap: anywhere; }
 .occurrence-list button[aria-pressed="true"] { background: var(--rs-parts-inset); font-weight: 700; border: 2px solid var(--rs-ink); }
 .stud-summary { max-width: 48rem; margin: auto; overflow-wrap: anywhere; }
+.stud-complete__record {
+    grid-area: inventory;
+    min-width: 0;
+    display: grid;
+    gap: var(--rs-space-3);
+    overflow-wrap: anywhere;
+}
+.stud-complete__record > .stud-picker__selection { order: 0; }
+.stud-complete__record code { font-size: .875rem; }
+.stud-complete__outcome, .stud-complete__record details[open] > p {
+    line-height: 1.5;
+}
+.stud-complete__outcome { display: grid; gap: var(--rs-space-1); }
+.stud-complete__record summary { font-weight: 700; }
+.stud-complete__record details[open] > p { margin-block: var(--rs-space-1); }
+.stud-complete__actions { display: flex; flex-wrap: wrap; gap: var(--rs-space-1); }
+.stud-complete__actions button {
+    border: 1px solid var(--rs-ink);
+    border-radius: var(--rs-radius);
+    background: transparent;
+    color: var(--rs-ink);
+    font: inherit;
+}
+.stud-complete__actions button:first-child {
+    background: var(--rs-ink);
+    color: var(--rs-paper);
+    font-weight: 700;
+}
 .stud-scene { position:relative; width:100%; min-height:16rem; background:var(--rs-build-field); }
 .stud-scene canvas { position:absolute; inset:0; width:100%; height:100%; }
 .scene-tools { position:absolute; z-index:1; top:8px; right:8px; }
@@ -136,5 +164,7 @@
         padding: var(--rs-space-2);
     }
     .stud-picker .stud-scene { min-height: 0; height: 38vh; }
+    .stud-complete { grid-template-areas: 'header' 'drawing' 'inventory'; }
+    .stud-complete .stud-scene { height: 30vh; }
     .stud-picker__inventory { padding: var(--rs-space-2); }
 }

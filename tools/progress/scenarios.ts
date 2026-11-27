@@ -25,12 +25,20 @@ export type Scenario = Readonly<{
     highlights: string;
     /** Selector that must exist before capturing; keeps captures deterministic. */
     waitFor?: string;
-    setup?: 'blocked-preview' | 'buried-pin' | 'cross-block' | 'expand-nauo56-sequence' | 'replacement-preview' | 'selected-picker';
+    setup?: 'blocked-preview' | 'buried-pin' | 'cross-block' | 'expand-nauo56-sequence' | 'replacement-preview' | 'selected-picker' | 'repair-complete';
     viewports?: readonly Viewport[];
     fullPage?: boolean;
 }>;
 
 export const SCENARIOS: readonly Scenario[] = [
+    {
+        id: 'repair-complete',
+        label: 'Completed light stud repair',
+        route: '#/',
+        setup: 'repair-complete',
+        highlights: 'The restored helicopter and repair record show the replaced light stud and confirmed fit check.',
+        waitFor: '[aria-label="Restored helicopter"] canvas[data-target-point]'
+    },
     {
         id: 'nauo56-repair-sequence',
         label: 'NAUO56 repair sequence and helicopter',

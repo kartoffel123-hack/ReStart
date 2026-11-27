@@ -105,10 +105,28 @@ export function StudPilot() {
                 <p>The procedure changed. Return the helicopter to its installed state first.</p>}
             <button onClick={()=>begin(saved?.targetIds[0] ?? data.target,(saved?.targetIds.length ?? 0)>1)}>Kit is fully assembled — restart</button></main>;
     }
-    if (session && !step && data && job) return <main className="stud-summary">
-        <p>ReStart · 30465 / {stage==='pilot'?'Single-target pilot':'Released manual'}</p><h1>Repair complete</h1>
-        <p>{joint?'Pin and light stud':label} · {job.targetIds.join(', ')}</p><p>{job.disturbedCount} healthy {job.disturbedCount===1?'piece':'pieces'} disturbed in the modeled route.</p>
-        <p>Fit check confirmed by you. Modeled release and return replayed. {(!joint && data.evidence?.[target!]?.physicallyVerified) ? `Physical trial: ${data.evidence[target!]!.benchRecordId}` : 'No independent physical trial recorded for this procedure.'}</p>
+    if (session && !step && data && job) return <main className="stud-picker stud-complete">
+        <header className="stud-picker__header"><div>
+            <h1>Repair complete</h1>
+            <p>Re-Start / Mechanic Manual · LEGO Technic helicopter 30465</p>
+        </div></header>
+        <section className="stud-picker__drawing" aria-label="Restored helicopter">
+            <StudScene url={geometryUrl} target={target} colors={colors} start={zero} end={zero}
+                focus={false} replay={0} reset={0} onPick={()=>{}}/>
+        </section>
+        <section className="stud-complete__record" aria-label="Repair record">
+        <div className="stud-picker__selection">
+            <p>{joint?'Replaced pieces':'Replaced piece'}</p>
+            <h2>{joint?'Pin and light stud':label}</h2>
+            <code>{job.targetIds.join(', ')}</code>
+        </div>
+        <div className="stud-complete__outcome">
+            <h3>Fit check confirmed by you.</h3>
+            <p>{job.disturbedCount} healthy {job.disturbedCount===1?'piece':'pieces'} disturbed in the modeled route.</p>
+            <p>Modeled release and return replayed. {(!joint && data.evidence?.[target!]?.physicallyVerified) ? `Physical trial: ${data.evidence[target!]!.benchRecordId}` : 'No independent physical trial recorded for this procedure.'}</p>
+        </div>
+        <details><summary>Repair details</summary>
+        <p>{stage==='pilot'?'Single-target pilot':'Released manual'}</p>
         <p>Disassembly timing: {job.timing.timedActions} of {job.timing.totalActions} actions mapped. {job.timing.estimatedSeconds===null?'Duration unknown.':`${job.timing.estimatedSeconds} s (challenge estimate).`}</p>
         <p>{job.preservedUnits.length ? job.preservedUnits.map(u=>`${u.name}: ${u.outcome}`).join('; '):'Functional-unit membership has not been reviewed.'}</p>
         <details><summary>How this transfers to equipment service</summary><p>In a hypothetical equipment enclosure, a cover is a piece, its fasteners are connections and screwdriver access is a prerequisite. A fan cartridge can move intact while the housing stays installed. A real device needs its own service constraints and validated return path.</p></details>
@@ -116,8 +134,12 @@ export function StudPilot() {
         <p>Finger access and support have not been verified on the kit.</p>
         {target===data.pin && <p>The pin route assumes the split shank compresses inside the cross-block bore.</p>}
         <p>Procedure: <code>{job.procedureFingerprint}</code></p>
+        </details>
+        <div className="stud-complete__actions">
         <button onClick={()=>exportJson('repair-report.json',{targetIds:job.targetIds,repair:job,check:'operator-confirmed',evidence:!joint && data.evidence?.[target!] || {replayedAgainstModel:true,physicallyVerified:false}})}>Export repair report</button>
         <button onClick={() => {setJoint(false);setSession(undefined);}}>Back to target selection</button>
+        </div>
+        </section>
     </main>;
     if (step && session) return <>
         <ManualScreen step={toStepViewModel(step,session.total,{ canConfirm: !checkFailed && history===null,

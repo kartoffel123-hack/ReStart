@@ -423,6 +423,56 @@ question is answered where it is asked. Two consequences are recorded there: a r
 states the truth rather than hiding work, and folders written before §8.4 still hold identical
 stub captures and are left intact, because each folder's `notes.md` names and references them.
 
+### 8.6 A screen with more than one state is captured in every state
+
+> **Seventh addendum to §8, added 2026-11-27 during implementation.** §8.5 answered a reader who
+> asked whether three alike screens were intentional: for two placeholders, yes. The same reader,
+> looking again after ticket 4 had landed, asked the same question, and this time the answer was
+> not *intentional*. `#/concept` is the one real screen in the trail and it exposes three named
+> states — a blocked step, the same step once it can be taken, and a restoration. Every capture
+> ever filed of it was a photograph of the first card: `concept-route--laptop-1280x800.png` was
+> byte-identical across four consecutive commits, and the two unreachable states had never been
+> reviewed as an image. The gallery kept its chosen state in component state alone, so nothing
+> could ask it for one. Same command, same folder, same gate role; nothing above changes.
+
+The requirement §8 has been stating all along is *a screenshot that highlights the newly
+introduced change*. For a screen with more than one state that means:
+
+1. **Capture every state the commit can affect**, not the one the component happens to open on.
+   A commit that changes the step panel changes all three states of the mechanic screen; a trail
+   that photographed one of them proved one third of the work and looked like the whole of it.
+2. **A state nobody can ask for is a state nobody can capture.** Make the state addressable — for
+   the gallery, `#/concept?state=<id>`, read on mount and written back on choice so a shared link
+   reloads what it shows. When a capture cannot reach a state, that is a defect in the screen, not
+   a limitation of the capture tool, and it is fixed in the screen.
+3. **Assert the state in `waitFor`, do not assume it.** The gallery marks the state it rendered
+   (`data-scenario`), and each scenario waits for `[data-route="concept"] [data-scenario="<id>"]`.
+   Waiting for the route alone would let a silent fallback to the default card photograph the same
+   picture three times and report three captures. This is what `waitFor` was always for.
+4. **Store them where the trail already lives**: `docs/progress/<yyyy-mm-dd>-<slug>/`, one PNG per
+   state per viewport, committed with the change they document.
+
+What this does not do:
+
+1. It does not make three states of one screen a violation of §8.2. They share a layout identity
+   on purpose — they are one screen in three conditions — so **Captures that share one layout**
+   lists them, and that report is expected. What §8.1 forbids is captures that are also
+   *pixel-identical*: same layout and same pixels is a repeat, same layout and different pixels is
+   a state.
+2. It does not multiply viewports. The two gate widths from §5 still decide the sizes; a second
+   state of a screen is worth more than a third size of one state.
+3. It does not apply to a screen that has one state, and it does not make a placeholder capturable:
+   a stub has no states to walk. §8.3's evidence panel still carries a commit with no rendered
+   surface, and §8.4 still drops a stub that repeats.
+4. Status is unchanged: a commit-time trail, read by no test, satisfying no V-row.
+
+The rule that generalises the two questions asked here is short. **A capture set has to be
+distinguishable in the way it claims to be.** Three routes rendering one placeholder are
+indistinguishable in layout, and §8.2 measures that; one screen photographed in one of its three
+states is indistinguishable across commits, and this addendum measures that. Neither is visible
+from a single screenshot, which is why both are computed by the tool rather than left to whoever
+remembers to look.
+
 ## Addendum to §4.7: what the search report promises
 
 > **Recorded 2026-11-27 during implementation (Ticket 6), after an advisor consultation.**

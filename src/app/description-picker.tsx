@@ -1,7 +1,7 @@
 import { useEffect,useRef,useState } from 'react';
 import type { PilotData } from './pilot-data.js';
 
-export function DescriptionPicker({data,select}:{data:PilotData;select:(id:string)=>void}) {
+export function DescriptionPicker({data,select,hover}:{data:PilotData;select:(id:string)=>void;hover?:(id:string)=>void}) {
     const [words,setWords]=useState(''),[ids,setIds]=useState<string[]>([]),[message,setMessage]=useState('');
     const active=useRef<AbortController|null>(null);
     useEffect(()=>()=>active.current?.abort(),[]);
@@ -18,5 +18,6 @@ export function DescriptionPicker({data,select}:{data:PilotData;select:(id:strin
     };
     return <details><summary>Find a piece by description</summary><label>Describe the piece <input maxLength={320} value={words} onChange={e=>setWords(e.target.value)}/></label>
         <button disabled={!words.trim()} onClick={()=>void search()}>Find possible matches</button><p aria-live="polite">{message}</p>
-        {ids.map(id=><button key={id} onClick={()=>select(id)}>{data.inventory.find(p=>p.id===id)?.name} — {id}</button>)}</details>;
+        {ids.map(id=><button key={id} onMouseEnter={()=>hover?.(id)} onMouseLeave={()=>hover?.('')}
+            onFocus={()=>hover?.(id)} onBlur={()=>hover?.('')} onClick={()=>select(id)}>{data.inventory.find(p=>p.id===id)?.name} — {id}</button>)}</details>;
 }

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowHelper, Box3, Color, DirectionalLight, EdgesGeometry, Group, HemisphereLight, LineBasicMaterial, LineSegments, Mesh, MeshStandardMaterial, MeshBasicMaterial, OrthographicCamera, Raycaster, Scene, Vector2, Vector3, WebGLRenderer } from 'three';
+import { ArrowHelper, Box3, Color, DirectionalLight, DoubleSide, EdgesGeometry, Group, HemisphereLight, LineBasicMaterial, LineSegments, Mesh, MeshStandardMaterial, MeshBasicMaterial, OrthographicCamera, Raycaster, Scene, ShaderMaterial, Vector2, Vector3, WebGLRenderer } from 'three';
 import { partInset } from './part-inset.js';
 import { xrManual,type XrStep } from './xr-manual.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -10,6 +10,8 @@ type Props = {
     url: string; target: string; start: Vec3; end: Vec3; focus: boolean;
     replay: number; reset: number; onPick: (id:string) => void;
     colors?:ReadonlyMap<string,string>; explode?:number; isolate?:boolean;
+    idleAutoRotate?:boolean;
+    highlight?:string;
     offsets?:Readonly<Record<string,Vec3>>;
     xrStep?:XrStep|undefined;
 };
@@ -39,6 +41,26 @@ export function StudScene(props: Props) {
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.minZoom = 0.4;
         controls.maxZoom = 12;
+        controls.autoRotate = false;
+        controls.autoRotateSpeed = 1.5;
+        let resumeRotation: ReturnType<typeof setTimeout> | undefined;
+        let userInteracting = false;
+        const pauseForInteraction = () => {
+            userInteracting = true;
+            controls.autoRotate = false;
+            if (resumeRotation) clearTimeout(resumeRotation);
+        };
+        const resumeAfterInteraction = () => {
+            if (resumeRotation) clearTimeout(resumeRotation);
+            resumeRotation = setTimeout(() => {
+                userInteracting = false;
+                controls.autoRotate = (latest.current.idleAutoRotate ?? false)
+                    && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                resumeRotation = undefined;
+            }, 2500);
+        };
+        controls.addEventListener('start', pauseForInteraction);
+        controls.addEventListener('end', resumeAfterInteraction);
         el.appendChild(renderer.domElement);
         scene.add(new HemisphereLight(0xffffff, 0x87959c, 2));
         const light = new DirectionalLight(0xffffff, 2);
@@ -48,7 +70,34 @@ export function StudScene(props: Props) {
         const colors:Record<string,number>={'Black':0x222527,'Dark Grey':0x565d62,'Light Grey':0xa5aaab,'White':0xe7e7df,'Lime Green':0x9ab928,'Red':0xad2521,'Transparent Red':0xcd3029,'Blue':0x195d99,'Beige':0xc9b68d,'Yellow':0xffcf25};
         const meshPoses=new Map<Mesh,{pose:Vector3; explode:Vector3;neutral:MeshStandardMaterial;center:Vector3}>();
         const inset=partInset();
-        let contour:LineSegments<EdgesGeometry,LineBasicMaterial>|undefined;
+        let hoverOutline:LineSegments<EdgesGeometry,LineBasicMaterial>|undefined;
+        let selectedOutline:LineSegments<EdgesGeometry,LineBasicMaterial>|undefined;
+        let selectedHatch:Mesh|undefined;
+        const componentOutlines:LineSegments<EdgesGeometry,LineBasicMaterial>[]=[];
+        const componentOutlineMaterial=new LineBasicMaterial({color:0x172127});
+        const selectedOutlineMaterial=new LineBasicMaterial({color:0xe3262e});
+        const hatchMaterial=new ShaderMaterial({
+            transparent:true,
+            depthWrite:false,
+            polygonOffset:true,
+            polygonOffsetFactor:-1,
+            polygonOffsetUnits:-1,
+            side:DoubleSide,
+            vertexShader:`void main() {
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}`,
+            fragmentShader:`precision highp float;
+void main() {
+    float spacing = 14.0;
+    float rising = mod(gl_FragCoord.x + gl_FragCoord.y, spacing);
+    float falling = mod(gl_FragCoord.x - gl_FragCoord.y, spacing);
+    float stripeA = 1.0 - smoothstep(0.7, 1.7, min(rising, spacing - rising));
+    float stripeB = 1.0 - smoothstep(0.7, 1.7, min(falling, spacing - falling));
+    float ink = max(stripeA, stripeB * 0.8);
+    if (ink < 0.02) discard;
+    gl_FragColor = vec4(0.89, 0.035, 0.055, ink * 0.78);
+}`,
+        });
         let targetRadius=0.005;
         let model: Group | undefined, stud: Mesh | undefined, disposed = false;
         const installed = new Vector3(), center = new Vector3();
@@ -101,6 +150,9 @@ export function StudScene(props: Props) {
                 n.material.dispose();
                 const colour=latest.current.colors?.get(String(n.userData.instanceId)) ?? '';
                 n.material = colors[colour] ? new MeshStandardMaterial({color:colors[colour]}) : neutral;
+                const outline=new LineSegments(new EdgesGeometry(n.geometry,32),componentOutlineMaterial);
+                n.add(outline);
+                componentOutlines.push(outline);
                 const position = new Box3().setFromObject(n).getCenter(new Vector3());
                 meshPoses.set(n,{pose:n.position.clone(),center:position.clone(),neutral:n.material,explode:position.sub(new Vector3(0,0.012,0)).multiplyScalar(0.7)});
             });
@@ -127,18 +179,37 @@ export function StudScene(props: Props) {
         renderer.setAnimationLoop((now: number) => {
             if (!model) return;
             const p = latest.current;
+            if (!userInteracting) controls.autoRotate = (p.idleAutoRotate ?? false)
+                && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
             if(previous?.target!==p.target){
-                if(contour){contour.removeFromParent();contour.geometry.dispose();contour.material.dispose();}
+                selectedOutline?.removeFromParent();
+                selectedOutline?.geometry.dispose();
+                selectedOutline=undefined;
+                selectedHatch?.removeFromParent();
+                selectedHatch=undefined;
                 stud=[...meshPoses.keys()].find(m=>m.userData.instanceId===p.target);
                 if(!stud){setError(true);return;}
                 installed.copy(meshPoses.get(stud)!.pose);center.copy(meshPoses.get(stud)!.center);
                 targetRadius=new Box3().setFromObject(stud).getSize(new Vector3()).length()/2;
-                contour=new LineSegments(new EdgesGeometry(stud.geometry,32),new LineBasicMaterial({color:0x172127}));stud.add(contour);
+                selectedHatch=new Mesh(stud.geometry,hatchMaterial);
+                selectedHatch.renderOrder=1;
+                stud.add(selectedHatch);
+                selectedOutline=new LineSegments(new EdgesGeometry(stud.geometry,32),selectedOutlineMaterial);
+                selectedOutline.renderOrder=2;
+                stud.add(selectedOutline);
                 inset.select(stud);
                 if(ghost) display.remove(ghost);ghost=new Mesh(stud.geometry,ghostMaterial);ghost.quaternion.copy(stud.quaternion);ghost.visible=false;display.add(ghost);
             }
             if(!stud)return;
-            if (previous?.reset !== p.reset || previous.focus !== p.focus || previous.target!==p.target || previous.start!==p.start || previous.end!==p.end) {frameCamera();xr.current?.recenter();}
+            if (!previous || previous.reset !== p.reset || previous.focus !== p.focus || previous.start!==p.start || previous.end!==p.end) {frameCamera();xr.current?.recenter();}
+            if (previous?.highlight !== p.highlight) {
+                if (hoverOutline) {hoverOutline.removeFromParent();hoverOutline.geometry.dispose();hoverOutline.material.dispose();hoverOutline=undefined;}
+                const hoveredMesh=[...meshPoses.keys()].find(m=>m.userData.instanceId===p.highlight);
+                if (hoveredMesh) {
+                    hoverOutline=new LineSegments(new EdgesGeometry(hoveredMesh.geometry,32),new LineBasicMaterial({color:0xffb000,linewidth:2}));
+                    hoveredMesh.add(hoverOutline);
+                }
+            }
             if (previous?.start !== p.start || previous.end !== p.end || previous.replay !== p.replay) {
                 began = now;
                 a.fromArray(p.start).multiplyScalar(0.001);
@@ -164,6 +235,7 @@ export function StudScene(props: Props) {
             previous = p;
             if(pausedRef.current) began+=now-lastTime;
             lastTime=now;
+            controls.update();
             const t = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 1 : Math.min(1,(now-began)/1200);
             stud.position.copy(installed).add(displacement.lerpVectors(a,b,t)).addScaledVector(meshPoses.get(stud)!.explode,p.explode ?? 0);
             xr.current?.update();renderer.render(scene,camera);
@@ -175,9 +247,16 @@ export function StudScene(props: Props) {
         });
         return () => {
             disposed = true; resize.disconnect(); el.removeEventListener('click',pick);
+            if (resumeRotation) clearTimeout(resumeRotation);
+            controls.removeEventListener('start', pauseForInteraction);
+            controls.removeEventListener('end', resumeAfterInteraction);
             renderer.setAnimationLoop(null); controls.dispose(); if (model) dropModel(model);
             xr.current?.dispose();xr.current=null;ghostMaterial.dispose();meshPoses.forEach(v=>v.neutral.dispose());
-            contour?.geometry.dispose();contour?.material.dispose();arrow.dispose(); neutral.dispose(); renderer.dispose(); renderer.domElement.remove();
+            componentOutlines.forEach(outline=>outline.geometry.dispose());
+            selectedOutline?.geometry.dispose();
+            componentOutlineMaterial.dispose();selectedOutlineMaterial.dispose();hatchMaterial.dispose();
+            arrow.dispose(); neutral.dispose(); renderer.dispose(); renderer.domElement.remove();
+            hoverOutline?.geometry.dispose();hoverOutline?.material.dispose();
         };
     }, [props.url,retry]);
     return <div className="stud-scene" ref={host} aria-label="Helicopter with selected piece highlighted">

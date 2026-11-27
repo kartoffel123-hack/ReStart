@@ -69,6 +69,7 @@ docs/plans/0.1.0/                        the plan set
   02-software-design-implementation-plan.md handoff, tickets, 48-hour schedule, commands
   03-software-verification-plan.md         V01–V10 acceptance matrix and run order
 docs/progress/                            one screenshot folder per commit (plan 02 §8)
+docs/ui-ux-design.md                      visual language, screen states, accessibility, open gaps
 src/                                      the app, bootstrapped at the repository root
   domain/                                 assembly state, graph, search, replay, evidence — pure TS
   app/                                    loaders, session controller, view-model selectors, adapters
@@ -227,8 +228,10 @@ Changes to the importer, graph, review data, solver, or geometry require rerunni
 
 Read [AGENTS.md](AGENTS.md) first — it records the layer boundaries, the read-only asset
 rules, the fixture/evidence discipline, and the Conventional Commits convention used here.
-Pick one ticket from the implementation handoff, write its failing test first, and hand off
-the changed interface plus the smallest failing fixture and the commands you ran.
+For any change to a screen, start from [docs/ui-ux-design.md](docs/ui-ux-design.md): the
+visual language, screen states, 3D view conventions, copy rules and accessibility contract
+live there. Pick one ticket from the implementation handoff, write its failing test first, and
+hand off the changed interface plus the smallest failing fixture and the commands you ran.
 
 Before **every** commit, capture what the change made visible
 ([plan 02 §8](docs/plans/0.1.0/02-software-design-implementation-plan.md)):

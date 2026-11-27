@@ -1,6 +1,8 @@
 /**
- * The twelve hand-worked repair fixtures from plan 03 §3, each with its
- * expected observable result written beside it by hand.
+ * The hand-worked repair fixtures from plan 03 §3, each with its expected
+ * observable result written beside it by hand. Three more were added during
+ * Ticket 6 (sealed target, tied exits, divergent return obligations) because no
+ * §3 fixture could evidence those three claims; each says why beside it.
  */
 import type { AssemblyModel, Operation, Unit } from '../../src/domain/schema.js';
 import { buildFixture, connection, needsPose, op, type PieceSpec } from './kit.js';
@@ -358,6 +360,163 @@ export function rigidModuleFixture(options: { disablePins?: boolean } = {}): Ass
                 satisfies: 'release T',
                 operationIds: disablePins ? ['pull-T-via-module'] : ['pull-T-via-pins', 'pull-T-via-module']
             }
+        ]
+    });
+}
+
+/* ---------------------------------------------------------- sealed target */
+/* The panel that seals T's only exit has a detached pose the model declares but
+   no operation in the catalog can ever produce, so the target has no feasible
+   route at all. Expect "no feasible route" naming the panel requirement.
+   Added with Ticket 6: the earlier candidate for this status (rigid module with
+   the pins disabled) turned out to be feasible through the module option, so it
+   could not evidence an infeasible search. */
+export function sealedTargetFixture(): AssemblyModel {
+    return buildFixture({
+        pieces: [{ id: 'panel' }, { id: 'T' }],
+        connections: [connection('c-T', 'T', 'root', 'friction'), connection('c-panel', 'panel', 'root')],
+        operations: [
+            op('pull-T', ['T'], [at('T', 'installed')], [at('T', 'detached')], {
+                requires: [
+                    needsPose(
+                        'T-needs-panel-off',
+                        'panel',
+                        ['panel/detached'],
+                        'the panel seals the only exit for T'
+                    )
+                ],
+                releasesConnectionIds: ['c-T']
+            }),
+            op('fit-spare-T', ['T'], [at('T', 'detached')], [at('T', 'installed')], {
+                phase: 'replace',
+                establishesConnectionIds: ['c-T'],
+                fitsReplacementOf: 'T'
+            })
+        ]
+    });
+}
+
+/* ------------------------------------------------------------ tied exits */
+/* T has two admissible exits and each is covered by two healthy pieces, so the
+   two complete jobs disturb the same number of pieces and neither is better.
+   Expect two exhaustive minimum routes and one stable choice. Added with
+   Ticket 6: alternativeEndsFixture makes the right exit cheaper (one piece
+   against two), so it exercises alternatives but never a tie. */
+export function tiedExitsFixture(): AssemblyModel {
+    const coversLeft = [
+        needsPose('left-needs-A', 'A', ['A/detached'], 'A blocks the left exit'),
+        needsPose('left-needs-B', 'B', ['B/detached'], 'B blocks the left exit')
+    ];
+    const coversRight = [
+        needsPose('right-needs-C', 'C', ['C/detached'], 'C blocks the right exit'),
+        needsPose('right-needs-D', 'D', ['D/detached'], 'D blocks the right exit')
+    ];
+    return buildFixture({
+        pieces: [{ id: 'A' }, { id: 'B' }, { id: 'C' }, { id: 'D' }, { id: 'T' }],
+        connections: [connection('c-T', 'T', 'root', 'friction')],
+        operations: [
+            op('pull-A', ['A'], [at('A', 'installed')], [at('A', 'detached')], { returnOperationId: 'seat-A' }),
+            op('pull-B', ['B'], [at('B', 'installed')], [at('B', 'detached')], { returnOperationId: 'seat-B' }),
+            op('pull-C', ['C'], [at('C', 'installed')], [at('C', 'detached')], { returnOperationId: 'seat-C' }),
+            op('pull-D', ['D'], [at('D', 'installed')], [at('D', 'detached')], { returnOperationId: 'seat-D' }),
+            op('pull-T-left', ['T'], [at('T', 'installed')], [at('T', 'detached')], {
+                requires: coversLeft,
+                alternativeGroup: 'T-exit',
+                releasesConnectionIds: ['c-T'],
+                directionLabel: 'pull left'
+            }),
+            op('pull-T-right', ['T'], [at('T', 'installed')], [at('T', 'detached')], {
+                requires: coversRight,
+                alternativeGroup: 'T-exit',
+                directionLabel: 'push right'
+            }),
+            op('fit-spare-T', ['T'], [at('T', 'detached')], [at('T', 'installed')], {
+                phase: 'replace',
+                establishesConnectionIds: ['c-T'],
+                fitsReplacementOf: 'T'
+            }),
+            op('seat-A', ['A'], [at('A', 'detached')], [at('A', 'installed')], {
+                phase: 'restore',
+                isReturn: true,
+                requires: [needsPose('A-needs-T', 'T', ['T/installed'], 'A lands on T')]
+            }),
+            op('seat-B', ['B'], [at('B', 'detached')], [at('B', 'installed')], {
+                phase: 'restore',
+                isReturn: true,
+                requires: [needsPose('B-needs-T', 'T', ['T/installed'], 'B lands on T')]
+            }),
+            op('seat-C', ['C'], [at('C', 'detached')], [at('C', 'installed')], {
+                phase: 'restore',
+                isReturn: true,
+                requires: [needsPose('C-needs-T', 'T', ['T/installed'], 'C lands on T')]
+            }),
+            op('seat-D', ['D'], [at('D', 'detached')], [at('D', 'installed')], {
+                phase: 'restore',
+                isReturn: true,
+                requires: [needsPose('D-needs-T', 'T', ['T/installed'], 'D lands on T')]
+            })
+        ],
+        alternativeGroups: [
+            {
+                id: 'T-exit',
+                satisfies: 'release T',
+                operationIds: ['pull-T-left', 'pull-T-right'],
+                note: 'two admissible exits, each covered by two pieces'
+            }
+        ]
+    });
+}
+
+/* --------------------------------------------------- divergent obligations */
+/* One retainer, two admissible ways to clear it: swing it aside, or lift it off
+   and press a new clip on. Both leave the same recorded pose, clip/clear, and
+   disturb the same one piece, but they owe different returns — swing-back
+   versus clip-on. The pose model is deliberately coarse here: if the search
+   keyed a state on outward pose alone it would treat the two histories as the
+   same state and could return a job that never re-fits the retainer. Expect the
+   oracle to report a divergent obligation and the solver to prove the minimum
+   anyway, with every restore step a registered return. (plan 03 §V03) */
+export function clearClipFixture(): AssemblyModel {
+    return buildFixture({
+        pieces: [{ id: 'clip', extraPoses: ['clear@12'] }, { id: 'T' }],
+        connections: [connection('c-T', 'T', 'root', 'friction'), connection('c-clip', 'clip', 'root')],
+        operations: [
+            op('swing-clip', ['clip'], [at('clip', 'installed')], [at('clip', 'clear')], {
+                strokeMm: 12,
+                directionLabel: 'swing the retainer aside',
+                stopLandmark: 'the tab clears the head',
+                releasesConnectionIds: ['c-clip'],
+                returnOperationId: 'swing-back'
+            }),
+            op('swing-back', ['clip'], [at('clip', 'clear')], [at('clip', 'installed')], {
+                phase: 'restore',
+                isReturn: true,
+                establishesConnectionIds: ['c-clip'],
+                directionLabel: 'swing it back'
+            }),
+            op('lift-clip', ['clip'], [at('clip', 'installed')], [at('clip', 'clear')], {
+                strokeMm: 12,
+                directionLabel: 'lift the retainer off',
+                stopLandmark: 'clear of the head',
+                releasesConnectionIds: ['c-clip'],
+                returnOperationId: 'clip-on'
+            }),
+            op('clip-on', ['clip'], [at('clip', 'clear')], [at('clip', 'installed')], {
+                phase: 'restore',
+                isReturn: true,
+                establishesConnectionIds: ['c-clip'],
+                requires: [needsPose('clip-needs-T', 'T', ['T/installed'], 'the clip presses over the installed head')],
+                directionLabel: 'press a new clip on'
+            }),
+            op('pull-T', ['T'], [at('T', 'installed')], [at('T', 'detached')], {
+                requires: [needsPose('T-needs-clip-clear', 'clip', ['clip/clear'], 'the retainer holds T down')],
+                releasesConnectionIds: ['c-T']
+            }),
+            op('fit-spare-T', ['T'], [at('T', 'detached')], [at('T', 'installed')], {
+                phase: 'replace',
+                establishesConnectionIds: ['c-T'],
+                fitsReplacementOf: 'T'
+            })
         ]
     });
 }

@@ -312,19 +312,21 @@ export function planRepair(
             frontierEmpty = true;
             break;
         }
-        const lowerBound = frontier.minimumCost as number;
+        const pendingMinimum = frontier.minimumCost as number;
         // Nothing on the frontier can beat or tie the incumbent any more.
-        if (incumbentCost !== null && lowerBound > incumbentCost) break;
+        if (incumbentCost !== null && pendingMinimum > incumbentCost) break;
 
-        const node = frontier.pop();
-        if (incumbentCost !== null && node.cost > incumbentCost) continue;
-
-        expanded += 1;
-        if (expanded > budget.maxExpandedStates) {
+        // The cap is read before the node is taken. A node popped and then discarded on the
+        // way out leaves the frontier looking more exhausted than it is, and an empty-looking
+        // frontier reads back as "no lower bound remains" — which certified a minimum on a
+        // search that had stopped for budget (plan 03 §V03).
+        if (expanded >= budget.maxExpandedStates) {
             capped = true;
             break;
         }
-
+        const node = frontier.pop();
+        if (incumbentCost !== null && node.cost > incumbentCost) continue;
+        expanded += 1;
         if (isGoal(model, node.state, targets)) {
             const route = node.state.history;
             const cost = node.state.disturbedIds.length;
@@ -354,10 +356,25 @@ export function planRepair(
         incumbentCost !== null && (frontierMinimum === null || frontierMinimum > incumbentCost);
     const noLowerBoundRemains =
         incumbentCost !== null && (frontierMinimum === null || frontierMinimum >= incumbentCost);
+    // A bound on the OPTIMUM, not on the unexplored region: disturbance never decreases along
+    // a route, so the best answer still available is the cheaper of the known solution and the
+    // cheapest pending state. Reporting the pending minimum on its own can exceed a route the
+    // search itself just returned, which would not be a bound on anything.
+    const optimumBound =
+        incumbentCost === null
+            ? frontierMinimum
+            : frontierMinimum === null
+              ? incumbentCost
+              : Math.min(incumbentCost, frontierMinimum);
 
     let status: SearchReport['status'];
     if (incumbent === undefined) status = frontierEmpty ? 'no-feasible-route' : 'search-incomplete';
-    else if (noLowerBoundRemains && tieFrontierComplete) status = 'proved-minimum';
+    // Primary proof is its own fact: no pending state can be cheaper than the incumbent, and
+    // disturbance never decreases along a route, so no cheaper job exists. Whether the
+    // equal-count frontier was also finished is reported separately in tieFrontierComplete
+    // (plan 02 §4.7), because a budget-capped search can prove the count without enumerating
+    // every route that ties it.
+    else if (noLowerBoundRemains) status = 'proved-minimum';
     else status = 'best-route-found';
 
     const search: SearchReport = {
@@ -366,7 +383,7 @@ export function planRepair(
         budget: budget.maxExpandedStates,
         tieFrontierComplete,
         bestDisturbedCount: incumbentCost,
-        lowerBound: frontierMinimum,
+        lowerBound: optimumBound,
         firstUnsatisfied: incumbent === undefined ? unsatisfiedAlternatives(model, start, releaseOperations) : [],
         incumbentSource
     };

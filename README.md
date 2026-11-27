@@ -92,7 +92,12 @@ join those occurrences — 31 inventory rows summing to 70, a 70-row bill of mat
 [RV-002](data/review/source-joins.md); the repair model, state transitions, replay and metrics
 are pure `src/domain/`; and the planner minimises *distinct healthy pieces disturbed* while
 reporting one of four honest statuses
-(`proved-minimum`, `best-route-found`, `search-incomplete`, `no-feasible-route`).
+(`proved-minimum`, `best-route-found`, `search-incomplete`, `no-feasible-route`), where
+`lowerBound` bounds the **optimum** — never above a job the search itself returned — and
+equal-count tie enumeration is reported separately from the proof
+([plan §4.7 addendum](docs/plans/0.1.0/02-software-design-implementation-plan.md)). The search
+is checked against an exhaustive oracle that re-derives legality, cost and the complete-job
+goal from hand-worked fixtures, plus three mutation faults an oracle must be able to catch.
 Not built yet: move and constraint generation, the mechanic and reviewer screens, the Three.js
 scene, the reviewer, and the 70-target `model:compile` / `model:verify` batch.
 Plan §1 records the measured STEP-import baseline the remaining tickets must reproduce.

@@ -310,3 +310,33 @@ What this means at commit time:
 
 This stays a commit-time trail, not a release gate: no test reads `docs/progress/`, and the §5
 design-review baselines stay in Playwright.
+
+## Addendum to §4.7: what the search report promises
+
+> **Recorded 2026-11-27 during implementation (Ticket 6), after an advisor consultation.**
+> §4.7 item 7 already required primary proof and tie-search completion to be reported
+> separately; this records how the report fields are defined, because two defects were found
+> only once the search was checked against the exhaustive oracle.
+
+| Field | Contract | Why |
+| --- | --- | --- |
+| `lowerBound` | A bound on the **optimum**: the cheaper of the best known job and the cheapest pending state, `null` only when neither exists. | Reporting the pending frontier minimum on its own produced `lowerBound = 2` while the search returned a job disturbing 1 piece — a "bound" above a solution it had just found. |
+| `bestDisturbedCount` | The best job the search actually holds. | Unchanged. |
+| `tieFrontierComplete` | Whether the equal-count frontier was also finished. | Unchanged, and deliberately separate from proof. |
+| `status: proved-minimum` | No pending state can be cheaper than the incumbent, so no cheaper job exists — **even when tied routes are still unexplored**. | §4.7 proves the primary minimum when nothing lower remains below the incumbent; a budget-capped search can prove the count without enumerating every route that ties it, and hiding that behind "Best route found" would under-claim. |
+
+Two rules the search must keep:
+
+1. **The expansion cap is read before the node is taken from the frontier.** A node popped and
+   then discarded on the budget path leaves the frontier looking emptier than it is, and an
+   empty-looking frontier reads back as "no lower bound remains". Measured on the chain
+   fixture, a one-expansion search with a replayed incumbent reported `proved-minimum` for a
+   search that had never looked past the first blocker.
+2. **A capped search may never certify.** With a pending state cheaper than the incumbent it
+   reports `best-route-found` and a `lowerBound` at or below the exhaustive minimum; the oracle
+   regression in `tests/domain/optimality.test.ts` pins both.
+
+The advisor's answer, question and date are recorded with Ticket 6; the mutation faults in
+plan 03 §V03 are covered by `tests/domain/optimality.test.ts`, which added three fixtures
+(sealed target, tied exits, divergent return obligations) because no §3 fixture could evidence
+those claims.

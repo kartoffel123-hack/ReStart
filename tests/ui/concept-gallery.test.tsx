@@ -13,7 +13,13 @@ import userEvent from '@testing-library/user-event';
 import { ConceptGallery } from '../../src/concept/gallery.js';
 import { CONCEPT_SCENARIOS } from '../../src/concept/scenarios.js';
 
-beforeEach(cleanup);
+beforeEach(() => {
+    cleanup();
+    // The gallery now records the chosen state in the address (plan §8.6), and jsdom carries
+    // `window.location.hash` across every test in a file. Without this reset, a test that clicks
+    // a card silently decides which state the next test is handed.
+    window.location.hash = '#/concept';
+});
 
 describe('the concept gallery', () => {
     it('renders the production manual screen, not a copy of it', () => {
@@ -60,5 +66,42 @@ describe('the concept gallery', () => {
         render(<ConceptGallery />);
         expect(screen.getByRole('img', { name: /moves straight out along the axle/i })).toBeInTheDocument();
         expect(screen.getByTestId('part-inset')).toBeInTheDocument();
+    });
+});
+
+describe('opening one named example state directly', () => {
+    // Every commit photographs this gallery, and a photograph of the default card is the same
+    // picture at every commit. The other two states -- the step the mechanic actually acts on,
+    // and a restoration -- had never appeared in a single capture. For a capture to reach them
+    // the state has to be addressable, and the capture has to be able to prove it arrived.
+
+    it('renders the state named in the address, not the first one', () => {
+        window.location.hash = '#/concept?state=restore';
+        render(<ConceptGallery />);
+        const strip = screen.getByRole('region', { name: 'This step' });
+        expect(within(strip).getByText('Friction pin 5L')).toBeInTheDocument();
+        expect(within(strip).getByText(/Putting it back/i)).toBeInTheDocument();
+    });
+
+    it('marks which state it rendered, so a capture cannot claim one and show another', () => {
+        window.location.hash = '#/concept?state=buried-ready';
+        render(<ConceptGallery />);
+        expect(document.querySelector('[data-scenario="buried-ready"]')).not.toBeNull();
+    });
+
+    it('keeps the state in the address when a card is chosen, so a review link reloads it', async () => {
+        const user = userEvent.setup();
+        window.location.hash = '#/concept';
+        render(<ConceptGallery />);
+        await user.click(screen.getByRole('button', { name: /Putting it back/i }));
+        expect(window.location.hash).toContain('state=restore');
+    });
+
+    it('falls back to the first state for a name that is not one, and says which it showed', () => {
+        window.location.hash = '#/concept?state=not-a-state';
+        render(<ConceptGallery />);
+        expect(document.querySelector('[data-scenario="buried-blocked"]')).not.toBeNull();
+        const strip = screen.getByRole('region', { name: 'This step' });
+        expect(within(strip).getByText('Bush 3L')).toBeInTheDocument();
     });
 });

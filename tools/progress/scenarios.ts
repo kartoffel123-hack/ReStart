@@ -54,8 +54,32 @@ export const SCENARIOS: readonly Scenario[] = [
         label: 'Concept gallery route',
         route: '#/concept',
         highlights:
-            '#/concept is the development gallery: three named states of the real ManualScreen, '
-            + 'so a change captured here is a change the mechanic would see.',
-        waitFor: '[data-route="concept"]'
+            'Gallery state "buried-blocked": the piece is hidden and its blocker is still fitted, '
+            + 'so the confirm control is disabled and the screen says why. The real ManualScreen, '
+            + 'so a change here is a change the mechanic would see.',
+        // The state is asserted, not assumed: without data-scenario a capture that silently fell
+        // back to the default card would still have found [data-route="concept"] and photographed
+        // the same picture for every state (plan §8.6).
+        waitFor: '[data-route="concept"] [data-scenario="buried-blocked"]'
+    },
+    {
+        id: 'concept-ready-route',
+        label: 'Concept gallery, step the mechanic acts on',
+        route: '#/concept?state=buried-ready',
+        highlights:
+            'Gallery state "buried-ready": the same piece once its blocker is off, so the confirm '
+            + 'control is live, the obstruction is gone from the drawing, and the warning band is '
+            + 'replaced by the one move and its stop condition.',
+        waitFor: '[data-route="concept"] [data-scenario="buried-ready"]'
+    },
+    {
+        id: 'concept-restore-route',
+        label: 'Concept gallery, restoration step',
+        route: '#/concept?state=restore',
+        highlights:
+            'Gallery state "restore": a step that puts a piece back rather than taking one out. '
+            + 'It reads differently -- different piece, direction and stop landmark -- which is '
+            + 'why restoration is captured as its own state and not assumed from removal.',
+        waitFor: '[data-route="concept"] [data-scenario="restore"]'
     }
 ];

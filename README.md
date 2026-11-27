@@ -124,6 +124,7 @@ placeholders is refused rather than filed as progress
 | Inventory | 31 part types whose quantities sum to the sheet's own total of 70, matched to STEP names 31/31 ([RV-002](data/review/source-joins.md)) |
 | Bill of materials | 70 rows, same multiset of pieces as the assembly but only 7 positions aligned, so 54 rows join at type level and are marked ambiguous |
 | Timing lookup | 62 connection classes, English and German sheets agree by `Row_ID`; the times are **fictitious** challenge data |
+| Interface features | **1,295 cylindrical faces** over all 31 definitions (2,451 faces total), 64 candidate travel axes, each face named by its STEP entity ([RV-003](data/review/interface-features.md)) |
 
 ## Stack
 

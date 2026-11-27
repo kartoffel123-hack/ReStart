@@ -39,6 +39,11 @@ async function main(): Promise<void> {
         'identity crosswalk',
         `${report.crosswalk.matched}/${report.tree.occurrences} matched, lowest score ${report.crosswalk.lowestScore.toFixed(4)}, smallest margin ${report.crosswalk.smallestMargin.toFixed(4)}`
     );
+    row(
+        'interface features',
+        `${report.features.cylinders} cylinders over ${report.features.definitions} definitions, ` +
+            `${report.features.travelAxes} candidate travel axes`
+    );
     row('glb', `${report.glb.bytes} bytes, ${report.glb.instances} pickable instances, sha256 ${report.glb.sha256.slice(0, 16)}`);
     row(
         'type catalog',

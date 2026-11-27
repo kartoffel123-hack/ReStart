@@ -14,6 +14,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { parseStepEntities } from '../lib/step-file.js';
 import { STEP_SHA256, buildAssemblyTree, type AssemblyTree } from '../lib/step-tree.js';
+import { extractFeatureTable } from '../lib/features.js';
 import { tessellateStep, reachableMeshes, TESSERATION_OPTIONS, type TessellationOptions } from '../lib/step-meshes.js';
 import { buildCrosswalk, type Crosswalk } from '../lib/crosswalk.js';
 import { buildAssemblyGlb, inspectAssemblyGlb, type GlbReport } from '../lib/glb.js';
@@ -67,6 +68,15 @@ export type ImportReport = Readonly<{
         issues: ReadonlyArray<Readonly<{ code: string; message: string; occurrenceId?: string }>>;
     }>;
     glb: Readonly<{ sha256: string; bytes: number; instances: number; problems: readonly string[] }>;
+    /** Ticket 3C-1: candidate interface features per definition (plan 02 §3C step 1). */
+    features: Readonly<{
+        definitions: number;
+        surfaces: number;
+        cylinders: number;
+        travelAxes: number;
+        definitionsWithoutCylinder: readonly string[];
+        diagnostics: ReadonlyArray<Readonly<{ code: string; message: string; definitionId?: string }>>;
+    }>;
     /** Ticket 2: type catalog, row references, candidate units and timing coverage. */
     sources: Readonly<{
         types: number;
@@ -116,7 +126,11 @@ export async function buildImportPackage(
         );
     }
 
-    const tree: AssemblyTree = buildAssemblyTree(parseStepEntities(new TextDecoder().decode(bytes)));
+    const index = parseStepEntities(new TextDecoder().decode(bytes));
+    const tree: AssemblyTree = buildAssemblyTree(index);
+    // Candidate interface features (plan 02 §3C step 1): the geometry the move generator is
+    // allowed to reason about, with the STEP entity behind every face it cites.
+    const features = extractFeatureTable(index, tree);
     if (tree.diagnostics.length > 0) {
         throw new Error(
             `assembly tree reported ${tree.diagnostics.length} unresolved usage(s):\n` +
@@ -197,6 +211,20 @@ export async function buildImportPackage(
                 code: issue.code,
                 message: issue.message,
                 ...(issue.occurrenceId === undefined ? {} : { occurrenceId: issue.occurrenceId })
+            }))
+        },
+        features: {
+            definitions: features.definitions.length,
+            surfaces: features.definitions.reduce((total, entry) => total + entry.surfaceCount, 0),
+            cylinders: features.definitions.reduce((total, entry) => total + entry.cylinders.length, 0),
+            travelAxes: features.definitions.reduce((total, entry) => total + entry.travelAxes.length, 0),
+            definitionsWithoutCylinder: features.definitions
+                .filter((entry) => entry.cylinders.length === 0)
+                .map((entry) => entry.definitionId),
+            diagnostics: features.diagnostics.map((issue) => ({
+                code: issue.code,
+                message: issue.message,
+                ...(issue.definitionId === undefined ? {} : { definitionId: issue.definitionId })
             }))
         },
         glb: {

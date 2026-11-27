@@ -32,6 +32,17 @@ describe('model:import package', () => {
         expect(report.tree.occurrences).toBe(EXPECTED_OCCURRENCES);
     });
 
+    it('carries the candidate interface features the move generator will be built on', () => {
+        // §3C step 1 runs in the same pass as the geometry: if the feature table were computed
+        // somewhere else it could drift from the revision the meshes were tessellated from.
+        expect(report.features.definitions).toBe(report.tree.leafDefinitionCount);
+        expect(report.features.cylinders).toBe(1295);
+        expect(report.features.surfaces).toBe(2451);
+        expect(report.features.travelAxes).toBe(64);
+        expect(report.features.definitionsWithoutCylinder).toEqual([]);
+        expect(report.features.diagnostics).toEqual([]);
+    });
+
     it('proves every piece has its own mesh and its own pickable node', () => {
         expect(report.crosswalk.matched).toBe(EXPECTED_OCCURRENCES);
         expect(report.crosswalk.issues).toEqual([]);

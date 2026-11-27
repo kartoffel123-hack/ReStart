@@ -33,6 +33,8 @@ export type StepViewModel = Readonly<{
     stopLandmark: string;
     directionLabel: string;
     canConfirm: boolean;
+    isHistorical: boolean;
+    canGoBack: boolean;
     confirmationLabel: string;
     /** Why confirmation is unavailable, in the mechanic's terms. Shown only when it is. */
     blockedReason: string | null;
@@ -43,6 +45,7 @@ export type ManualActions = Readonly<{
     replayMotion(): void;
     resetCamera(): void;
     returnToCurrentStep(): void;
+    goBackOneStep(): void;
 }>;
 
 export type ManualScreenProps = Readonly<{
@@ -57,7 +60,7 @@ export type ManualScreenProps = Readonly<{
 export function toStepViewModel(
     step: RepairStep,
     total: number,
-    eligibility: Readonly<{ canConfirm: boolean; blockedReason?: string }>
+    eligibility: Readonly<{ canConfirm: boolean; blockedReason?: string; isHistorical?: boolean; canGoBack?: boolean }>
 ): StepViewModel {
     return {
         stepId: step.stepId,
@@ -74,6 +77,8 @@ export function toStepViewModel(
         stopLandmark: step.stopLandmark,
         directionLabel: step.directionLabel,
         canConfirm: eligibility.canConfirm,
+        isHistorical: eligibility.isHistorical ?? false,
+        canGoBack: eligibility.canGoBack ?? false,
         confirmationLabel: 'Confirm this step',
         blockedReason: eligibility.canConfirm ? null : (eligibility.blockedReason ?? null)
     };

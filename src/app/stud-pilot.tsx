@@ -3,7 +3,7 @@ import { ManualScreen } from '../presentation/manual-screen.js';
 import { PiecePickerScreen } from '../presentation/piece-picker-screen.js';
 import { toStepViewModel } from '../presentation/manual-contract.js';
 import { StudScene } from '../scene/stud-scene.js';
-import { confirmStep, createManualSession, type ManualSession } from './manual-session.js';
+import { confirmStep, createManualSession, unconfirmLastStep, type ManualSession } from './manual-session.js';
 import { pilotBase, type PilotData } from './pilot-data.js';
 import { loadPackage } from './package-loader.js';
 import type { AssemblyModel, Vec3 } from '../domain/schema.js';
@@ -92,7 +92,7 @@ export function StudPilot() {
         if(member && to) offsets[member]=to;
     }
     const removed = session ? removedInstances(session.steps, session.confirmedCount, data?.movers ?? {}) : new Set<string>();
-    const scene = data && sceneTarget && <StudScene url={geometryUrl} target={(step && data.movers[step.operationId]) || sceneTarget} selectionActive={!!target} removed={removed} offsets={offsets} colors={colors} isolate={false} explode={0} idleAutoRotate={!session && history===null} highlight={hovered}
+    const scene = data && sceneTarget && <StudScene url={geometryUrl} target={(step && data.movers[step.operationId]) || sceneTarget} selectionActive={!!target} replacementPreview={step?.phase==='replace'} removed={removed} offsets={offsets} colors={colors} isolate={false} explode={0} idleAutoRotate={!session && history===null} highlight={hovered}
         xrStep={step ? {id:step.stepId,text:`${step.ordinal}. ${step.instruction}`,replay:()=>play(n=>n+1),confirm:()=>{if(history===null && !checkFailed)setSession(s=>s && confirmStep(s,step.stepId));}} : undefined}
         start={path?.[0] ?? zero} end={path?.[1] ?? zero} focus={!!step}
         replay={replay} reset={reset} onPick={id => { if (!session && !checkpoint) {setJoint(false);select(id);} }} />;
@@ -121,10 +121,19 @@ export function StudPilot() {
     </main>;
     if (step && session) return <>
         <ManualScreen step={toStepViewModel(step,session.total,{ canConfirm: !checkFailed && history===null,
-            blockedReason: history!==null ? 'Viewing a confirmed step. Return to the current step to continue.' : 'Fit check failed. Inspect the seating before checking again.' })}
+            blockedReason: history!==null ? 'Viewing a confirmed step. Return to the current step to continue.' : 'Fit check failed. Inspect the seating before checking again.',
+            isHistorical: history!==null, canGoBack: history===null && session.confirmedCount>0 })}
             scene={scene} actions={{
                 confirmStep: id => setSession(s => s && !checkFailed ? confirmStep(s,id) : s),
                 replayMotion: () => play(n => n+1), resetCamera: () => resetCamera(n => n+1),
+                goBackOneStep: () => {
+                    if (history === null && session.confirmedCount > 0) {
+                        setSession(current => current && unconfirmLastStep(current));
+                        failCheck(false);
+                        resetCamera(n => n+1);
+                        play(n => n+1);
+                    }
+                },
                 returnToCurrentStep: () => { setHistory(null);resetCamera(n => n+1); play(n => n+1); }
             }} />
         {step.phase === 'check' && <button className="stud-check" onClick={() => failCheck(!checkFailed)}>

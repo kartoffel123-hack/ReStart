@@ -21,8 +21,24 @@ test('a mechanic exchanges the light stud, reseats it and checks the fit', async
     await canvas.click({ position: { x: clickTarget.x-bounds.x, y: clickTarget.y-bounds.y } });
     await page.getByRole('button', { name: /replace light stud/i }).click();
     await expect(page.getByLabel('Assembly view').locator('canvas')).toBeVisible();
+    await expect(page.getByRole('img', { name: 'Full helicopter overview' })).toBeVisible();
+    const viewBounds = (await page.locator('.rs-manual__field').boundingBox())!;
+    const cardBounds = (await page.getByRole('region', { name: 'This step' }).boundingBox())!;
+    expect(viewBounds.x).toBe(0);
+    expect(viewBounds.y).toBe(0);
+    expect(viewBounds.width).toBe(page.viewportSize()!.width);
+    expect(viewBounds.height).toBe(page.viewportSize()!.height);
+    expect(cardBounds.x).toBeGreaterThan(viewBounds.x);
+    expect(cardBounds.y).toBeGreaterThan(viewBounds.y);
+    expect(cardBounds.x).toBeLessThan(viewBounds.x+viewBounds.width);
+    expect(cardBounds.y).toBeLessThan(viewBounds.y+viewBounds.height);
     for (const phase of ['remove', 'replace', 'restore', 'check']) {
         await expect(page.locator('[data-screen="manual"]')).toHaveAttribute('data-phase', phase);
+        if (phase === 'replace') {
+            await expect(page.getByRole('img', { name: 'Full helicopter overview' })).toHaveCount(0);
+        } else {
+            await expect(page.getByRole('img', { name: 'Full helicopter overview' })).toBeVisible();
+        }
         if (phase === 'check') {
             await page.getByRole('button', { name: 'Fit check failed' }).click();
             await expect(page.getByRole('button', { name: /confirm this step/i })).toBeDisabled();

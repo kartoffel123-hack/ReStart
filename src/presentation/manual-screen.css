@@ -2,12 +2,14 @@
    tokens.css, so Astra can revise the look without touching these rules. */
 
 .rs-manual {
-    display: grid;
-    grid-template-columns: minmax(0, 2fr) minmax(20rem, 1fr);
-    gap: var(--rs-space-3);
-    align-items: stretch;
-    min-height: 100vh;
-    padding: var(--rs-space-3);
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    padding: 0;
+    overflow: hidden;
     background: var(--rs-build-field);
     color: var(--rs-ink);
     font-family: var(--rs-font-body);
@@ -18,13 +20,18 @@
 /* --- the drawing field ------------------------------------------------- */
 
 .rs-manual__field {
-    position: relative;
+    position: absolute;
+    inset: 0;
     display: flex;
-    min-height: 24rem;
-    border: 1px solid var(--rs-hairline);
-    border-radius: var(--rs-radius);
+    min-height: 0;
     background: var(--rs-build-field);
     overflow: hidden;
+}
+
+.rs-manual__field > .stud-scene {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
 }
 
 .rs-manual__inset {
@@ -45,13 +52,32 @@
     font-weight: 700;
 }
 
+.scene-viewfinder {
+    position: absolute;
+    z-index: 1;
+    left: 12px;
+    bottom: 12px;
+    width: min(200px, 34vw, 45dvh);
+    aspect-ratio: 1.5;
+    border: 1px solid var(--rs-hairline);
+    border-radius: var(--rs-radius);
+    pointer-events: none;
+}
+
 /* --- the instruction strip --------------------------------------------- */
 
 .rs-manual__strip {
+    position: absolute;
+    z-index: 2;
+    top: clamp(1rem, 3vh, 2rem);
+    right: clamp(1rem, 3vw, 2rem);
+    width: min(27rem, calc(100% - 2rem));
+    max-height: calc(100dvh - 2 * clamp(1rem, 3vh, 2rem));
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: var(--rs-space-2);
-    padding: var(--rs-space-3);
+    gap: var(--rs-space-3);
+    padding: var(--rs-space-4);
     border: 1px solid var(--rs-hairline);
     border-radius: var(--rs-radius);
     background: var(--rs-paper);
@@ -87,7 +113,7 @@
 .rs-manual__words {
     display: flex;
     flex-direction: column;
-    gap: var(--rs-space-1);
+    gap: var(--rs-space-2);
 }
 
 .rs-manual__heading {
@@ -120,6 +146,16 @@
 .rs-manual__instruction {
     margin: 0;
     line-height: 1.5;
+}
+
+.rs-manual__description summary {
+    color: var(--rs-focus);
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.rs-manual__description[open] .rs-manual__instruction {
+    padding-top: var(--rs-space-1);
 }
 
 .rs-manual__facts {
@@ -166,7 +202,42 @@
     display: flex;
     flex-direction: column;
     gap: var(--rs-space-1);
-    margin-top: auto;
+    margin-top: calc(var(--rs-space-4) * 4);
+}
+
+.rs-manual__motion-controls {
+    display: flex;
+    align-self: flex-start;
+    gap: var(--rs-space-1);
+}
+
+.rs-manual__replay {
+    display: grid;
+    place-items: center;
+    width: var(--rs-min-hit);
+    min-height: var(--rs-min-hit);
+    padding: var(--rs-space-1);
+    border: 1px solid var(--rs-hairline);
+    border-radius: var(--rs-radius);
+    background: var(--rs-paper);
+    color: var(--rs-ink);
+    cursor: pointer;
+}
+
+.rs-manual__replay:disabled {
+    color: var(--rs-muted);
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.rs-manual__replay svg {
+    width: 1.5rem;
+    height: 1.5rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
 }
 
 .rs-manual__confirm {
@@ -206,32 +277,28 @@
 }
 
 .rs-manual__confirm:focus-visible,
+.rs-manual__replay:focus-visible,
 .rs-manual__secondary button:focus-visible {
     outline: 3px solid var(--rs-focus);
     outline-offset: 2px;
 }
 
-/* Plan 02 §5.3: at phone width the drawing field stacks above the instruction strip,
-   and the confirmation stays in reach without horizontal scrolling. */
+/* Keep the instruction card over the full-screen scene on phones, where it sits low
+   enough to leave the canopy visible and can scroll independently when a step is long. */
 @media (max-width: 60rem) {
-    .rs-manual {
-        grid-template-columns: minmax(0, 1fr);
-        padding: var(--rs-space-2);
-    }
-
-    .rs-manual__field {
-        flex-direction: column;
-        min-height: 16rem;
-    }
-
-    /* Overlaying the inset on a short field hides the piece it is meant to explain, so at
-       phone width it sits under the drawing instead (plan 02 §5.3). */
-    .rs-manual__inset {
-        position: static;
+    .rs-manual__strip {
+        top: auto;
+        right: var(--rs-space-2);
+        bottom: var(--rs-space-2);
+        left: var(--rs-space-2);
         width: auto;
-        margin: var(--rs-space-2);
-        margin-top: auto;
-        box-shadow: none;
+        max-height: 64dvh;
+        padding: var(--rs-space-3);
+        gap: var(--rs-space-2);
+    }
+
+    .rs-manual__inset {
+        width: 10rem;
     }
 
     .rs-manual__numeral {

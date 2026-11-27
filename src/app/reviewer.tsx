@@ -103,7 +103,7 @@ export function Reviewer() {
         const path=step && pilot.paths[step.operationId];
         return <main className="reviewer" data-route="review"><header className="draft-banner"><strong>Local rehearsal</strong> · Draft state replay only. <button onClick={()=>setRehearsal(undefined)}>Back to reviewer</button></header>
             {step ? <ManualScreen step={toStepViewModel(step,rehearsal.session.total,{canConfirm:true})} scene={<StudScene url={geometry} target={pilot.movers[step.operationId] ?? rehearsal.repair.targetIds[0]!} start={path?.[0]??zero} end={path?.[1]??zero} offsets={offsets} focus={true} replay={motionReplay} reset={viewReset} onPick={()=>{}}/>}
-                actions={{confirmStep:id=>setRehearsal(s=>s && {...s,session:confirmStep(s.session,id)}),resetCamera:()=>resetView(n=>n+1),replayMotion:()=>replayMotion(n=>n+1),returnToCurrentStep:()=>resetView(n=>n+1)}}/> : <h1>Rehearsal complete</h1>}</main>;
+                actions={{confirmStep:id=>setRehearsal(s=>s && {...s,session:confirmStep(s.session,id)}),resetCamera:()=>resetView(n=>n+1),replayMotion:()=>replayMotion(n=>n+1),returnToCurrentStep:()=>resetView(n=>n+1),goBackOneStep:()=>{}}}/> : <h1>Rehearsal complete</h1>}</main>;
     }
     const tree=(parent:string):React.ReactNode=>model.occurrences.filter(o=>o.parent===parent).map(p=>p.kind==='piece'?<li key={p.id}><button onClick={()=>select(p.id)}>{p.commonName} — {p.id.split('/').at(-1)}</button></li>:
         <li key={p.id}><details><summary>{p.commonName}</summary><ul>{tree(p.id)}</ul></details></li>);

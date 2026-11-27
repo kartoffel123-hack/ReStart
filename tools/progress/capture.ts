@@ -144,6 +144,15 @@ async function capture(
         for (let i = 0; i < 14; i++) await page.getByRole('button', {name:'Confirm this step'}).click();
         await page.getByRole('region', {name:'This step'}).getByText(/slide the cross block sideways/i).first().waitFor();
     }
+    if (scenario.setup === 'replacement-preview') {
+        await page.evaluate(() => sessionStorage.clear());
+        await page.reload();
+        await page.getByText('Advanced Parameters').click();
+        await page.getByRole('combobox', {name:'Occurrence'}).selectOption('30465/NAUO33/NAUO39');
+        await page.getByRole('button', {name:/replace light stud/i}).click();
+        await page.getByRole('button', {name:'Confirm this step'}).click();
+        await page.locator('[data-screen="manual"][data-phase="replace"] .rs-manual__field canvas').waitFor();
+    }
     if (scenario.setup === 'expand-nauo56-sequence') {
         const sequence = page.getByRole('region', { name: 'Reparaturablauf' });
         for (const summary of await sequence.locator('summary').all()) await summary.click();

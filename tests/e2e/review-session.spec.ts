@@ -35,3 +35,18 @@ test('refresh asks about the kit before resuming a confirmed operation',async ({
     await page.getByRole('button',{name:'Kit matches — resume'}).click();
     await expect(page.locator('[data-phase="replace"]')).toBeVisible();
 });
+
+test('previous step unconfirms the active repair step',async ({page})=>{
+    await page.goto('/');
+    await page.getByText('Advanced Parameters').click();
+    await page.getByRole('combobox',{name:'Occurrence'}).selectOption('30465/NAUO33/NAUO39');
+    await page.getByRole('button',{name:/replace light stud/i}).click();
+    await expect(page.getByRole('button',{name:'Back to this step'})).toHaveCount(0);
+    const step = page.getByRole('region',{name:'This step'});
+    const firstInstruction = await step.locator('.rs-manual__instruction').textContent();
+    await page.getByRole('button',{name:'Confirm this step'}).click();
+    await page.getByRole('button',{name:'Previous step'}).click();
+    await expect(step.locator('.rs-manual__instruction')).toHaveText(firstInstruction!);
+    await expect(page.getByRole('button',{name:'Confirm this step'})).toBeEnabled();
+    await expect(page.getByRole('button',{name:'Previous step'})).toBeDisabled();
+});

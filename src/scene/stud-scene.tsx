@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { ArrowHelper, Box3, Color, DirectionalLight, DoubleSide, EdgesGeometry, Group, HemisphereLight, LineBasicMaterial, LineSegments, Mesh, MeshStandardMaterial, MeshBasicMaterial, OrthographicCamera, Raycaster, Scene, ShaderMaterial, Vector2, Vector3, WebGLRenderer } from 'three';
-import { partInset } from './part-inset.js';
+import { viewportInset } from './viewport-inset.js';
 import { xrManual,type XrStep } from './xr-manual.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -13,6 +13,7 @@ type Props = {
     idleAutoRotate?:boolean;
     highlight?:string;
     selectionActive?:boolean;
+    replacementPreview?:boolean;
     offsets?:Readonly<Record<string,Vec3>>;
     removed?:ReadonlySet<string>;
     xrStep?:XrStep|undefined;
@@ -23,8 +24,7 @@ export function StudScene(props: Props) {
     const latest = useRef(props);
     useEffect(() => { latest.current = props; }, [props]);
     const [error, setError] = useState(false);
-    const [retry,setRetry]=useState(0),[paused,pause]=useState(false);
-    const pausedRef=useRef(false);
+    const [retry,setRetry]=useState(0);
     const [modes,setModes]=useState<XRSessionMode[]>([]),[xrError,setXrError]=useState('');
     const xr=useRef<ReturnType<typeof xrManual>|null>(null);
     useEffect(()=>{if(!window.isSecureContext || !navigator.xr)return;let live=true;
@@ -79,7 +79,7 @@ export function StudScene(props: Props) {
             return null;
         };
         const meshPoses=new Map<Mesh,{pose:Vector3; explode:Vector3;neutral:MeshStandardMaterial;center:Vector3}>();
-        const inset=partInset();
+        const inset=viewportInset();
         let hoverOutline:LineSegments<EdgesGeometry,LineBasicMaterial>|undefined;
         let selectedOutline:LineSegments<EdgesGeometry,LineBasicMaterial>|undefined;
         let selectedHatch:Mesh|undefined;
@@ -139,11 +139,17 @@ void main() {
         const frameCamera = () => {
             const focused = latest.current.focus;
             const p=latest.current;
-            controls.target.copy(focused ? center.clone().addScaledVector(new Vector3(...p.start).add(new Vector3(...p.end)),0.0005) : new Vector3(0,0.012,0));
+            const pivot = focused
+                ? center.clone().addScaledVector(new Vector3(...p.start).add(new Vector3(...p.end)),0.0005)
+                : new Vector3(0,0.012,0);
+            // Shift the assembly left on screen, leaving clear space for the overlaid
+            // instruction card on the right. This is a view-space offset, not a model move.
+            if (focused) pivot.add(new Vector3(-1,0,0.6).normalize().multiplyScalar(0.025));
+            controls.target.copy(pivot);
             const halfStroke=new Vector3(...p.start).distanceTo(new Vector3(...p.end))*0.0005;
             // 0.125 m half-height reproduces the picker framing of the old 0.36 m @ 38° view;
             // 0.014 m is the floor that a 40 mm minimum camera distance used to give a small part.
-            fitRadius = focused ? Math.max(0.014,1.3*(targetRadius+halfStroke)) : 0.08;
+            fitRadius = focused ? Math.max(0.014,1.45*(targetRadius+halfStroke)) : 0.08;
             camera.zoom = 1;
             applyFrustum();
             // Keep the canopy-facing three-quarter view: a lower angle than the
@@ -167,6 +173,7 @@ void main() {
                 const position = new Box3().setFromObject(n).getCenter(new Vector3());
                 meshPoses.set(n,{pose:n.position.clone(),center:position.clone(),neutral:n.material,explode:position.sub(new Vector3(0,0.012,0)).multiplyScalar(0.7)});
             });
+            inset.frame(model);
         }, undefined, () => { if (!disposed) setError(true); });
         const resize = new ResizeObserver(() => {
             const w = el.clientWidth, h = el.clientHeight;
@@ -224,7 +231,6 @@ void main() {
                     selectedOutline.renderOrder=2;
                     stud.add(selectedOutline);
                 }
-                inset.select(stud);
                 if(ghost) display.remove(ghost);ghost=new Mesh(stud.geometry,ghostMaterial);ghost.quaternion.copy(stud.quaternion);ghost.visible=false;display.add(ghost);
             }
             if(!stud)return;
@@ -244,7 +250,6 @@ void main() {
                 const v = b.clone().sub(a);
                 arrow.visible = v.lengthSq() > 0;
                 if(ghost){ghost.visible=arrow.visible;ghost.position.copy(installed).add(a);}
-                pausedRef.current=false;pause(false);
                 if (arrow.visible) {
                     arrow.position.copy(center).add(a).y += 0.005;
                     arrow.setDirection(v.clone().normalize());
@@ -268,13 +273,16 @@ void main() {
                 }
             }
             previous = p;
-            if(pausedRef.current) began+=now-lastTime;
             lastTime=now;
             controls.update();
             const t = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 1 : Math.min(1,(now-began)/1200);
             stud.position.copy(installed).add(displacement.lerpVectors(a,b,t)).addScaledVector(meshPoses.get(stud)!.explode,p.explode ?? 0);
-            xr.current?.update();renderer.render(scene,camera);
-            if(p.focus) inset.draw(renderer,el.clientWidth,el.clientHeight);
+            xr.current?.update();
+            if(p.replacementPreview) inset.drawReplacement(renderer,el.clientWidth,el.clientHeight,now,stud);
+            else {
+                renderer.render(scene,camera);
+                if(p.focus) inset.draw(renderer,scene,camera,el.clientWidth,el.clientHeight);
+            }
             if (!p.focus) {
                 const ndc = displacement.copy(center).addScaledVector(meshPoses.get(stud)!.explode,p.explode ?? 0).project(camera);
                 renderer.domElement.dataset.targetPoint = `${(ndc.x+1)/2},${(1-ndc.y)/2}`;
@@ -286,7 +294,7 @@ void main() {
             if (resumeRotation) clearTimeout(resumeRotation);
             controls.removeEventListener('start', pauseForInteraction);
             controls.removeEventListener('end', resumeAfterInteraction);
-            renderer.setAnimationLoop(null); controls.dispose(); if (model) dropModel(model);
+            renderer.setAnimationLoop(null); controls.dispose(); inset.dispose(); if (model) dropModel(model);
             xr.current?.dispose();xr.current=null;ghostMaterial.dispose();meshPoses.forEach(v=>v.neutral.dispose());
             componentOutlines.forEach(outline=>outline.geometry.dispose());
             selectedOutline?.geometry.dispose();
@@ -297,7 +305,8 @@ void main() {
     }, [props.url,retry]);
     return <div className="stud-scene" ref={host} aria-label="Helicopter with selected piece highlighted">
         {error && <p role="status">3D view unavailable. Follow the written direction and stop landmark. <button onClick={()=>setRetry(n=>n+1)}>Retry 3D view</button></p>}
-        {props.focus && !error && <div className="scene-tools"><button onClick={()=>{pausedRef.current=!pausedRef.current;pause(pausedRef.current);}}>{paused?'Continue animation':'Pause animation'}</button>
+        {props.focus && !props.replacementPreview && !error && <div className="scene-viewfinder" role="img" aria-label="Full helicopter overview" />}
+        {props.focus && !error && <div className="scene-tools">
             {props.xrStep && modes.map(mode=><button key={mode} onClick={()=>{xr.current?.enter(mode).catch(()=>setXrError('Headset session unavailable. Continue on this screen.'));}}>Open {mode==='immersive-ar'?'AR':'VR'} twin</button>)}{xrError}</div>}
     </div>;
 }

@@ -73,7 +73,8 @@ export function ConceptGallery(): ReactNode {
                         confirmStep: noop,
                         replayMotion: noop,
                         resetCamera: noop,
-                        returnToCurrentStep: noop
+                        returnToCurrentStep: noop,
+                        goBackOneStep: noop
                     }}
                     scene={
                         <SchematicScene

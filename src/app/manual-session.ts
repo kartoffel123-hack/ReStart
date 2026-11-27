@@ -50,6 +50,13 @@ export function confirmStep(session: ManualSession, stepId: string): ManualSessi
     return { ...session, confirmedCount, current: session.steps[confirmedCount] ?? null };
 }
 
+/** Undo the most recent confirmation and make that instruction current again. */
+export function unconfirmLastStep(session: ManualSession): ManualSession {
+    if (session.confirmedCount === 0) return session;
+    const confirmedCount = session.confirmedCount - 1;
+    return { ...session, confirmedCount, current: session.steps[confirmedCount] ?? null };
+}
+
 /** Steps the mechanic may still browse without committing, for the step list. */
 export function stepHistory(session: ManualSession): ReadonlyArray<
     RepairStep & Readonly<{ state: 'confirmed' | 'current' | 'upcoming' }>

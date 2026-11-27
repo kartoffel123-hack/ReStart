@@ -17,7 +17,7 @@ import type { ReactNode } from 'react';
 import { ManualScreen } from '../../src/presentation/manual-screen.js';
 import type { ManualScreenProps } from '../../src/presentation/manual-contract.js';
 import { toStepViewModel } from '../../src/presentation/manual-contract.js';
-import { createManualSession, confirmStep } from '../../src/app/manual-session.js';
+import { createManualSession, confirmStep, unconfirmLastStep } from '../../src/app/manual-session.js';
 import type { RepairStep } from '../../src/domain/schema.js';
 
 const BURIED_GEAR: RepairStep = {
@@ -47,7 +47,8 @@ function renderScreen(
         confirmStep: vi.fn(),
         replayMotion: vi.fn(),
         resetCamera: vi.fn(),
-        returnToCurrentStep: vi.fn()
+        returnToCurrentStep: vi.fn(),
+        goBackOneStep: vi.fn()
     };
     const props = {
         step: toStepViewModel(step, 7, { canConfirm: true }),
@@ -76,6 +77,18 @@ describe('what the mechanic can read off the screen', () => {
         expect(screen.getByText(/Tail rotor, behind the gear/)).toBeInTheDocument();
     });
 
+    it('keeps the step instruction collapsed until the mechanic opens it', async () => {
+        const user = userEvent.setup();
+        renderScreen();
+        const instruction = screen.getByText(BURIED_GEAR.instruction);
+        const direction = screen.getByText(BURIED_GEAR.directionLabel);
+        expect(instruction).not.toBeVisible();
+        expect(direction).not.toBeVisible();
+        await user.click(screen.getByText('Details'));
+        expect(instruction).toBeVisible();
+        expect(direction).toBeVisible();
+    });
+
     it('shows the step as one of a counted sequence', () => {
         renderScreen();
         expect(screen.getByText('3')).toBeInTheDocument();
@@ -92,7 +105,7 @@ describe('what the mechanic can read off the screen', () => {
         const { rerender } = render(
             <ManualScreen
                 step={toStepViewModel(BURIED_GEAR, 7, { canConfirm: true })}
-                actions={{ confirmStep: vi.fn(), replayMotion: vi.fn(), resetCamera: vi.fn(), returnToCurrentStep: vi.fn() }}
+                actions={{ confirmStep: vi.fn(), replayMotion: vi.fn(), resetCamera: vi.fn(), returnToCurrentStep: vi.fn(), goBackOneStep: vi.fn() }}
                 {...slots}
             />
         );
@@ -101,7 +114,7 @@ describe('what the mechanic can read off the screen', () => {
         rerender(
             <ManualScreen
                 step={toStepViewModel({ ...BURIED_GEAR, phase: 'restore' }, 7, { canConfirm: true })}
-                actions={{ confirmStep: vi.fn(), replayMotion: vi.fn(), resetCamera: vi.fn(), returnToCurrentStep: vi.fn() }}
+                actions={{ confirmStep: vi.fn(), replayMotion: vi.fn(), resetCamera: vi.fn(), returnToCurrentStep: vi.fn(), goBackOneStep: vi.fn() }}
                 {...slots}
             />
         );
@@ -122,6 +135,10 @@ describe('what the mechanic does', () => {
         const { actions } = renderScreen();
         const user = userEvent.setup();
         await user.tab();
+        expect(screen.getByText('Details')).toHaveFocus();
+        await user.tab();
+        expect(screen.getByRole('button', { name: /replay the motion/i })).toHaveFocus();
+        await user.tab();
         const confirm = screen.getByRole('button', { name: /confirm/i });
         expect(confirm).toHaveFocus();
         await user.keyboard('{Enter}');
@@ -141,11 +158,38 @@ describe('what the mechanic does', () => {
     });
 
     it('offers to replay the motion and to return to the current step', () => {
-        const { actions } = renderScreen();
+        const { actions } = renderScreen(BURIED_GEAR, {
+            step: toStepViewModel(BURIED_GEAR, 7, { canConfirm: false, isHistorical: true })
+        });
         fireEvent.click(screen.getByRole('button', { name: /replay/i }));
         fireEvent.click(screen.getByRole('button', { name: /back to this step/i }));
         expect(actions.replayMotion).toHaveBeenCalled();
         expect(actions.returnToCurrentStep).toHaveBeenCalled();
+    });
+
+    it('does not show a duplicate back action on the current step', () => {
+        renderScreen();
+        expect(screen.queryByRole('button', { name: /back to this step/i })).not.toBeInTheDocument();
+    });
+
+    it('does not show a reset-view button', () => {
+        renderScreen();
+        expect(screen.queryByRole('button', { name: /reset the view/i })).not.toBeInTheDocument();
+    });
+
+    it('offers the previous step next to replay when a prior step exists', () => {
+        const { actions } = renderScreen(BURIED_GEAR, {
+            step: toStepViewModel(BURIED_GEAR, 7, { canConfirm: false, isHistorical: true, canGoBack: true })
+        });
+        const previous = screen.getByRole('button', { name: 'Previous step' });
+        expect(previous).toBeEnabled();
+        fireEvent.click(previous);
+        expect(actions.goBackOneStep).toHaveBeenCalled();
+    });
+
+    it('disables previous step when there is no earlier instruction', () => {
+        renderScreen();
+        expect(screen.getByRole('button', { name: 'Previous step' })).toBeDisabled();
     });
 });
 
@@ -199,5 +243,19 @@ describe('the session behind the screen', () => {
         let session = createManualSession({ steps, total: 3 });
         session = confirmStep(session, 'step-1');
         expect(confirmStep(session, 'step-1').confirmedCount).toBe(1);
+    });
+
+    it('undoes the last confirmation and makes that step current again', () => {
+        let session = createManualSession({ steps, total: 3 });
+        session = confirmStep(session, 'step-1');
+        session = confirmStep(session, 'step-2');
+        const rewound = unconfirmLastStep(session);
+        expect(rewound.confirmedCount).toBe(1);
+        expect(rewound.current?.stepId).toBe('step-2');
+    });
+
+    it('does not go back before the first step', () => {
+        const session = createManualSession({ steps, total: 3 });
+        expect(unconfirmLastStep(session)).toBe(session);
     });
 });

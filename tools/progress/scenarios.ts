@@ -25,7 +25,7 @@ export type Scenario = Readonly<{
     highlights: string;
     /** Selector that must exist before capturing; keeps captures deterministic. */
     waitFor?: string;
-    setup?: 'blocked-preview' | 'buried-pin' | 'cross-block' | 'expand-nauo56-sequence';
+    setup?: 'blocked-preview' | 'buried-pin' | 'cross-block' | 'expand-nauo56-sequence' | 'replacement-preview';
     viewports?: readonly Viewport[];
     fullPage?: boolean;
 }>;
@@ -55,6 +55,15 @@ export const SCENARIOS: readonly Scenario[] = [
         highlights:
             'The full assembly is presented in the default three-quarter view with no piece selected; the selection panel prompts the mechanic to click a piece.',
         waitFor: '[data-route="manual"] .stud-picker__selection--empty'
+    },
+    {
+        id: 'manual-replacement-preview',
+        label: 'Replacement part isolated in the full-screen repair view',
+        route: '#/',
+        setup: 'replacement-preview',
+        highlights:
+            'During the replace step, the selected replacement part fills the main view, spins with a black outline, and the helicopter overview inset is hidden.',
+        waitFor: '[data-screen="manual"][data-phase="replace"] .rs-manual__field canvas'
     },
     {
         id: 'review-route',

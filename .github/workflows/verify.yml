@@ -1,0 +1,68 @@
+name: Verify repair manual
+on:
+  pull_request:
+  push:
+    branches: [main, 'feat/**']
+    tags: ['v*']
+permissions:
+  contents: read
+jobs:
+  pilot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: chromium-errors
+          path: test-results/
+          if-no-files-found: ignore
+  model:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run model:import
+      - run: npm run model:compile
+      - run: npm run model:worklist
+      - name: Replay the staged generation
+        id: batch
+        run: npm run model:verify
+        # A development branch can contain partial motion coverage. A release
+        # tag must never turn the same nonzero exit into a passing gate.
+        continue-on-error: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+      - name: Record the actual coverage
+        if: always()
+        run: |
+          node --input-type=module <<'JS' >> "$GITHUB_STEP_SUMMARY"
+          import fs from 'node:fs';
+          const report = JSON.parse(fs.readFileSync('.staging/30465/verification.json'));
+          const totals = {};
+          for (const row of report.rows) totals[row.status] = (totals[row.status] ?? 0) + 1;
+          console.log('Generation:', report.generation, '\n\n', JSON.stringify(totals), '\n\nRelease ready:', report.releaseReady);
+          if (report.rows.some(r => r.status === 'invalid-path')) process.exitCode = 1;
+          if (process.env.GITHUB_REF?.startsWith('refs/tags/v') && !report.releaseReady) process.exitCode = 1;
+          JS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: target-coverage
+          path: |
+            .staging/30465/verification.json
+            .staging/30465/mechanical-review.md
+          include-hidden-files: true
+          if-no-files-found: ignore

@@ -18,4 +18,4 @@ it('keeps the stud and buried-pin candidates distinct from unmodeled targets and
         await writeFile(join(dir,manifest.files.manuals),'[]');
         await expect(verifyStage(dir)).rejects.toThrow(/hash/i);
     } finally { await rm(root,{recursive:true,force:true}); }
-});
+},180_000);

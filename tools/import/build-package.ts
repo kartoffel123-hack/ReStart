@@ -16,6 +16,7 @@ import { parseStepEntities } from '../lib/step-file.js';
 import { STEP_SHA256, buildAssemblyTree, type AssemblyTree } from '../lib/step-tree.js';
 import { extractFeatureTable } from '../lib/features.js';
 import { extractCandidateInterfaces } from '../lib/interfaces.js';
+import { confirmInterfaces, worldMesh, type WorldMesh } from '../lib/contacts.js';
 import { tessellateStep, reachableMeshes, TESSERATION_OPTIONS, type TessellationOptions } from '../lib/step-meshes.js';
 import { buildCrosswalk, type Crosswalk } from '../lib/crosswalk.js';
 import { buildAssemblyGlb, inspectAssemblyGlb, type GlbReport } from '../lib/glb.js';
@@ -89,6 +90,21 @@ export type ImportReport = Readonly<{
         fitToleranceMm: number;
         axisToleranceMm: number;
         kindCounts: Readonly<Record<string, number>>;
+        /**
+         * Which of those candidates are joints, decided by face contact (plan 02 §3C step 4).
+         * `piecePairs` is the count the graph is built from: one joint per pair of pieces that
+         * really grip, however many face pairs describe it.
+         */
+        confirmed: Readonly<{
+            joints: number;
+            piecePairs: number;
+            engagementMinMm: number;
+            engagementMaxMm: number;
+            contactMaxMm: number;
+            rejectedByReason: Readonly<Record<string, number>>;
+            /** Occurrences no face contact confirmed against anything. */
+            withoutJoint: readonly string[];
+        }>;
     }>;
     /** Ticket 2: type catalog, row references, candidate units and timing coverage. */
     sources: Readonly<{
@@ -166,6 +182,26 @@ export async function buildImportPackage(
             `identity crosswalk reported ${crosswalk.issues.length} issue(s):\n` +
                 crosswalk.issues.map((issue) => `  ${issue.code}: ${issue.message}`).join('\n')
         );
+    }
+
+    // Confirmation (plan 02 §3C step 4): a candidate is a joint only when its two faces hold
+    // their material on opposite sides of the cylinder and their own material runs together along
+    // it. The engagement that follows is what a release stroke has to clear.
+    const meshes = new Map<string, WorldMesh>();
+    for (const entry of crosswalk.entries) {
+        const mesh = tessellation.meshes[entry.meshIndex];
+        if (mesh !== undefined) meshes.set(entry.occurrenceId, worldMesh(entry.occurrenceId, mesh));
+    }
+    const confirmed = confirmInterfaces(mating.candidates, meshes);
+    const rejectedByReason: Record<string, number> = {};
+    for (const rejected of confirmed.rejected) {
+        rejectedByReason[rejected.reason] = (rejectedByReason[rejected.reason] ?? 0) + 1;
+    }
+    const engagements = confirmed.confirmed.map((joint) => joint.engagementMm);
+    const gripped = new Set<string>();
+    for (const joint of confirmed.confirmed) {
+        gripped.add(joint.source.male.occurrenceId);
+        gripped.add(joint.source.female.occurrenceId);
     }
 
     const glb = await buildAssemblyGlb(tree.occurrences, tessellation.meshes, crosswalk);
@@ -248,7 +284,22 @@ export async function buildImportPackage(
             candidates: mating.candidates.length,
             fitToleranceMm: mating.fitToleranceMm,
             axisToleranceMm: mating.axisToleranceMm,
-            kindCounts: mating.kindCounts
+            kindCounts: mating.kindCounts,
+            confirmed: {
+                joints: confirmed.confirmed.length,
+                piecePairs: new Set(
+                    confirmed.confirmed.map((joint) =>
+                        [joint.source.male.occurrenceId, joint.source.female.occurrenceId].sort().join('|')
+                    )
+                ).size,
+                engagementMinMm: engagements.length > 0 ? Math.min(...engagements) : 0,
+                engagementMaxMm: engagements.length > 0 ? Math.max(...engagements) : 0,
+                contactMaxMm: confirmed.confirmed.reduce((max, joint) => Math.max(max, joint.contactMm), 0),
+                rejectedByReason,
+                withoutJoint: tree.occurrences
+                    .filter((occurrence) => !gripped.has(occurrence.id))
+                    .map((occurrence) => occurrence.id)
+            }
         },
         glb: {
             sha256: sha256(glb),

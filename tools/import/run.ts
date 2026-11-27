@@ -48,7 +48,20 @@ async function main(): Promise<void> {
         'mating interfaces',
         `${report.interfaces.candidates} candidates from ${report.interfaces.faces} placed faces ` +
             `(coaxial ≤ ${report.interfaces.axisToleranceMm} mm, radius match ≤ ${report.interfaces.fitToleranceMm} mm) — ` +
-            `candidates only, confirmation by face contact is the next package`
+            `candidates only`
+    );
+    const confirmed = report.interfaces.confirmed;
+    const rejectedByReason = Object.entries(confirmed.rejectedByReason)
+        .map(([reason, count]) => `${reason} ${count}`)
+        .join(', ');
+    row(
+        'confirmed joints',
+        `${confirmed.joints} face-pair joints over ${confirmed.piecePairs} piece pairs, ` +
+            `grip ${confirmed.engagementMinMm.toFixed(2)}–${confirmed.engagementMaxMm.toFixed(2)} mm, ` +
+            `contact ≤ ${confirmed.contactMaxMm.toFixed(4)} mm; rejected ${rejectedByReason}` +
+            (confirmed.withoutJoint.length > 0
+                ? `; ${confirmed.withoutJoint.length} occurrence(s) without a joint`
+                : '')
     );
     row('glb', `${report.glb.bytes} bytes, ${report.glb.instances} pickable instances, sha256 ${report.glb.sha256.slice(0, 16)}`);
     row(

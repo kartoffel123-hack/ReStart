@@ -99,16 +99,50 @@ So this list is an input to review, not the graph. Reading it as one would put a
 a move that no geometry supports, and the planner would then tell a mechanic to remove a healthy
 part for nothing — the failure mode the whole objective is built to avoid.
 
-**What confirmation requires.** A candidate becomes a joint when the two faces are shown to
-touch: take the triangles belonging to each face (vertices lying on that cylinder within the
-tessellation uncertainty), and measure the distance between the two triangle sets. Under the
-0.1 mm pose tolerance is a joint; over it is two bores that never met. That also recovers what
-the surface geometry cannot give — the engagement depth, which is the axial span where the two
-sets are in contact — and the release stroke follows from it.
+## Confirmation by face contact (same revision, later package)
 
-Until that lands, `model:import` prints the number as *candidates*, and both
-`tests/data/interfaces.test.ts` and `tests/integration/import-package.test.ts` assert it so a
-revision change is loud.
+Confirmation landed in `tools/lib/contacts.ts` and runs inside `model:import`. It collapsed
+**8,102 candidates → 1,539 confirmed face-pair joints → 83 pairs of pieces that grip**. The two
+tests that did the work, in the order they mattered:
+
+| Test | Rejects | Count | Why it is needed |
+| --- | --- | --- | --- |
+| Opposite material side | `same-side` | **6,335** | 3,402 candidates are two *bores* on one line and 2,933 are two *shafts* end to end. Their surfaces meet at the same radius and there is nothing to take apart. 78 % of the list. |
+| Axial overlap of the two faces' own material | `apart` | 167 | A shaft and a bore that share an axis but never run together grip nothing. |
+| Material side readable | `side-unknown` | 53 | 13 faces have a radial normal mean near zero. Reported, not guessed. |
+| Overlap finer than the mesh | `below-resolution` | 8 | Below the 0.12 mm linear deflection the dataset cannot evidence contact. |
+
+The material side is read from the winding of the face's own triangles: their geometry normals
+point out of the material, so averaged they point away from the axis for a shaft (688 faces) and
+towards it for a bore (1,034). No input beyond the tessellation is consulted.
+
+**Engagement is the overlap, not the length of the surface.** A 22.45 mm axle through a 7.85 mm
+hole engages 7.85 mm. Confirmed grips run **3.00–7.50 mm**, which is the kit's own scale: a bush
+is 3 mm and a beam wall is 7.9 mm. Contact never exceeds **0.0534 mm**, i.e. LEGO's 0.05 mm
+line-to-line fit.
+
+### Defect found while measuring: `MeshBVH.closestPointToGeometry`
+
+`three-mesh-bvh@0.10.0` returns the *global* closest approach regardless of which triangle is
+handed to it. Measured on this snapshot, a male triangle whose centroid sits 7.74 mm from the
+mating bore came back at **0.0303 mm**, while `closestPointToPoint` on the same triangle returned
+**7.7418 mm**. Every engagement was therefore reported as the whole length of the shaft — the
+first version of this file produced a maximum engagement of **70.50 mm**, which is not a joint in
+this helicopter. The kernel now uses vertex-to-surface queries via `closestPointToPoint`, which is
+the conservative direction: it can overstate a gap, never hide one.
+
+### Review items
+
+| ID | Item | Action |
+| --- | --- | --- |
+| RV-003a | `30465/NAUO33/NAUO39` (Light Stud) is the only occurrence with no confirmed joint. Its sole candidates grip by less than the deflection, so the mesh cannot evidence a real LEGO friction fit. | Review on the kit in ticket 5. If the fit is real, the stud needs a rule that does not depend on tessellation resolution. |
+| RV-003b | 1,539 confirmed face-pair joints describe **83** piece pairs, because a long bore is split into several cylindrical faces. | Aggregate to one joint per piece pair per axis line before the graph is generated (ticket 5). |
+| RV-003c | The 0.5 mm radius population (436 cylinders) is still unclassified and contributes no candidate. | Classify or exclude before it can become a move. |
+
+The Stage 1 axle witness still holds: every candidate naming `30465/NAUO1/NAUO79` has it as the
+male side at radius 2.35 mm against a 2.4 mm bore, a radial gap of 0.05 mm, and an axis offset
+within tolerance — which is LEGO's line-to-line fit and the reason 0.1 mm is the right radius
+tolerance and 0.5 mm would not be.
 
 The Stage 1 axle witness holds: every candidate naming `30465/NAUO1/NAUO79` has it as the male
 side at radius 2.35 mm against a 2.4 mm bore, a radial gap of 0.05 mm, and an axis offset within

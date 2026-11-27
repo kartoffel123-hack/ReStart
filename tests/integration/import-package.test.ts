@@ -56,6 +56,24 @@ describe('model:import package', () => {
         expect(classified).toBe(report.interfaces.candidates);
     });
 
+    it('collapses the candidates into the joints a 70-piece helicopter could have', () => {
+        // §3C step 4, decided by face contact rather than by an untrimmed surface. The candidate
+        // list above is a measurement to distrust; this is the measurement that answers it, so
+        // both ends are pinned: 8,102 candidates, 83 pairs of pieces that really grip.
+        const confirmed = report.interfaces.confirmed;
+        expect(confirmed.piecePairs).toBe(83);
+        expect(confirmed.joints).toBe(1539);
+        expect(confirmed.joints).toBeLessThan(report.interfaces.candidates / 4);
+        // A beam wall is 7.9 mm and a bush is 3 mm, so a grip outside that span means the
+        // measurement fell back to reading the infinite surface rather than the material.
+        expect(confirmed.engagementMinMm).toBeGreaterThanOrEqual(3);
+        expect(confirmed.engagementMaxMm).toBeLessThanOrEqual(8);
+        // LEGO's line-to-line fit is 0.05 mm; nothing confirmed may be looser than the deflection.
+        expect(confirmed.contactMaxMm).toBeLessThan(0.06);
+        // One light stud grips by less than the mesh can resolve, and is named rather than dropped.
+        expect(confirmed.withoutJoint).toEqual(['30465/NAUO33/NAUO39']);
+    });
+
     it('proves every piece has its own mesh and its own pickable node', () => {
         expect(report.crosswalk.matched).toBe(EXPECTED_OCCURRENCES);
         expect(report.crosswalk.issues).toEqual([]);

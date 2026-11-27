@@ -44,7 +44,13 @@ export function StudScene(props: Props) {
         controls.autoRotate = false;
         controls.autoRotateSpeed = 1.5;
         let resumeRotation: ReturnType<typeof setTimeout> | undefined;
-        let userInteracting = false;
+        let userInteracting = true;
+        const enableRotation = () => {
+            userInteracting = false;
+            controls.autoRotate = (latest.current.idleAutoRotate ?? false)
+                && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            resumeRotation = undefined;
+        };
         const pauseForInteraction = () => {
             userInteracting = true;
             controls.autoRotate = false;
@@ -52,13 +58,9 @@ export function StudScene(props: Props) {
         };
         const resumeAfterInteraction = () => {
             if (resumeRotation) clearTimeout(resumeRotation);
-            resumeRotation = setTimeout(() => {
-                userInteracting = false;
-                controls.autoRotate = (latest.current.idleAutoRotate ?? false)
-                    && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-                resumeRotation = undefined;
-            }, 2500);
+            resumeRotation = setTimeout(enableRotation, 2500);
         };
+        resumeRotation = setTimeout(enableRotation, 2500);
         controls.addEventListener('start', pauseForInteraction);
         controls.addEventListener('end', resumeAfterInteraction);
         el.appendChild(renderer.domElement);

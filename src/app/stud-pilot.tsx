@@ -24,7 +24,7 @@ export function StudPilot() {
     const [checkpoint,setCheckpoint]=useState(loadCheckpoint);
     const [history,setHistory]=useState<number|null>(null);
     const [joint,setJoint]=useState(false);
-    const [pick,select]=useState(''), [query,search]=useState(''), [isolate,setIsolate]=useState(false), [explode,setExplode]=useState(1);
+    const [pick,select]=useState(''), [query,search]=useState(''), [isolate,setIsolate]=useState(false), [explode,setExplode]=useState(0);
     const [hovered,setHovered]=useState('');
     const colors=useMemo(()=>new Map(data?.inventory.map(p=>[p.id,p.color])),[data]);
     const groups=useMemo(()=>{

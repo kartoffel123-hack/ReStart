@@ -1,11 +1,159 @@
-.reviewer { font:1rem/1.5 var(--rs-font-body); color:var(--rs-ink); display:grid; grid-template-columns:minmax(0,3fr) minmax(0,2fr); gap:var(--rs-space-3); padding:var(--rs-space-3); }
-.reviewer header { grid-column:1/-1; }
-.reviewer section { min-width:0; }
-.reviewer label { display:grid; margin-block:1rem; gap:.25rem; }
-.reviewer select,.reviewer input,.reviewer button { font:inherit; min-height:44px; max-width:100%; }
-.reviewer select { width:100%; }
-.reviewer button { margin:.25rem; }
-.review-scene { display:flex; height:14rem; }
-.review-scene .stud-scene { min-height:0; }
-.draft-banner { padding:1rem; background:var(--rs-parts-inset); font-family:var(--rs-font-body); }
-@media(max-width:48rem){ .reviewer { grid-template-columns:minmax(0,1fr); } }
+/* Reviewer layout (design ui-ux-design.md §5.3). Composition only; appearance lives
+   in tokens.css. */
+.reviewer {
+    display: grid;
+    grid-template:
+        'header header' auto
+        'left   right' 1fr
+        / minmax(0, 3fr) minmax(0, 2fr);
+    gap: var(--rs-space-3);
+    min-height: 100vh;
+    padding: var(--rs-space-3);
+    background: var(--rs-build-field);
+    color: var(--rs-ink);
+    font: var(--rs-body-size)/1.5 var(--rs-font-body);
+}
+.reviewer, .reviewer * { box-sizing: border-box; }
+.reviewer :is(h1, h2, h3, p, ol) { margin: 0; }
+
+/* --- header ------------------------------------------------------------- */
+.reviewer__header {
+    grid-area: header;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    justify-content: space-between;
+    gap: var(--rs-space-1);
+    padding-bottom: var(--rs-space-2);
+    border-bottom: 2px solid var(--rs-ink);
+}
+.reviewer__header h1 { font: 700 clamp(2rem, 4vw, 3.5rem)/1.1 var(--rs-font-numeral); }
+.reviewer__header p { color: var(--rs-muted); font-size: .875rem; }
+.reviewer__header a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--rs-min-hit);
+    color: var(--rs-focus);
+    text-decoration: none;
+    font-weight: 600;
+}
+.reviewer__header a:hover { text-decoration: underline; }
+
+/* --- columns ----------------------------------------------------------- */
+.reviewer__left, .reviewer__right {
+    display: grid;
+    gap: var(--rs-space-3);
+    align-content: start;
+    min-width: 0;
+}
+
+/* --- panels ------------------------------------------------------------ */
+.reviewer__panel {
+    min-width: 0;
+    border: 1px solid var(--rs-hairline);
+    border-radius: var(--rs-radius);
+    background: var(--rs-paper);
+    padding: var(--rs-space-3);
+    display: grid;
+    gap: var(--rs-space-2);
+}
+.reviewer__panel h2 { font-size: 1.375rem; line-height: 1.25; }
+.reviewer__panel > p { line-height: 1.5; }
+
+/* --- draft banner ------------------------------------------------------ */
+.draft-banner {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--rs-space-2);
+    padding: var(--rs-space-2);
+    background: var(--rs-parts-inset);
+    border: 1px solid var(--rs-warn);
+    border-radius: var(--rs-radius);
+    font-weight: 600;
+}
+.draft-banner button {
+    margin-left: auto;
+    min-height: var(--rs-min-hit);
+    padding: var(--rs-space-1) var(--rs-space-2);
+    border: 1px solid var(--rs-ink);
+    border-radius: var(--rs-radius);
+    background: var(--rs-ink);
+    color: var(--rs-paper);
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+/* --- form controls ----------------------------------------------------- */
+.reviewer label { display: grid; gap: var(--rs-space-1); font-weight: 600; font-size: .9375rem; }
+.reviewer :is(input, select) {
+    width: 100%;
+    min-height: 40px;
+    padding-inline: var(--rs-space-1);
+    border: 1px solid var(--rs-muted);
+    border-radius: var(--rs-radius);
+    background: var(--rs-paper);
+    color: var(--rs-ink);
+    font: inherit;
+    font-weight: 400;
+}
+.reviewer button {
+    min-height: var(--rs-min-hit);
+    padding: var(--rs-space-1) var(--rs-space-2);
+    border: 1px solid var(--rs-muted);
+    border-radius: var(--rs-radius);
+    background: var(--rs-paper);
+    color: var(--rs-ink);
+    font: inherit;
+    cursor: pointer;
+}
+.reviewer button:disabled { color: var(--rs-muted); cursor: not-allowed; }
+.reviewer button:focus-visible,
+.reviewer :is(input, select):focus-visible {
+    outline: 3px solid var(--rs-focus);
+    outline-offset: 2px;
+}
+.reviewer__primary {
+    background: var(--rs-ink);
+    color: var(--rs-paper);
+    font-weight: 700;
+    border-color: var(--rs-ink);
+}
+
+/* --- details / tree ---------------------------------------------------- */
+.reviewer details {
+    border-top: 1px solid var(--rs-hairline);
+    padding-top: var(--rs-space-1);
+}
+.reviewer summary {
+    min-height: var(--rs-min-hit);
+    padding-block: var(--rs-space-1);
+    cursor: pointer;
+    font-weight: 600;
+}
+.reviewer ul, .reviewer ol { padding-left: var(--rs-space-3); display: grid; gap: var(--rs-space-1); }
+.reviewer li { line-height: 1.45; }
+
+/* --- scene + graph ----------------------------------------------------- */
+.review-scene { height: 14rem; border-radius: var(--rs-radius); overflow: hidden; background: var(--rs-build-field); }
+.review-scene .stud-scene { min-height: 0; }
+.assembly-diagram { border-radius: var(--rs-radius); overflow: hidden; border: 1px solid var(--rs-hairline); }
+
+/* --- status band ------------------------------------------------------- */
+.reviewer__status { padding: var(--rs-space-1) var(--rs-space-2); border-left: 4px solid var(--rs-focus); background: var(--rs-parts-inset); line-height: 1.45; }
+.reviewer__blocked { padding: var(--rs-space-1) var(--rs-space-2); border-left: 4px solid var(--rs-warn); background: var(--rs-parts-inset); line-height: 1.45; }
+
+/* --- responsive -------------------------------------------------------- */
+@media (max-width: 48rem) {
+    .reviewer {
+        grid-template:
+            'header' auto
+            'left' auto
+            'right' auto
+            / minmax(0, 1fr);
+        gap: var(--rs-space-2);
+        padding: var(--rs-space-2);
+    }
+}

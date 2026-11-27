@@ -168,6 +168,30 @@ first version of this file produced a maximum engagement of **70.50 mm**, which 
 this helicopter. The kernel now uses vertex-to-surface queries via `closestPointToPoint`, which is
 the conservative direction: it can overstate a gap, never hide one.
 
+## Folding face pairs into connections (same revision, later package)
+
+RV-003b is closed by `tools/lib/joints.ts`, which runs inside `model:import` and reports
+`interfaces.aggregated`. **1,632 face-pair joints fold into 84 connections**, one per piece pair
+per axis line, and the fold is what the graph is built from.
+
+| Measurement | Value | What it means |
+| --- | --- | --- |
+| Face pairs folded | 1,632 → **84** | A long bore is several cylindrical faces; the biggest single fold is 76 face pairs onto one line. |
+| Piece pairs gripping on more than one line | **0** | A LEGO connection is one pin or one axle, so no pair of pieces needs a release direction chosen between two lines. |
+| Connections whose grip is split by air | **0** | Every release stroke is one contiguous region, so the manual never has to say "it binds here *and* also here". |
+| Stepped fits | **5** | Two diameters on one line. Kept as one connection and filed as RV-003d. |
+
+Two numbers are kept apart on purpose. `bands` are **disjoint** grip intervals, so a grip two
+faces describe twice is counted once — summing face pairs would report a 9 mm grip for a 3 mm
+one and ask the mechanic for a 9 mm stroke. `spanMm` is the bounding region, which is where the
+pieces interfere but is not a grip, because nothing binds in the air between two bands.
+
+The aggregate frame is derived from geometry rather than from whichever face arrived first: the
+axis is folded to a canonical sense and the origin is the point of the line closest to the
+assembly origin. `tests/data/joints.test.ts` shuffles the 1,632 face pairs with a fixed PRNG and
+asserts the 84 connections come out identical, so the graph cannot depend on the order the
+tessellator emitted faces in.
+
 ### Who was asked about moving a tested baseline
 
 AGENTS.md asks for the advisor before a decision that is expensive to undo, which includes
@@ -192,8 +216,9 @@ answer here. The reasoning that was recorded instead, and what would overturn it
 | ID | Item | Action |
 | --- | --- | --- |
 | RV-003a | **Closed by the frame fix.** `30465/NAUO33/NAUO39` (Light Stud) was the only occurrence with no confirmed joint; measured in one frame it grips its own friction pin over **1.80 mm** at a **0.0216 mm** gap. No occurrence is left without a joint. | Confirm the friction fit on the kit in ticket 5, as a check rather than an open defect. |
-| RV-003b | 1,632 confirmed face-pair joints describe **84** piece pairs, because a long bore is split into several cylindrical faces. | Aggregate to one joint per piece pair per axis line before the graph is generated (ticket 5). |
+| RV-003b | **Closed.** 1,632 confirmed face-pair joints folded into **84 connections**, one per piece pair per axis line, in `tools/lib/joints.ts`. | Nothing further. The generator consumes `interfaces.aggregated`, not the face-pair list. |
 | RV-003c | The 0.5 mm radius population (436 cylinders) is still unclassified and contributes no candidate. | Classify or exclude before it can become a move. |
+| RV-003d | **5 connections run two diameters on one line** — a stepped fit, where one piece enters another at two radii. Folding keeps them as one connection, because they share a line and a release direction, but the class and the stroke belong to the wider grip. | Check each on the kit in ticket 5: confirm the wider grip is the one that must be overcome, and that no step has to be rotated past a flat to clear. |
 
 The Stage 1 axle witness still holds: every candidate naming `30465/NAUO1/NAUO79` has it as the male
 side at radius 2.35 mm against a 2.4 mm bore, a radial gap of 0.05 mm, and an axis offset within

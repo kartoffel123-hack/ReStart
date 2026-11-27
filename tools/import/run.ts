@@ -63,6 +63,14 @@ async function main(): Promise<void> {
                 ? `; ${confirmed.withoutJoint.length} occurrence(s) without a joint`
                 : '')
     );
+    const folded = report.interfaces.aggregated;
+    row(
+        'connections',
+        `${folded.connections} joints, one per piece pair per axis line, from ${confirmed.joints} face pairs ` +
+            `(RV-003b); grip ${folded.engagementMinMm.toFixed(2)}–${folded.engagementMaxMm.toFixed(2)} mm, ` +
+            `${folded.splitGrips} split grips, ${folded.steppedFits} stepped fits, ` +
+            `${folded.multiLinePiecePairs} piece pairs on more than one line`
+    );
     row('glb', `${report.glb.bytes} bytes, ${report.glb.instances} pickable instances, sha256 ${report.glb.sha256.slice(0, 16)}`);
     row(
         'type catalog',

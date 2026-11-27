@@ -78,6 +78,35 @@ describe('model:import package', () => {
         expect(confirmed.withoutJoint).toEqual([]);
     });
 
+    it('folds the face pairs into one connection per piece pair per axis line (RV-003b)', () => {
+        // The graph is built from connections, not from the tessellator's face boundaries, so
+        // the report has to carry the folded number and prove nothing was lost on the way.
+        const folded = report.interfaces.aggregated;
+        expect(folded.connections).toBe(84);
+        expect(folded.detail).toHaveLength(84);
+        expect(new Set(folded.detail.map((joint) => joint.id)).size).toBe(84);
+        // Conservation: every face pair lands in exactly one connection.
+        expect(folded.detail.reduce((total, joint) => total + joint.facePairs, 0)).toBe(
+            report.interfaces.confirmed.joints
+        );
+        // A LEGO connection is one pin or one axle, so a pair of pieces grips on one line. Two
+        // would mean the generator has to choose a release direction, which is review work.
+        expect(folded.multiLinePiecePairs).toBe(0);
+        expect(folded.engagementMinMm).toBeGreaterThanOrEqual(1.8);
+        expect(folded.engagementMaxMm).toBeLessThanOrEqual(8.001);
+        // No connection grips in two separated bands, so each release stroke is one contiguous
+        // region and the manual never has to say "it binds here and also here".
+        expect(folded.splitGrips).toBe(0);
+        for (const joint of folded.detail) {
+            expect(joint.bands).toHaveLength(1);
+            expect(joint.engagementMm).toBeCloseTo(joint.bands[0]![1]! - joint.bands[0]![0]!, 9);
+            expect(joint.spanMm).toEqual(joint.bands[0]);
+        }
+        // Five fits run two diameters on one line. They stay one connection and are counted
+        // here so a reviewer can look at each on the kit rather than have it split silently.
+        expect(folded.steppedFits).toBe(5);
+    });
+
     it('proves every piece has its own mesh and its own pickable node', () => {
         expect(report.crosswalk.matched).toBe(EXPECTED_OCCURRENCES);
         expect(report.crosswalk.issues).toEqual([]);

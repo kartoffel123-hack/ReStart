@@ -17,6 +17,7 @@ import { STEP_SHA256, buildAssemblyTree, type AssemblyTree } from '../lib/step-t
 import { extractFeatureTable } from '../lib/features.js';
 import { extractCandidateInterfaces } from '../lib/interfaces.js';
 import { confirmInterfaces, worldMesh, type WorldMesh } from '../lib/contacts.js';
+import { aggregateJoints } from '../lib/joints.js';
 import { tessellateStep, reachableMeshes, TESSERATION_OPTIONS, type TessellationOptions } from '../lib/step-meshes.js';
 import { buildCrosswalk, type Crosswalk } from '../lib/crosswalk.js';
 import { buildAssemblyGlb, inspectAssemblyGlb, type GlbReport } from '../lib/glb.js';
@@ -92,8 +93,9 @@ export type ImportReport = Readonly<{
         kindCounts: Readonly<Record<string, number>>;
         /**
          * Which of those candidates are joints, decided by face contact (plan 02 §3C step 4).
-         * `piecePairs` is the count the graph is built from: one joint per pair of pieces that
-         * really grip, however many face pairs describe it.
+         * These are still joints between *faces*: a long bore is modelled as several cylindrical
+         * faces, so `joints` overstates the connections. `aggregated` is the count the graph is
+         * built from.
          */
         confirmed: Readonly<{
             joints: number;
@@ -104,6 +106,35 @@ export type ImportReport = Readonly<{
             rejectedByReason: Readonly<Record<string, number>>;
             /** Occurrences no face contact confirmed against anything. */
             withoutJoint: readonly string[];
+        }>;
+        /**
+         * Ticket 5 / RV-003b: face-pair joints folded into one joint per piece pair per axis
+         * line (plan 02 §3C step 4). `bands` per joint are disjoint, so a grip two faces describe
+         * twice is counted once, and a grip with air in the middle stays two bands.
+         */
+        aggregated: Readonly<{
+            connections: number;
+            axisToleranceMm: number;
+            bandGapMm: number;
+            engagementMinMm: number;
+            engagementMaxMm: number;
+            /** Connections whose grip is split by air, so the manual can say where it binds. */
+            splitGrips: number;
+            /** Piece pairs gripping on more than one line: two release directions to choose between. */
+            multiLinePiecePairs: number;
+            /** Connections at more than one diameter, i.e. a stepped fit. */
+            steppedFits: number;
+            /** The folded joints themselves, small enough to ship and review as-is. */
+            detail: ReadonlyArray<Readonly<{
+                id: string;
+                pieces: readonly [string, string];
+                kind: string;
+                engagementMm: number;
+                spanMm: readonly [number, number];
+                bands: ReadonlyArray<readonly [number, number]>;
+                contactMm: number;
+                facePairs: number;
+            }>>;
         }>;
     }>;
     /** Ticket 2: type catalog, row references, candidate units and timing coverage. */
@@ -198,6 +229,10 @@ export async function buildImportPackage(
         rejectedByReason[rejected.reason] = (rejectedByReason[rejected.reason] ?? 0) + 1;
     }
     const engagements = confirmed.confirmed.map((joint) => joint.engagementMm);
+    // RV-003b: fold the face pairs onto the axis line, because the graph is built from
+    // connections rather than from the tessellator's face boundaries.
+    const folded = aggregateJoints(confirmed.confirmed);
+    const engagements2 = folded.joints.map((joint) => joint.engagementMm);
     const gripped = new Set<string>();
     for (const joint of confirmed.confirmed) {
         gripped.add(joint.source.male.occurrenceId);
@@ -299,7 +334,27 @@ export async function buildImportPackage(
                 withoutJoint: tree.occurrences
                     .filter((occurrence) => !gripped.has(occurrence.id))
                     .map((occurrence) => occurrence.id)
-            }
+            },
+        aggregated: {
+                connections: folded.joints.length,
+                axisToleranceMm: folded.axisToleranceMm,
+                bandGapMm: folded.bandGapMm,
+                engagementMinMm: engagements2.length > 0 ? Math.min(...engagements2) : 0,
+                engagementMaxMm: engagements2.length > 0 ? Math.max(...engagements2) : 0,
+                splitGrips: folded.joints.filter((joint) => joint.bands.length > 1).length,
+                multiLinePiecePairs: folded.ambiguous.length,
+                steppedFits: folded.joints.filter((joint) => joint.radii.length > 1).length,
+                detail: folded.joints.map((joint) => ({
+                    id: joint.id,
+                    pieces: joint.pieces,
+                    kind: joint.kind,
+                    engagementMm: joint.engagementMm,
+                    spanMm: joint.spanMm,
+                    bands: joint.bands,
+                    contactMm: joint.contactMm,
+                    facePairs: joint.faces.length
+                }))
+            },
         },
         glb: {
             sha256: sha256(glb),

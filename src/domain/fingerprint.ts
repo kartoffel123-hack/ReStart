@@ -38,7 +38,11 @@ function physicalAction(model: AssemblyModel, operationId: string): string {
         operation.releasesConnectionIds.slice().sort().join(','),
         operation.establishesConnectionIds.slice().sort().join(','),
         supports.join('|') || '-',
-        returnMotion
+        returnMotion,
+        JSON.stringify(model.motions.filter(m => m.id === operation.motionId).map(m =>
+            [m.curveFrame, m.frames.map(f=>[f.atMm,f.frame.translation,f.frame.rotation]), m.toleranceMm, m.allowedContacts.map(c => [c.a,c.b,c.region]), m.evidence.note])),
+        JSON.stringify(model.tools.find(t => t.id === operation.toolId)?.envelope),
+        JSON.stringify(operation.requires.filter(r => r.role === 'support').map(r => r.reason).sort())
     ].join('~');
 }
 
@@ -48,13 +52,15 @@ export function procedureFingerprint(
     operationIds: readonly string[],
     functionCheckId: string | null
 ): string {
+    const check=model.functionChecks.find(c=>c.id===functionCheckId);
     const parts = [
-        'restart-procedure-v1',
+        'restart-procedure-v2',
         model.source.datasetRevision,
         `tri=${model.source.triangleCount}`,
         `target=${[...new Set(targetIds)].sort().join(',')}`,
         `actions=${operationIds.map((id) => physicalAction(model, id)).join(';')}`,
-        `check=${functionCheckId ?? 'none'}`
+        model.source.stepSha256,
+        `check=${JSON.stringify(check ? [check.id,check.instruction,check.expectedBehaviour,[...check.subjectUnitIds].sort()] : functionCheckId)}`
     ];
     return sha256Hex(parts.join('#'));
 }

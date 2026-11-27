@@ -2,7 +2,10 @@
  * Progress capture (implementation plan §8). Builds nothing: it runs the Vite dev
  * server, drives the real page in Chromium at the gate viewports, and writes
  * PNGs plus notes.md under docs/progress/<date>-<slug>/. Run it before every
- * commit. Screenshots here are a progress trail, never release evidence.
+ * commit. When the commit has no rendered surface, §8.3 asks for the measured output
+ * instead of a re-shot placeholder: pass --evidence-file and the tool renders that text
+ * into the folder as an image. Screenshots here are a progress trail, never release
+ * evidence.
  */
 import { createServer } from 'vite';
 import { chromium, type Page } from '@playwright/test';
@@ -13,6 +16,12 @@ import { resolve } from 'node:path';
 import { findPreviousCapture } from './previous-capture.js';
 import { VISUALLY_IDENTICAL_FRACTION, comparePngBuffers } from './png-diff.js';
 import {
+    EVIDENCE_FILE_NAME,
+    EVIDENCE_VIEWPORT,
+    evidenceHtml,
+    requireEvidenceBody
+} from './evidence-panel.js';
+import {
     isPlaceholderStub,
     layoutId,
     layoutSignature,
@@ -22,6 +31,30 @@ import {
 } from './screen-signature.js';
 import { GATE_VIEWPORTS, SCENARIOS, type Scenario, type Viewport } from './scenarios.js';
 
+/** One PNG in a capture folder, with the facts notes.md reports about it. */
+type Capture = {
+    file: string;
+    scenario: Scenario;
+    viewport: Viewport;
+    digest: string;
+    bytes: Buffer;
+    /** Layout identity of the rendered screen; wording is excluded. */
+    layout: string;
+    /** True while a placeholder stands in for the screen this scenario names. */
+    stub: boolean;
+    /** Pixels differing from this scenario's capture in the previous folder. */
+    previous?: { folder: string; fraction: number };
+};
+
+/** Stands in for a screen in the highlights table when §8.3 renders the evidence panel. */
+const EVIDENCE_SCENARIO: Scenario = {
+    id: 'evidence',
+    label: 'Evidence panel',
+    route: '(rendered by the capture tool)',
+    highlights:
+        'Evidence panel (plan §8.3): the measured output this commit produced, in place of a screen that does not exist yet.'
+};
+
 type Args = Readonly<{
     title: string;
     slug: string;
@@ -29,6 +62,8 @@ type Args = Readonly<{
     verificationRows: readonly string[];
     only: readonly string[];
     note?: string;
+    /** Path to the measured output rendered as the panel required by §8.3. */
+    evidenceFile?: string;
 }>;
 
 function parseArgs(argv: readonly string[]): Args {
@@ -51,13 +86,15 @@ function parseArgs(argv: readonly string[]): Args {
             .map((value) => value.trim())
             .filter((value) => value.length > 0);
     const note = read('--note');
+    const evidenceFile = read('--evidence-file');
     return {
         title,
         slug,
         commands: list('--commands'),
         verificationRows: list('--rows'),
         only: list('--only'),
-        ...(note === undefined ? {} : { note })
+        ...(note === undefined ? {} : { note }),
+        ...(evidenceFile === undefined ? {} : { evidenceFile })
     };
 }
 
@@ -73,6 +110,20 @@ function stamp(): string {
     const now = new Date();
     const pad = (value: number): string => String(value).padStart(2, '0');
     return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+}
+
+/** Read the §8.3 panel body, with a message that says what to do about a bad path. */
+function readEvidence(source: string): string {
+    let raw: string;
+    try {
+        raw = readFileSync(source, 'utf8');
+    } catch {
+        throw new Error(
+            `--evidence-file ${source} could not be read. Pass a file holding the measured ` +
+                'output this commit produced, or drop the flag and pass --note.'
+        );
+    }
+    return requireEvidenceBody(raw, source);
 }
 
 async function capture(
@@ -175,24 +226,17 @@ async function main(): Promise<void> {
     const directory = resolve(root, folderName);
     mkdirSync(directory, { recursive: true });
 
+    // Recorded before rendering so the evidence panel and notes.md state the same instant.
+    const capturedAt = new Date().toISOString();
+    const head = git(['rev-parse', '--short', 'HEAD']);
     const server = await createServer({ logLevel: 'error' });
     const listener = await server.listen();
     const address = listener.resolvedUrls?.local[0] ?? 'http://localhost:5173/';
     const browser = await chromium.launch();
 
-    const written: {
-        file: string;
-        scenario: Scenario;
-        viewport: Viewport;
-        digest: string;
-        bytes: Buffer;
-        /** Layout identity of the rendered screen; wording is excluded. */
-        layout: string;
-        /** True while a placeholder stands in for the screen this scenario names. */
-        stub: boolean;
-        /** Pixels differing from this scenario's capture in the previous folder. */
-        previous?: { folder: string; fraction: number };
-    }[] = [];
+    const written: Capture[] = [];
+    let panel: Capture | undefined;
+    let panelBody: string | undefined;
     try {
         const context = await browser.newContext({ reducedMotion: 'reduce' });
         const page = await context.newPage();
@@ -228,6 +272,48 @@ async function main(): Promise<void> {
                 });
             }
         }
+        if (args.evidenceFile !== undefined) {
+            const body = readEvidence(args.evidenceFile);
+            panelBody = body;
+            await page.setViewportSize({
+                width: EVIDENCE_VIEWPORT.width,
+                height: EVIDENCE_VIEWPORT.height
+            });
+            await page.setContent(
+                evidenceHtml({
+                    title: args.title,
+                    captured: capturedAt,
+                    head: head || 'unknown',
+                    commands: args.commands,
+                    body
+                }),
+                { waitUntil: 'load' }
+            );
+            await page.screenshot({
+                path: resolve(directory, EVIDENCE_FILE_NAME),
+                fullPage: true
+            });
+            const bytes = readFileSync(resolve(directory, EVIDENCE_FILE_NAME));
+            const earlier = findPreviousCapture(root, folderName, EVIDENCE_FILE_NAME);
+            panel = {
+                file: EVIDENCE_FILE_NAME,
+                scenario: EVIDENCE_SCENARIO,
+                viewport: EVIDENCE_VIEWPORT,
+                digest: createHash('sha256').update(bytes).digest('hex'),
+                bytes,
+                // Not a screen: it has no layout that could be shared with a route.
+                layout: 'evidence-panel',
+                stub: false,
+                ...(earlier === undefined
+                    ? {}
+                    : {
+                          previous: {
+                              folder: earlier.folder,
+                              fraction: comparePngBuffers(bytes, readFileSync(earlier.file))
+                          }
+                      })
+            };
+        }
         await context.close();
     } finally {
         await browser.close();
@@ -235,33 +321,52 @@ async function main(): Promise<void> {
     }
 
     const changed = git(['status', '--porcelain']);
-    const head = git(['rev-parse', '--short', 'HEAD']);
-    const setDigest = createHash('sha256').update(written.map((entry) => entry.digest).join('\n')).digest('hex');
+    const entries = panel === undefined ? written : [...written, panel];
+    const setDigest = createHash('sha256')
+        .update(entries.map((entry) => entry.digest).join('\n'))
+        .digest('hex');
 
     // Two things must hold for a capture set to evidence a change: the captures differ from
     // each other where the scenarios claim they do, and at least one differs from the
     // previous commit's capture of the same scenario. Byte equality proves neither.
-    const duplicates = identicalGroups(written);
+    const duplicates = identicalGroups(entries);
     const sharedLayouts = sameLayoutGroups(
-        written.map((entry) => ({ file: entry.file, viewport: entry.viewport.name, layout: entry.layout }))
+        entries.map((entry) => ({ file: entry.file, viewport: entry.viewport.name, layout: entry.layout }))
     );
-    const stubs = placeholderFiles(written.map((entry) => ({ file: entry.file, stub: entry.stub })));
-    const allStubs = stubs.length === written.length && written.length > 0;
-    const unchanged = written.filter(
+    const stubs = placeholderFiles(entries.map((entry) => ({ file: entry.file, stub: entry.stub })));
+    const allStubs = written.length > 0 && stubs.length === written.length;
+    const unchanged = entries.filter(
         (entry) =>
             entry.previous !== undefined && entry.previous.fraction <= VISUALLY_IDENTICAL_FRACTION
     );
-    const fresh = written.length - unchanged.length;
+    const fresh = entries.length - unchanged.length;
+    // §8.3: a panel that repeats the previous commit's panel evidences nothing either.
+    const freshPanel = panel !== undefined && !unchanged.includes(panel);
 
     const lines: string[] = [
         `# ${args.title}`,
         '',
-        `- Captured: ${new Date().toISOString()}`,
+        `- Captured: ${capturedAt}`,
         `- HEAD at capture: \`${head || 'unknown'}\` (commit this folder with the change it documents)`,
         `- Server: Vite dev server at ${address}`,
         `- Capture set digest: \`${setDigest.slice(0, 16)}\``,
-        `- Captures that differ from the previous capture set: **${fresh} of ${written.length}**`,
+        `- Captures that differ from the previous capture set: **${fresh} of ${entries.length}**`,
         '',
+        ...(panelBody === undefined
+            ? []
+            : [
+                  '## Evidence panel (plan §8.3)',
+                  '',
+                  `\`${EVIDENCE_FILE_NAME}\` is the image that highlights this commit. No rendered`,
+                  'surface changed, so the capture tool rendered the measured output below into a',
+                  'page and screenshotted it. It is reproduced here verbatim so the trail can be',
+                  'read without opening the PNG:',
+                  '',
+                  '~~~',
+                  panelBody,
+                  '~~~',
+                  ''
+              ]),
         '## Verification rows touched',
         '',
         args.verificationRows.length > 0 ? args.verificationRows.map((row) => `- ${row}`).join('\n') : '- none recorded',
@@ -279,7 +384,7 @@ async function main(): Promise<void> {
         '',
         '| File | Viewport | Layout | Δ vs previous capture | Highlight |',
         '| --- | --- | --- | --- | --- |',
-        ...written.map(
+        ...entries.map(
             (entry) =>
                 `| \`${entry.file}\` | ${entry.viewport.name} | \`${layoutId(entry.layout)}\`${
                     entry.stub ? ' placeholder' : ''
@@ -300,7 +405,7 @@ async function main(): Promise<void> {
                   '',
                   ...stubs.map((file) => `- \`${file}\``),
                   '',
-                  `**${stubs.length} of ${written.length}** captures are placeholders.`
+                  `**${stubs.length} of ${entries.length}** captures are placeholders.`
               ].join('\n'),
         '',
         '## Captures that share one layout',
@@ -337,9 +442,11 @@ async function main(): Promise<void> {
                   ...unchanged.map(
                       (entry) =>
                           `- \`${entry.file}\` unchanged since \`${entry.previous?.folder}\`${
-                              args.note === undefined
-                                  ? ' — drop it with `--only` or explain it in `--note`'
-                                  : ''
+                              entry.file === EVIDENCE_FILE_NAME
+                                  ? ' — the panel repeats the previous commit’s panel; put this commit’s own numbers in it'
+                                  : args.note === undefined
+                                    ? ' — drop it with `--only`, or render this commit’s output with `--evidence-file`'
+                                    : ''
                           }`
                   )
               ].join('\n'),
@@ -356,7 +463,14 @@ async function main(): Promise<void> {
     ];
 
     writeFileSync(resolve(directory, 'notes.md'), `${lines.join('\n')}\n`);
-    console.log(`captured ${written.length} screenshot(s) -> ${directory}`);
+    console.log(`captured ${entries.length} image(s) -> ${directory}`);
+    if (panel !== undefined) {
+        console.log(
+            freshPanel
+                ? `evidence panel rendered from ${args.evidenceFile} (plan §8.3)`
+                : `warning: the evidence panel repeats the previous commit's panel, so it shows nothing new`
+        );
+    }
     if (duplicates.length > 0) {
         console.warn(`warning: ${duplicates.length} group(s) of captures render identical pixels:`);
         for (const files of duplicates) console.warn(`  ${files.join(' == ')}`);
@@ -374,23 +488,27 @@ async function main(): Promise<void> {
     if (stubs.length > 0) {
         console.warn(`note: ${stubs.length} capture(s) render a placeholder, not a built screen.`);
     }
-    // A capture set made entirely of placeholders shows routing, not behaviour. Like a set
-    // that repeats the previous commit, it evidences nothing new, so it needs --note.
-    if (allStubs && args.note === undefined) {
+    // §8 requires an image that highlights the change. Two ways a set can fail that: every
+    // capture renders a placeholder, which shows routing rather than behaviour (§8.2), or every
+    // capture repeats the previous commit's capture (§8.1). Either is normal for build-side
+    // work, so §8.3 gives it an image: --evidence-file renders the commit's measured output.
+    // A --note explains a set; it no longer excuses one that shows nothing new, because that
+    // is exactly how two unchanged stub PNGs passed as progress for several commits running.
+    if (allStubs && !freshPanel) {
         console.error(
             'refusing: every capture renders a placeholder screen, so nothing here shows\n' +
                 'behaviour introduced by this commit. Build the screen, capture a state that\n' +
-                'differs structurally, or pass --note "which ticket replaces the stub".'
+                'differs structurally, or pass --evidence-file <file> holding the measured output\n' +
+                'this commit produced (plan §8.3). --note no longer covers this on its own.'
         );
         process.exitCode = 1;
     }
-    // A capture set that repeats the previous one in full evidences nothing. That is only
-    // acceptable when the commit had no visible surface, which is what --note is for.
-    if (fresh === 0 && args.note === undefined) {
+    if (fresh === 0 && !freshPanel) {
         console.error(
             'refusing: every capture repeats the previous capture set, so nothing here\n' +
                 'highlights a newly introduced change. Capture the state this commit introduces,\n' +
-                'or pass --note "why it has no visible surface and which ticket will change that".'
+                'or pass --evidence-file <file> holding the measured output this commit produced\n' +
+                '(plan §8.3), which is the image for a commit with no rendered surface.'
         );
         process.exitCode = 1;
     }

@@ -311,6 +311,57 @@ What this means at commit time:
 This stays a commit-time trail, not a release gate: no test reads `docs/progress/`, and the §5
 design-review baselines stay in Playwright.
 
+### 8.3 A commit with no rendered surface still has to leave an image
+
+> **Fourth addendum to §8, added 2026-11-27 during implementation.** §8 asks for a screenshot
+> before every commit that highlights the newly introduced change; §8.1 and §8.2 made that
+> measurable. Both still let a commit through on a `--note`, and in practice every build-side
+> commit passed one and then committed two placeholder PNGs identical to the previous commit's.
+> The folder was full of pictures that highlighted nothing. This closes the gap: a commit with
+> no rendered surface still gets an image, and that image shows the change itself. Same folder,
+> same command, same role as a trail rather than a gate.
+
+Importer, graph, planner, dataset and documentation commits change numbers, not pixels. For
+those the screenshot is of the change's own measured output:
+
+```sh
+npm run progress:screenshot -- --title "<what this commit changes>" \
+  --rows V03 --commands "npm run typecheck, npm test" \
+  --evidence-file .tmp/evidence.txt
+```
+
+The tool renders that file into `evidence--laptop-1280x800.png` inside the capture folder
+(`tools/progress/evidence-panel.ts`, at the wider §5 gate width) and reproduces it verbatim in
+`notes.md` under **Evidence panel**, so the trail can be read without opening the PNG. The
+panel itself carries the commit title, the capture instant, `HEAD` and the commands run, so a
+screenshot stays legible once it is detached from `notes.md`.
+
+What goes in the panel, in this order:
+
+1. the measured numbers as the tool printed them — an import-report row, a search report, a
+   test summary — not a paraphrase of them;
+2. the witness or invariant that shows those numbers are the right ones: the Stage 1 axle
+   bounds centre, the 70/70 identity fraction, a content hash;
+3. what still needs team review, and the ticket that will act on it.
+
+What this means at commit time:
+
+1. A capture set is accepted when **either** at least one capture differs from the previous
+   commit's capture of the same scenario (§8.1) **or** the evidence panel is present and
+   differs from the previous commit's panel.
+2. `--note` no longer excuses a set that shows nothing new. It stays in `notes.md` as the
+   explanation of a set; the image is required alongside it. This supersedes the `--note`
+   escape in §8.1 and in §8.2 item 2, and it applies to §8 item 5: a commit that cannot show a
+   screen says so *with a panel*, not instead of one.
+3. A panel that repeats the previous commit's panel evidences nothing, and the run says so.
+   Put this commit's own numbers in it.
+4. An empty `--evidence-file` is rejected before a browser starts: a blank panel is the same
+   nothing as a blank screen.
+5. Once Ticket 4 and Ticket 8 land, a commit that changes a real screen captures that screen.
+   The panel stays the route for commits that touch no screen at all, which is most of them
+   until the graph view and the reviewer exist.
+6. Nothing changes about status: still a trail, read by no test, satisfying no V-row.
+
 ## Addendum to §4.7: what the search report promises
 
 > **Recorded 2026-11-27 during implementation (Ticket 6), after an advisor consultation.**

@@ -89,7 +89,12 @@ tessellates them, matches every occurrence to its own mesh (**70/70**, lowest wi
 0.9912) and writes a GLB with one pickable node per occurrence ID; the three supplied workbooks
 join those occurrences — 31 inventory rows summing to 70, a 70-row bill of materials and a
 62-row timing lookup — with two reconciliation findings recorded in
-[RV-002](data/review/source-joins.md); the repair model, state transitions, replay and metrics
+[RV-002](data/review/source-joins.md); the importer reads the cylindrical interface faces of
+every part definition, because that is where a piece's removal axis comes from — **1,295
+cylinders over the 31 definitions, 64 candidate travel axes**, every face named by its STEP
+entity and carried in the definition's own coordinates, since part frames are not
+assembly-aligned ([RV-003](data/review/interface-features.md)); the repair model, state
+transitions, replay and metrics
 are pure `src/domain/`; and the planner minimises *distinct healthy pieces disturbed* while
 reporting one of four honest statuses
 (`proved-minimum`, `best-route-found`, `search-incomplete`, `no-feasible-route`), where
@@ -109,6 +114,8 @@ card; Tickets 4 and 8 replace it. Each capture now records the *layout identity*
 it rendered and whether that screen is still a placeholder, so a capture set made entirely of
 placeholders is refused rather than filed as progress
 ([plan §8.2](docs/plans/0.1.0/02-software-design-implementation-plan.md)).
+A commit with nothing to render no longer files a stub as progress either: it photographs its
+own measured output instead ([plan §8.3](docs/plans/0.1.0/02-software-design-implementation-plan.md)).
 
 ## The assembly, as measured
 
@@ -202,7 +209,12 @@ the change. The tool decodes its own PNGs and reports how much each capture diff
 same scenario in the previous commit, so a screenshot that repeats the last one is called out
 instead of passing as progress (§8.1). Because a renamed screen is not a new screen, it also
 records each capture's layout identity and whether the screen is still a placeholder, and
-refuses a set that shows nothing but placeholders (§8.2).
+refuses a set that shows nothing but placeholders (§8.2). Most commits here change no rendered
+surface at all — the importer, the graph, the planner, the plans — so for those the screenshot
+is of the change's own measured output: write it to a file and pass `--evidence-file
+.tmp/evidence.txt`, which renders it into `evidence--laptop-1280x800.png` and reproduces it in
+`notes.md` under **Evidence panel** (§8.3). A `--note` explains a set but no longer excuses one
+that shows nothing new.
 
 ## Notes on the data
 

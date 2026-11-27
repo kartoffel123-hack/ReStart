@@ -206,7 +206,34 @@ footer. Scopes that match this repo: `import`, `graph`, `planner`, `manual`, `re
 Never commit a dataset whose `model:verify` fails, and never commit generated CAD
 intermediates. Pull requests should state which verification rows (V01–V10) the change
 touches, list the commands actually run and any unrun prerequisite, and link the ticket.
-Include screenshots for UI changes — the visual gate is reviewed at 1280×800 and 390×844.
+
+## Before every commit: progress evidence
+
+**Every** commit captures what it made visible *before* `git commit`, not only UI commits
+([plan 02 §8](docs/plans/0.1.0/02-software-design-implementation-plan.md)):
+
+```sh
+npm run progress:screenshot -- --title "<what this commit changes>" --rows V04 \
+  --commands "npm run typecheck, npm test"
+```
+
+The PNGs and `notes.md` land in `docs/progress/<yyyy-mm-dd>-<slug>/` and are committed with the
+change they document. A capture has to *highlight the newly introduced change*, and three
+addenda make that checkable rather than a matter of judgement:
+
+- **§8.1** compares each capture's pixels against the same scenario in the previous commit; at
+  or below 0.2 % it is the same screen and evidences nothing.
+- **§8.2** compares screen *layout* ignoring text, so a stub with reworded copy cannot pass as
+  a new screen. Placeholder captures evidence routing only.
+- **§8.3** covers the majority of commits here, which change no rendered surface at all —
+  importer, graph, planner, dataset and docs work. Write the commit's measured output to a file
+  and pass `--evidence-file .tmp/evidence.txt`; the tool renders it into
+  `evidence--laptop-1280x800.png` and reproduces it in `notes.md`. Numbers as printed, the
+  witness or hash that shows they are right, then what still needs review and its ticket.
+
+`--note` explains a capture set in `notes.md`; it no longer excuses one that shows nothing new.
+Nothing under `docs/progress/` is read by a test, and captures satisfy no V-row — the frozen
+visual gate for the design review stays in Playwright, reviewed at 1280×800 and 390×844.
 
 **Capture progress screenshots before every commit**, not only for UI changes
 ([implementation plan §8](docs/plans/0.1.0/02-software-design-implementation-plan.md)):

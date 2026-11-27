@@ -1,0 +1,245 @@
+/* The mechanic screen's page composition (plan 02 §5.1). Appearance itself belongs to
+   tokens.css, so Astra can revise the look without touching these rules. */
+
+.rs-manual {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(20rem, 1fr);
+    gap: var(--rs-space-3);
+    align-items: stretch;
+    min-height: 100vh;
+    padding: var(--rs-space-3);
+    background: var(--rs-build-field);
+    color: var(--rs-ink);
+    font-family: var(--rs-font-body);
+    font-size: var(--rs-body-size);
+    box-sizing: border-box;
+}
+
+/* --- the drawing field ------------------------------------------------- */
+
+.rs-manual__field {
+    position: relative;
+    display: flex;
+    min-height: 24rem;
+    border: 1px solid var(--rs-hairline);
+    border-radius: var(--rs-radius);
+    background: var(--rs-build-field);
+    overflow: hidden;
+}
+
+.rs-manual__inset {
+    position: absolute;
+    left: var(--rs-space-2);
+    bottom: var(--rs-space-2);
+    width: 12rem;
+    padding: var(--rs-space-1) var(--rs-space-2);
+    border: 1px solid var(--rs-hairline);
+    border-radius: var(--rs-radius);
+    background: var(--rs-parts-inset);
+    box-shadow: 0 2px 8px rgb(23 33 39 / 18%);
+}
+
+.rs-manual__inset-title {
+    margin: 0 0 var(--rs-space-1);
+    font-size: 0.9375rem;
+    font-weight: 700;
+}
+
+/* --- the instruction strip --------------------------------------------- */
+
+.rs-manual__strip {
+    display: flex;
+    flex-direction: column;
+    gap: var(--rs-space-2);
+    padding: var(--rs-space-3);
+    border: 1px solid var(--rs-hairline);
+    border-radius: var(--rs-radius);
+    background: var(--rs-paper);
+}
+
+.rs-manual__phase {
+    margin: 0;
+    color: var(--rs-muted);
+    font-size: 0.8125rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.rs-manual__count {
+    display: flex;
+    align-items: baseline;
+    gap: var(--rs-space-1);
+    margin: 0;
+}
+
+.rs-manual__numeral {
+    font-family: var(--rs-font-numeral);
+    font-size: 4rem;
+    font-weight: 700;
+    line-height: 0.9;
+}
+
+.rs-manual__total {
+    color: var(--rs-muted);
+    font-size: 1rem;
+}
+
+.rs-manual__words {
+    display: flex;
+    flex-direction: column;
+    gap: var(--rs-space-1);
+}
+
+.rs-manual__heading {
+    margin: 0;
+    font-size: 1.375rem;
+    line-height: 1.25;
+}
+
+.rs-manual__part {
+    margin: 0;
+    font-weight: 700;
+}
+
+.rs-manual__quantity {
+    padding: 0 0.375em;
+    border-radius: var(--rs-radius);
+    background: var(--rs-parts-inset);
+    font-size: 0.875rem;
+    font-weight: 700;
+}
+
+.rs-manual__location {
+    display: block;
+    margin-top: 2px;
+    color: var(--rs-muted);
+    font-size: 0.875rem;
+    font-weight: 400;
+}
+
+.rs-manual__instruction {
+    margin: 0;
+    line-height: 1.5;
+}
+
+.rs-manual__facts {
+    display: grid;
+    gap: var(--rs-space-1);
+    margin: var(--rs-space-1) 0 0;
+}
+
+.rs-manual__fact {
+    display: grid;
+    grid-template-columns: 7rem minmax(0, 1fr);
+    gap: var(--rs-space-1);
+    padding-top: var(--rs-space-1);
+    border-top: 1px solid var(--rs-hairline);
+}
+
+.rs-manual__fact dt {
+    color: var(--rs-muted);
+    font-size: 0.8125rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.rs-manual__fact dd {
+    margin: 0;
+    font-weight: 600;
+}
+
+.rs-manual__fact--stop dd {
+    color: var(--rs-ok);
+}
+
+.rs-manual__blocked {
+    margin: 0;
+    padding: var(--rs-space-1) var(--rs-space-2);
+    border-left: 4px solid var(--rs-warn);
+    background: var(--rs-parts-inset);
+    line-height: 1.45;
+}
+
+/* --- controls ----------------------------------------------------------- */
+
+.rs-manual__controls {
+    display: flex;
+    flex-direction: column;
+    gap: var(--rs-space-1);
+    margin-top: auto;
+}
+
+.rs-manual__confirm {
+    min-height: var(--rs-min-hit);
+    padding: var(--rs-space-1) var(--rs-space-3);
+    border: 2px solid var(--rs-ink);
+    border-radius: var(--rs-radius);
+    background: var(--rs-ink);
+    color: var(--rs-paper);
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.rs-manual__confirm:disabled {
+    background: var(--rs-hairline);
+    border-color: var(--rs-hairline);
+    color: var(--rs-muted);
+    cursor: not-allowed;
+}
+
+.rs-manual__secondary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--rs-space-1);
+}
+
+.rs-manual__secondary button {
+    min-height: var(--rs-min-hit);
+    padding: var(--rs-space-1) var(--rs-space-2);
+    border: 1px solid var(--rs-hairline);
+    border-radius: var(--rs-radius);
+    background: var(--rs-paper);
+    color: var(--rs-ink);
+    font: inherit;
+    cursor: pointer;
+}
+
+.rs-manual__confirm:focus-visible,
+.rs-manual__secondary button:focus-visible {
+    outline: 3px solid var(--rs-focus);
+    outline-offset: 2px;
+}
+
+/* Plan 02 §5.3: at phone width the drawing field stacks above the instruction strip,
+   and the confirmation stays in reach without horizontal scrolling. */
+@media (max-width: 60rem) {
+    .rs-manual {
+        grid-template-columns: minmax(0, 1fr);
+        padding: var(--rs-space-2);
+    }
+
+    .rs-manual__field {
+        flex-direction: column;
+        min-height: 16rem;
+    }
+
+    /* Overlaying the inset on a short field hides the piece it is meant to explain, so at
+       phone width it sits under the drawing instead (plan 02 §5.3). */
+    .rs-manual__inset {
+        position: static;
+        width: auto;
+        margin: var(--rs-space-2);
+        margin-top: auto;
+        box-shadow: none;
+    }
+
+    .rs-manual__numeral {
+        font-size: 3rem;
+    }
+
+    .rs-manual__fact {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 2px;
+    }
+}

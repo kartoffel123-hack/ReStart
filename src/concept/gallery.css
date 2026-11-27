@@ -1,0 +1,81 @@
+.rs-gallery {
+    display: flex;
+    flex-direction: column;
+    gap: var(--rs-space-2);
+    padding: var(--rs-space-2);
+    background: var(--rs-build-field);
+    font-family: var(--rs-font-body);
+    color: var(--rs-ink);
+}
+
+.rs-gallery__header {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.rs-gallery__title {
+    margin: 0;
+    font-family: var(--rs-font-numeral);
+    font-size: 1.75rem;
+}
+
+.rs-gallery__subtitle {
+    margin: 0;
+    max-width: 68ch;
+    color: var(--rs-muted);
+    font-size: 0.9375rem;
+    line-height: 1.5;
+}
+
+.rs-gallery__scenarios {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    gap: var(--rs-space-1);
+}
+
+.rs-gallery__scenario {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: var(--rs-space-1) var(--rs-space-2);
+    border: 1px solid var(--rs-hairline);
+    border-radius: var(--rs-radius);
+    background: var(--rs-paper);
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.rs-gallery__scenario[aria-current='true'] {
+    border: 2px solid var(--rs-focus);
+}
+
+.rs-gallery__scenario:focus-visible {
+    outline: 3px solid var(--rs-focus);
+    outline-offset: 2px;
+}
+
+.rs-gallery__scenario-label {
+    font-weight: 700;
+}
+
+.rs-gallery__scenario-why {
+    color: var(--rs-muted);
+    font-size: 0.8125rem;
+    line-height: 1.4;
+}
+
+.rs-gallery__stage {
+    border: 1px dashed var(--rs-hairline);
+    border-radius: var(--rs-radius);
+    background: var(--rs-build-field);
+}
+
+/* The screen is a full-height page; inside the gallery stage it should not be. */
+.rs-gallery__stage .rs-manual {
+    min-height: 34rem;
+    padding: var(--rs-space-2);
+    background: var(--rs-build-field);
+}

@@ -109,20 +109,24 @@ trusting the sample grid: a 0.4 mm obstruction sitting between 1 mm samples is s
 a hit, while a stroke through the empty corner of a concave neighbour is still clear — the two
 failure modes that would respectively delete a step from a manual or tell a mechanic to strip
 healthy parts for nothing.
-Not built yet: the move and constraint generator that consumes it, the mechanic and reviewer
-screens, the Three.js scene, the reviewer, and the 70-target `model:compile` / `model:verify`
-batch.
+Not built yet: the move and constraint generator that consumes it, the real scene and the
+inventory loader, the reviewer, and the 70-target `model:compile` / `model:verify` batch.
 Plan §1 records the measured STEP-import baseline the remaining tickets must reproduce.
 
-**The screens are not built, and the progress trail now says so instead of implying
-otherwise.** `#/`, `#/review` and `#/concept` all render one shared placeholder component with
-different wording, so their screenshots look like three screens while the application is one
-card; Tickets 4 and 8 replace it. Each capture now records the *layout identity* of the screen
-it rendered and whether that screen is still a placeholder, so a capture set made entirely of
-placeholders is refused rather than filed as progress
+**Which screens are real, and how the trail keeps that honest.** The mechanic screen is built
+(`src/presentation/manual-screen.tsx`) and the development gallery at `#/concept` renders it with
+its production props against three named states, so the design review sees what the mechanic will
+get. `#/` still shows a placeholder until Ticket 7 wires the real loader — there is no published
+dataset to load yet — and `#/review` does until Ticket 8.
+
+Three routes rendering one shared placeholder with different wording used to make the screenshots
+look like three screens while the application was one card. Each capture now records the *layout
+identity* of the screen it rendered and whether that screen is still a placeholder, so a set made
+entirely of placeholders is refused rather than filed as progress
 ([plan §8.2](docs/plans/0.1.0/02-software-design-implementation-plan.md)).
-A commit with nothing to render no longer files a stub as progress either: it photographs its
-own measured output instead ([plan §8.3](docs/plans/0.1.0/02-software-design-implementation-plan.md)).
+A commit with nothing to render photographs its own measured output into an evidence panel
+instead, and a placeholder capture that merely repeats the last commit's is dropped rather than
+committed ([plan §8.3](docs/plans/0.1.0/02-software-design-implementation-plan.md)).
 
 ## The assembly, as measured
 

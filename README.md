@@ -144,7 +144,7 @@ committed ([plan §8.3](docs/plans/0.1.0/02-software-design-implementation-plan.
 | Timing lookup | 62 connection classes, English and German sheets agree by `Row_ID`; the times are **fictitious** challenge data |
 | Interface features | **1,295 cylindrical faces** over all 31 definitions (2,451 faces total), 64 candidate travel axes, each face named by its STEP entity ([RV-003](data/review/interface-features.md)) |
 | Mating interfaces | 2,312 placed cylindrical faces across the 70 pieces pair into **8,102 coaxial candidates** — deliberately not a joint count, because two empty bores on one line are in it ([RV-003](data/review/interface-features.md)) |
-| Confirmed joints | face contact plus opposite material side collapses those candidates to **1,539 joints across 83 pairs of pieces**; grips run 3.00–7.50 mm (a bush, a beam wall) and the gap never exceeds the 0.05 mm line-to-line fit. 6,335 candidates were two bores or two shafts on one line ([RV-003](data/review/interface-features.md)) |
+| Confirmed joints | face contact plus opposite material side collapses those candidates to **1,632 joints across 84 pairs of pieces**; grips run 1.80–8.00 mm and land on kit heights (a friction pin's grip, a bush, a beam wall), and the gap never exceeds the 0.05 mm line-to-line fit. 6,335 candidates were two bores or two shafts on one line ([RV-003](data/review/interface-features.md)) |
 
 ## Stack
 

@@ -256,6 +256,34 @@ function axialExtent(face: WorldFace, triangles: readonly number[]): readonly [n
     return Number.isFinite(near) && Number.isFinite(far) ? [near, far] : null;
 }
 
+/**
+ * Carry a face's own axial extent into another face's frame.
+ *
+ * A STEP `CYLINDRICAL_SURFACE` stores an axis location of its own, so two faces that are
+ * genuinely coaxial almost never measure along the line from the same point, and their axes may
+ * point opposite ways. `MatingInterface.axis`/`.origin` are the male's own, so the interface
+ * frame is the male's frame: the female extent has to be carried into it before anything is
+ * intersected. Comparing the two as printed compares numbers taken from different origins, which
+ * both rejects real joints and mis-measures the rest.
+ */
+function extentInFrame(
+    span: readonly [number, number],
+    from: WorldFace,
+    into: WorldFace
+): readonly [number, number] {
+    const offset = axialProjection(
+        into,
+        from.origin[0] - into.origin[0] + into.origin[0],
+        from.origin[1] - into.origin[1] + into.origin[1],
+        from.origin[2] - into.origin[2] + into.origin[2]
+    );
+    const sense =
+        from.axis[0] * into.axis[0] + from.axis[1] * into.axis[1] + from.axis[2] * into.axis[2];
+    const first = offset + sense * span[0];
+    const second = offset + sense * span[1];
+    return first <= second ? [first, second] : [second, first];
+}
+
 /** How many of the shaft's own triangles sit inside the gripped span. */
 function trianglesGripped(face: WorldFace, triangles: readonly number[], span: readonly [number, number]): number {
     let gripping = 0;
@@ -345,8 +373,15 @@ export function confirmInterfaces(
         // own material runs together, so a 22.45 mm axle through a 7.85 mm hole engages 7.85 mm,
         // not 22.45 mm, and two faces that merely share an axis with nothing in common overlap by
         // nothing at all.
+        //
+        // Both spans are read in the male's frame, because that is the interface frame: the
+        // female face's own extent is carried into it first. `contactSpanMm` is therefore a
+        // distance along `candidate.axis` from `candidate.origin`, which is where a reviewer and
+        // the move generator read it from.
         const maleSpan = extentFor(candidate.male);
-        const femaleSpan = extentFor(candidate.female);
+        const femaleExtent = extentFor(candidate.female);
+        const femaleSpan =
+            femaleExtent === null ? null : extentInFrame(femaleExtent, candidate.female, candidate.male);
         if (maleSpan === null || femaleSpan === null) {
             rejected.push({ source: candidate, contactMm: null, reason: 'face-without-triangles' });
             continue;

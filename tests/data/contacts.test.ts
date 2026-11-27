@@ -285,21 +285,29 @@ describe('the joints of the pinned snapshot', () => {
             reasons.set(rejected.reason, (reasons.get(rejected.reason) ?? 0) + 1);
         }
         expect(report.candidates).toBe(8102);
-        expect(report.confirmed).toHaveLength(1539);
+        expect(report.confirmed).toHaveLength(1632);
         expect(reasons.get('same-side')).toBe(6335);
-        expect(reasons.get('apart')).toBe(167);
+        expect(reasons.get('apart')).toBe(82);
         expect(reasons.get('side-unknown')).toBe(53);
-        expect(reasons.get('below-resolution')).toBe(8);
+        // Nothing is below resolution once both faces are read in one frame. The 8 joints that
+        // used to land here were mis-measured overlaps, and 85 more were mis-measured as apart.
+        expect(reasons.get('below-resolution')).toBeUndefined();
         // The number the graph is built from: one joint per pair of pieces that really grip.
-        expect(piecePairs).toBe(83);
+        expect(piecePairs).toBe(84);
     });
 
     it('grips over the kit’s own dimensions, not over an untrimmed surface', () => {
         const engagements = report.confirmed.map((joint) => joint.engagementMm);
-        // A beam wall is 7.9 mm and a bush is 3 mm, so a grip outside that span means the
-        // measurement has fallen back to reading the infinite surface.
-        expect(Math.min(...engagements)).toBeGreaterThanOrEqual(3);
-        expect(Math.max(...engagements)).toBeLessThanOrEqual(8);
+        // The grips land on discrete kit heights, not on a continuum: 1.80 mm is the friction
+        // section of a Friction Pin with Stud (30465), 3.00 mm is one bush, 8.00 mm is the width
+        // a bevel gear or beam holds an axle over. Anything outside 1.80..8.00 means the
+        // measurement has fallen back to reading the infinite untrimmed surface.
+        // The bound carries 1 um because a grip is a measured float: the widest evaluates at
+        // 8.000000000000004, which is the arithmetic, not a piece 8 micrometres wider.
+        expect(Math.min(...engagements)).toBeGreaterThanOrEqual(1.8);
+        expect(Math.max(...engagements)).toBeLessThanOrEqual(8.001);
+        expect(Math.min(...engagements)).toBeCloseTo(1.8, 6);
+        expect(Math.max(...engagements)).toBeCloseTo(8, 6);
         // The radial gap never exceeds LEGO's 0.05 mm line-to-line fit by more than the deflection.
         expect(Math.max(...report.confirmed.map((joint) => joint.contactMm))).toBeLessThan(0.06);
     });
@@ -318,17 +326,28 @@ describe('the joints of the pinned snapshot', () => {
         }
     });
 
-    it('leaves one occurrence without a joint, and names it as a review item', () => {
+    it('gives every occurrence at least one joint, the light stud included', () => {
+        // RV-003a. The light stud used to be the only piece with no joint: its single candidate
+        // was measured in two frames at once, came out below the 0.12 mm deflection, and was
+        // discarded. Read in one frame it grips its own friction pin over 1.80 mm at a 0.0216 mm
+        // gap, which is what a friction fit is. No occurrence is left unexplained.
         const joined = new Set<string>();
         for (const joint of report.confirmed) {
             joined.add(joint.source.male.occurrenceId);
             joined.add(joint.source.female.occurrenceId);
         }
         const orphans = tree.occurrences.filter((occurrence) => !joined.has(occurrence.id));
-        expect(orphans.map((occurrence) => occurrence.id)).toEqual(['30465/NAUO33/NAUO39']);
-        // A light stud whose only candidate grips by less than the deflection, so the mesh cannot
-        // evidence it. Recorded in data/review/interface-features.md rather than assumed away.
-        expect(orphans[0]?.name).toContain('Light Stud');
+        expect(orphans.map((occurrence) => occurrence.id)).toEqual([]);
+
+        const stud = report.confirmed.filter(
+            (joint) => joint.source.male.occurrenceId === '30465/NAUO33/NAUO39' ||
+                joint.source.female.occurrenceId === '30465/NAUO33/NAUO39'
+        );
+        expect(stud.length).toBeGreaterThan(0);
+        for (const joint of stud) {
+            expect(joint.engagementMm).toBeCloseTo(1.8, 6);
+            expect(joint.contactMm).toBeLessThan(0.05);
+        }
     });
 
     it('is decided by geometry alone, so the same candidates confirm the same way twice', () => {
@@ -348,5 +367,64 @@ describe('the joints of the pinned snapshot', () => {
         expect(remeasured.confirmed.map((joint) => joint.engagementMm)).toEqual(
             report.confirmed.map((joint) => joint.engagementMm)
         );
+    });
+});
+
+/**
+ * A STEP `CYLINDRICAL_SURFACE` stores an axis location of its own, so two faces of two pieces
+ * that are genuinely coaxial almost never measure from the same point along the line, and this
+ * snapshot has 978 joints whose two faces point opposite ways along it. `MatingInterface.axis`
+ * and `.origin` are the *male's* own, so the interface frame is the male's frame, and the
+ * female extent has to be carried into it before anything is intersected.
+ *
+ * Measured on the snapshot before this was fixed: 1,175 of 1,539 confirmed joints reported an
+ * engagement that differed from the true overlap by more than 0.05 mm (worst 1.74 mm), and
+ * 1,535 of them had their two origins more than 0.05 mm apart along the line.
+ */
+describe('measuring a grip when the two faces disagree about the line', () => {
+    /** A short axle: its own face spans 0..8 mm along +Z from its own origin. */
+    const shortShaft = (): WorldMesh => cylinder('shaft-1', 2.35, 0, 8, 'shaft');
+    /** A beam wall that sits at 0..7.85 mm, so the true overlap with the axle is 7.85 mm. */
+    const wallAtZero = (): WorldMesh => cylinder('bore-1', 2.4, 0, 7.85, 'void');
+
+    it('confirms a joint whose faces measure the line from different points along it', () => {
+        // The beam's cylinder records its axis 20 mm further along the line, so its own extent
+        // reads -20..-12.15. Intersected with the axle's 0..8 as printed, the two look disjoint
+        // and the joint is rejected as apart -- a real joint missing from the graph.
+        const female = face('bore-1', 'Beam 3', '#20', 2.4, [0, 0, 20], Z);
+        const found = join(shaftFace(), female);
+        expect(found).toHaveLength(1);
+        const report = confirmInterfaces(found, meshesOf(shortShaft(), wallAtZero()));
+        expect(report.rejected.map((entry) => entry.reason)).toEqual([]);
+        expect(report.confirmed).toHaveLength(1);
+        expect(report.confirmed[0]?.engagementMm).toBeCloseTo(7.85, 2);
+    });
+
+    it('measures the grip where the material runs together, not where the numbers happen to overlap', () => {
+        // Same geometry, axis recorded 5 mm short: the two spans overlap by 3 mm on paper and by
+        // 7.85 mm in the assembly, and a release stroke planned from the first number stops short.
+        const female = face('bore-1', 'Beam 3', '#20', 2.4, [0, 0, -5], Z);
+        const report = confirmInterfaces(join(shaftFace(), female), meshesOf(shortShaft(), wallAtZero()));
+        expect(report.confirmed[0]?.engagementMm).toBeCloseTo(7.85, 2);
+    });
+
+    it('carries a face that points the other way along the line into the interface frame', () => {
+        // A cylinder wound the opposite way is the same line. Its extent reads 4.15..12, which
+        // intersects 0..8 in 3.85 mm; the grip is still the whole wall.
+        const female = face('bore-1', 'Beam 3', '#20', 2.4, [0, 0, 12], [0, 0, -1]);
+        const report = confirmInterfaces(join(shaftFace(), female), meshesOf(shortShaft(), wallAtZero()));
+        expect(report.confirmed[0]?.engagementMm).toBeCloseTo(7.85, 2);
+    });
+
+    it('still rejects two faces that are genuinely apart, however their origins are recorded', () => {
+        // The counterexample to "just shift everything": moving the origin must not turn a gap
+        // into a joint. The wall sits at 12..19.85 mm and the axle ends at 8 mm.
+        for (const origin of [[0, 0, 0], [0, 0, 20], [0, 0, -30]] as const) {
+            const female = face('bore-1', 'Beam 3', '#20', 2.4, [...origin] as Vec3, Z);
+            const apart = cylinder('bore-1', 2.4, 12, 19.85, 'void');
+            const report = confirmInterfaces(join(shaftFace(), female), meshesOf(shortShaft(), apart));
+            expect(report.confirmed).toEqual([]);
+            expect(report.rejected[0]?.reason).toBe('apart');
+        }
     });
 });

@@ -59,19 +59,23 @@ describe('model:import package', () => {
     it('collapses the candidates into the joints a 70-piece helicopter could have', () => {
         // §3C step 4, decided by face contact rather than by an untrimmed surface. The candidate
         // list above is a measurement to distrust; this is the measurement that answers it, so
-        // both ends are pinned: 8,102 candidates, 83 pairs of pieces that really grip.
+        // both ends are pinned: 8,102 candidates, 84 pairs of pieces that really grip.
         const confirmed = report.interfaces.confirmed;
-        expect(confirmed.piecePairs).toBe(83);
-        expect(confirmed.joints).toBe(1539);
+        expect(confirmed.piecePairs).toBe(84);
+        expect(confirmed.joints).toBe(1632);
         expect(confirmed.joints).toBeLessThan(report.interfaces.candidates / 4);
-        // A beam wall is 7.9 mm and a bush is 3 mm, so a grip outside that span means the
-        // measurement fell back to reading the infinite surface rather than the material.
-        expect(confirmed.engagementMinMm).toBeGreaterThanOrEqual(3);
-        expect(confirmed.engagementMaxMm).toBeLessThanOrEqual(8);
+        // The grips sit on discrete kit heights: 1.80 mm is the friction section of a Friction
+        // Pin with Stud, 3.00 mm is one bush, 8.00 mm is the width a bevel gear or beam holds an
+        // axle over. A doubled parent placement would read 16 mm and a mm/metre swap far more, so
+        // this span still fails loudly on the faults it is here to catch. The bound carries 1 um
+        // because the grip is a measured float: the widest grip evaluates at 8.000000000000004.
+        expect(confirmed.engagementMinMm).toBeGreaterThanOrEqual(1.8);
+        expect(confirmed.engagementMaxMm).toBeLessThanOrEqual(8.001);
         // LEGO's line-to-line fit is 0.05 mm; nothing confirmed may be looser than the deflection.
         expect(confirmed.contactMaxMm).toBeLessThan(0.06);
-        // One light stud grips by less than the mesh can resolve, and is named rather than dropped.
-        expect(confirmed.withoutJoint).toEqual(['30465/NAUO33/NAUO39']);
+        // Every piece is accounted for. The light stud was the last unexplained one and is now
+        // confirmed against its own friction pin, which closes RV-003a.
+        expect(confirmed.withoutJoint).toEqual([]);
     });
 
     it('proves every piece has its own mesh and its own pickable node', () => {

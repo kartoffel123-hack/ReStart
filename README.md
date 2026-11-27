@@ -141,8 +141,11 @@ npm run dev                  # app; the design concept gallery is at #/concept
 ```
 
 Currently runnable: `npm run dev`, `npm run typecheck`, `npm test`, `npm run build`,
-`npm run progress:screenshot`. The `model:*` scripts and `test:e2e` are declared and land
-with their tickets.
+`npm run progress:screenshot`, and `npm run model:import` — the last one verifies the source
+revision, expands the 70 pieces, proves their identity and stages a content-hashed GLB under
+`.tmp/import/`. It publishes nothing: `public/models/30465/` is promoted only once
+`model:verify` has replayed all 70 repairs. `model:compile`, `model:verify` and `test:e2e`
+land with their tickets.
 
 Full release run order:
 

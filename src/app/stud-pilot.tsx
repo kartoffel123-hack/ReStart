@@ -5,8 +5,11 @@ import { StudScene } from '../scene/stud-scene.js';
 import { confirmStep, createManualSession, type ManualSession } from './manual-session.js';
 import { pilotBase, type PilotData } from './pilot-data.js';
 import { loadPackage } from './package-loader.js';
-import type { Vec3 } from '../domain/schema.js';
+import type { AssemblyModel, Vec3 } from '../domain/schema.js';
+import { buildDependencyTree, type MotionCandidateSummary } from '../domain/dependency-tree.js';
+import { DependencyTreeDiagram } from '../graph-view/dependency-tree-diagram.js';
 import '../presentation/stud-pilot.css';
+import '../presentation/dependency-graph.css';
 import { loadCheckpoint, restoreSession, storeCheckpoint } from './checkpoint.js';
 import { exportJson } from './export-json.js';
 import { DescriptionPicker } from './description-picker.js';
@@ -14,6 +17,8 @@ import { DescriptionPicker } from './description-picker.js';
 const zero: Vec3 = [0,0,0];
 export function StudPilot() {
     const [data, setData] = useState<PilotData>();
+    const [model, setModel] = useState<AssemblyModel>();
+    const [candidates, setCandidates] = useState<MotionCandidateSummary[]>([]);
     const [geometryUrl,setGeometryUrl]=useState('');
     const [stage,setStage]=useState<'pilot'|'release'>('pilot');
     const [session, setSession] = useState<ManualSession>();
@@ -39,7 +44,14 @@ export function StudPilot() {
         setError(false);
         (async () => {
             const bundle=await loadPackage(pilotBase,abort.signal);
-            if (!abort.signal.aborted) {url=URL.createObjectURL(bundle.geometry);setGeometryUrl(url);setData(bundle.pilot);setStage(bundle.stage);}
+            if (!abort.signal.aborted) {
+                url=URL.createObjectURL(bundle.geometry);
+                setGeometryUrl(url);
+                setData(bundle.pilot);
+                setModel(bundle.model);
+                setCandidates(Array.isArray(bundle.candidates) ? (bundle.candidates as MotionCandidateSummary[]) : []);
+                setStage(bundle.stage);
+            }
         })().catch(() => { if (!abort.signal.aborted) setError(true); });
         return () => {abort.abort();if(url) URL.revokeObjectURL(url);};
     }, [attempt]);
@@ -47,6 +59,21 @@ export function StudPilot() {
     const target=pick || data?.target;
     const job=joint && data ? data.jointRepair : jobs.find(r=>r.targetIds[0]===target);
     const label=data?.inventory.find(p=>p.id===target)?.name.split(' - ')[0] ?? 'piece';
+    const manualTree = useMemo(
+        () =>
+            model && target
+                ? buildDependencyTree(model, target, {
+                      includeRequires: true,
+                      includeCandidates: true,
+                      includeConnected: false,
+                      includeContains: false,
+                      maxDepth: 6,
+                      repair: job,
+                      candidates
+                  })
+                : undefined,
+        [model, target, job, candidates]
+    );
     useEffect(()=>{
         if(job && session) storeCheckpoint(session.current ? { target:job.targetIds.join('+'),fingerprint:job.procedureFingerprint,confirmed:session.confirmedCount,failed:checkFailed } : null);
     },[job,session,checkFailed]);
@@ -98,10 +125,18 @@ export function StudPilot() {
         </button>}
         {session.confirmedCount>0 && <details className="stud-check"><summary>Confirmed steps</summary>
             {session.steps.slice(0,session.confirmedCount).map((s,i)=><button key={s.stepId} onClick={()=>setHistory(i)}>{s.ordinal}. {s.instruction}</button>)}</details>}
+        {manualTree && <details className="rs-manual-graph-bg">
+            <summary>Dependency-Graph (Hintergrund zur Anleitung · {manualTree.stats.pieceCount} Teile, Tiefe {manualTree.stats.maxDepth})</summary>
+            <div className="rs-manual-graph-bg__head">
+                <span>Aktueller Schritt: <strong>{step.ordinal}. {step.partLabel}</strong></span>
+                <a href={`#/graph?piece=${encodeURIComponent(target!)}`}>Vollständigen Dependency-Graph öffnen</a>
+            </div>
+            <DependencyTreeDiagram tree={manualTree} direction="TB" activeStepPieceId={data?.movers[step.operationId] ?? target!} compact={true} />
+        </details>}
     </>;
     return <main className="stud-picker">
         <section><p>ReStart · 30465 / {stage==='pilot'?'Single-target pilot':'Released manual'}</p><h1>Mechanic manual</h1>
-            <a href="#/review">Inspect the repair graph</a>
+            <p><a href={`#/graph?piece=${encodeURIComponent(target ?? '')}`}>Dependency-Graph öffnen</a> · <a href="#/dof">DOF &amp; Zeiten</a> · <a href="#/review">Inspect the repair graph</a></p>
             <p>Choose a piece on the helicopter or find its occurrence below.</p>
             {data ? <><label>Search pieces <input value={query} onChange={e=>search(e.target.value)} placeholder="Part name, element ID or usage ID"/></label>
                 <label>Occurrence <select value={target} onChange={e=>select(e.target.value)}>

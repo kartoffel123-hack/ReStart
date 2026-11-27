@@ -23,6 +23,7 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "model:import": "tsx tools/import/run.ts",
+    "model:dof": "tsx tools/dof/run.ts",
     "model:compile": "tsx tools/compile/run.ts",
     "model:verify": "tsx tools/verify/run.ts",
     "model:publish": "tsx tools/verify/promote.ts",

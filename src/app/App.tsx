@@ -11,9 +11,11 @@ import { PlaceholderScreen, type PlaceholderRoute } from '../presentation/placeh
 import { ConceptGallery } from '../concept/gallery.js';
 import { StudPilot } from './stud-pilot.js';
 
-export type RouteId = PlaceholderRoute;
+export type RouteId = PlaceholderRoute | 'graph' | 'dof';
 
 export function readRoute(hash: string): RouteId {
+    if (hash.startsWith('#/dof')) return 'dof';
+    if (hash.startsWith('#/graph')) return 'graph';
     if (hash.startsWith('#/review')) return 'review';
     if (hash.startsWith('#/concept')) return 'concept';
     return 'manual';
@@ -21,6 +23,12 @@ export function readRoute(hash: string): RouteId {
 
 const DEV_ONLY = import.meta.env.DEV;
 const Reviewer = lazy(async () => ({default:(await import('./reviewer.js')).Reviewer}));
+const DependencyGraph = lazy(async () => ({
+    default: (await import('./dependency-graph.js')).DependencyGraphScreen
+}));
+const DofOverview = lazy(async () => ({
+    default: (await import('./dof-overview.js')).DofOverviewScreen
+}));
 
 export function App(): ReactNode {
     const [route, setRoute] = useState<RouteId>(() => readRoute(window.location.hash));
@@ -32,6 +40,8 @@ export function App(): ReactNode {
     }, []);
 
     if (route === 'manual') return <div data-route="manual"><StudPilot /></div>;
+    if (route === 'dof') return <Suspense fallback={<p>Loading DOF &amp; timing table…</p>}><DofOverview /></Suspense>;
+    if (route === 'graph') return <Suspense fallback={<p>Loading dependency graph…</p>}><DependencyGraph /></Suspense>;
     if (route === 'review') return <Suspense fallback={<p>Loading reviewer…</p>}><Reviewer/></Suspense>;
     if (route === 'concept' && DEV_ONLY) {
         return (

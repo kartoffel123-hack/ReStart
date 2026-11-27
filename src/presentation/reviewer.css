@@ -38,6 +38,8 @@
     font-weight: 600;
 }
 .reviewer__header a:hover { text-decoration: underline; }
+.reviewer__header-links { display: flex; flex-wrap: wrap; gap: var(--rs-space-1) var(--rs-space-2); align-items: center; }
+.reviewer__header-links a { display: inline-flex; align-items: center; min-height: var(--rs-min-hit); }
 
 /* --- columns ----------------------------------------------------------- */
 .reviewer__left, .reviewer__right {
@@ -46,6 +48,8 @@
     align-content: start;
     min-width: 0;
 }
+.reviewer__left { grid-area: left; }
+.reviewer__right { grid-area: right; }
 
 /* --- panels ------------------------------------------------------------ */
 .reviewer__panel {

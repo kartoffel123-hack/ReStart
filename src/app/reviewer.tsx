@@ -113,7 +113,10 @@ export function Reviewer() {
                 <p>ReStart / Repair reviewer</p>
                 <h1>Repair reviewer</h1>
             </div>
-            <a href="#/">Mechanic manual</a>
+            <nav className="reviewer__header-links">
+                <a href="#/">Mechanic manual</a>
+                <a href={`#/graph?piece=${encodeURIComponent(selected)}`}>Dependency graph</a>
+            </nav>
         </header>
         <p>Inspect a connection, then test what happens if a move needs it released.</p>
         <div className="reviewer__left">

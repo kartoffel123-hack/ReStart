@@ -69,7 +69,13 @@ export function StudScene(props: Props) {
         light.position.set(-1,2,1);
         scene.add(light);
         const neutral = new MeshStandardMaterial({ color: 0x838e94 });
-        const colors:Record<string,number>={'Black':0x222527,'Dark Grey':0x565d62,'Light Grey':0xa5aaab,'White':0xe7e7df,'Lime Green':0x9ab928,'Red':0xad2521,'Transparent Red':0xcd3029,'Blue':0x195d99,'Beige':0xc9b68d,'Yellow':0xffcf25};
+        const colors:Record<string,number>={'Black':0x222527,'Dark Grey':0x565d62,'Light Grey':0xa5aaab,'White':0xe7e7df,'Lime Green':0x9ab928,'Green':0x1f9d55,'Red':0xc81e1e,'Transparent Red':0xcd3029,'Blue':0x195d99,'Beige':0xc9b68d,'Yellow':0xf5c518};
+        const resolveColor = (value: string | undefined): number | null => {
+            if (!value) return null;
+            if (colors[value] !== undefined) return colors[value]!;
+            if (/^#[0-9a-f]{6}$/i.test(value)) return Number.parseInt(value.slice(1), 16);
+            return null;
+        };
         const meshPoses=new Map<Mesh,{pose:Vector3; explode:Vector3;neutral:MeshStandardMaterial;center:Vector3}>();
         const inset=partInset();
         let hoverOutline:LineSegments<EdgesGeometry,LineBasicMaterial>|undefined;
@@ -150,8 +156,9 @@ void main() {
             model.traverse(n => {
                 if (!(n instanceof Mesh)) return;
                 n.material.dispose();
-                const colour=latest.current.colors?.get(String(n.userData.instanceId)) ?? '';
-                n.material = colors[colour] ? new MeshStandardMaterial({color:colors[colour]}) : neutral;
+                const colour=latest.current.colors?.get(String(n.userData.instanceId));
+                const hex = resolveColor(colour);
+                n.material = hex !== null ? new MeshStandardMaterial({color:hex}) : neutral.clone();
                 const outline=new LineSegments(new EdgesGeometry(n.geometry,32),componentOutlineMaterial);
                 n.add(outline);
                 componentOutlines.push(outline);
@@ -224,6 +231,14 @@ void main() {
                     arrow.position.copy(center).add(a).y += 0.005;
                     arrow.setDirection(v.clone().normalize());
                     arrow.setLength(v.length(),0.0015,0.001);
+                }
+            }
+            if (previous?.colors !== p.colors) {
+                for (const [mesh] of meshPoses) {
+                    const hex = resolveColor(p.colors?.get(String(mesh.userData.instanceId)));
+                    if (mesh.material instanceof MeshStandardMaterial) {
+                        mesh.material.color.setHex(hex !== null ? hex : 0x838e94);
+                    }
                 }
             }
             if(previous?.explode!==p.explode || previous?.isolate!==p.isolate || previous?.offsets!==p.offsets || !previous) {

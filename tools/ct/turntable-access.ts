@@ -40,7 +40,7 @@ export function sweepPair(members:TriangleSoup[], scene:TriangleSoup[], start:Po
 
 const fullDigest='6b29220b3f79c718ce1e096fa9aa5d089d24f75217fecc9784f115a470124b75';
 
-async function survey() {
+export async function loadAccessScene() {
     const imported=JSON.parse(await readFile(join(demoStage,'import.json'),'utf8'));
     const scopedBytes=await readFile(join(demoStage,imported.geometry));
     const fullBytes=await readFile(join(ctStage,`geometry-${fullDigest}.glb`));
@@ -69,9 +69,6 @@ async function survey() {
     const caps=new Set(recipe.groups.flatMap(g=>g.members));
     const directions:Record<string,Point>={up,positiveX:[kit.max.x-unit.min.x+10,0,0],negativeX:[kit.min.x-unit.max.x-10,0,0],
         positiveZ:[0,0,kit.max.z-unit.min.z+10],negativeZ:[0,0,kit.min.z-unit.max.z-10]};
-    const installed:Record<string,Contact[]>={};
-    for(const [name,end] of Object.entries(directions)) installed[name]=sweepPair(members,scene,home,end);
-
     // Use the actually replayed park offsets, not a visibility filter.
     const generation=(await readFile(join(demoStage,'candidate'),'utf8')).trim();
     const verification=JSON.parse(await readFile(join(demoStage,'verification.json'),'utf8'));
@@ -84,7 +81,13 @@ async function survey() {
         const offset=manuals.paths[`gantry-${group.key}-remove`]!.at(-1)!;
         return {...p,positions:p.positions.map((x,i)=>x+offset[i%3]!)};
     });
-    const points=[home,up,across,bench];
+    return {scene,scoped,scopedIds,members,directions,parked,caps,points:[home,up,across,bench],kit,scopedDigest,generation};
+}
+
+async function survey() {
+    const {scene,scoped,scopedIds,members,directions,parked,caps,points,scopedDigest,generation}=await loadAccessScene();
+    const installed:Record<string,Contact[]>={};
+    for(const [name,end] of Object.entries(directions)) installed[name]=sweepPair(members,scene,home,end);
     const legs=(moving:TriangleSoup[],path:Point[])=>path.slice(1).map((end,i)=>sweepPair(moving,parked,path[i]!,end));
     const returnPoints=[...points].reverse();
     const outward=legs(members,points),back=legs(members,returnPoints);

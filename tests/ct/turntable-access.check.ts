@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { BoxGeometry } from 'three';
 import { sweepPair } from '../../tools/ct/turntable-access.js';
+import { parkForTrial } from '../../tools/ct/turntable-blockers.js';
 
 function piece(id:string, x:number, y:number) {
     const mesh=new BoxGeometry(2,2,2).toNonIndexed().translate(x,y,0);
@@ -27,4 +28,16 @@ test('a pin carried with the turntable can hit a crown section parked too early 
     assert.deepEqual(sweepPair(carrier,clear,home,pathStart),[]);
     const obstructed = [...carrier,piece('crown',5,6)];
     assert.deepEqual(sweepPair(carrier,obstructed,pathStart,home).map(h=>[h.mover,h.fixed]),[['pin','crown']]);
+});
+
+test('a blocker stays in the kit at its tray offset, where it can obstruct the transfer back', () => {
+    const gear=piece('gear',0,0), tile=piece('tile',0,5), support=piece('support',2,5);
+    const installed=[gear,tile,support];
+    const parked=parkForTrial(installed,[tile.id,support.id],[8,5,0]);
+    assert.deepEqual(parked.map(p=>p.id),installed.map(p=>p.id));
+    assert.deepEqual(sweepPair([gear],parked,[0,0,0],[0,10,0]),[]);
+    const back=sweepPair([gear],parked,[16,10,0],[0,10,0]);
+    assert.deepEqual(back.map(h=>h.fixed),['tile','support']);
+    assert.throws(()=>parkForTrial(installed,['missing'],[8,5,0]),/missing/);
+    assert.ok(sweepPair([gear],installed,[0,0,0],[0,10,0]).length>0);
 });

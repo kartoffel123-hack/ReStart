@@ -7,6 +7,11 @@ import { demoStage } from './import.js';
 import { loadAccessScene } from './turntable-access.js';
 import { parkForTrial, roundTrip } from './turntable-blockers.js';
 
+export function trayPath(bottom:number, kitTop:number, benchY:number, trayZ:number):Vec3[] {
+    const lift=kitTop-bottom+10;
+    return [[0,0,0],[0,lift,0],[0,lift,trayZ],[0,benchY-bottom,trayZ]];
+}
+
 /** Nested order: wall out, bridge out, bridge home, wall home. In particular,
  * the wall returns against the restored bridge, not an empty bridge socket. */
 export function wallThenBridge(scene:TriangleSoup[], wallMembers:TriangleSoup[], wallPath:Vec3[],
@@ -33,20 +38,19 @@ async function survey() {
     if(intrusion<=0) throw new Error('Installed side-wall overlap changed');
     const dx=-Math.ceil((intrusion+.05)*100)/100;
     const home:Vec3=[0,0,0], shifted:Vec3=[dx,0,0];
-    function trayPath(moving:typeof bridge, trayZ:number):Vec3[] {
+    function pathFor(moving:typeof bridge, trayZ:number):Vec3[] {
         const bottom=Math.min(...moving.map(p=>p.bounds.min[1]));
-        const lift=kit.max.y-bottom+10;
-        return [home,[0,lift,0],[0,lift,trayZ],[0,kit.min.y-bottom,trayZ]];
+        return trayPath(bottom,kit.max.y,kit.min.y,trayZ);
     }
-    const bridgePath=trayPath(bridge,-210);
+    const bridgePath=pathFor(bridge,-210);
     const run=(moving:typeof bridge,path:Vec3[])=>wallThenBridge(parked,moving,path,bridge,bridgePath);
     const trials={
         brickShift:run(wall,[home,shifted]),
-        brickRemoval:run(wall,trayPath(wall,-285)),
+        brickRemoval:run(wall,pathFor(wall,-285)),
         wallAndPlateShift:run(wallAndPlate,[home,shifted]),
-        wallAndPlateRemoval:run(wallAndPlate,trayPath(wallAndPlate,-285)),
+        wallAndPlateRemoval:run(wallAndPlate,pathFor(wallAndPlate,-285)),
         facedWallShift:run(facedWall,[home,shifted]),
-        facedWallRemoval:run(facedWall,trayPath(facedWall,-285)),
+        facedWallRemoval:run(facedWall,pathFor(facedWall,-285)),
     };
     const result={scopedDigest,generation,kitOccurrences:parked.length,installedXOverlapMm:intrusion,shiftXMm:dx,
         initial:'Both crown sections at verified tray poses; L110, all pins and bridge installed.',trials};

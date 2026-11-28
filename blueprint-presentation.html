@@ -1,0 +1,1939 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280, initial-scale=1">
+<title>ReStart — Kinetic Engineering Blueprint</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════
+   DESIGN TOKENS
+═══════════════════════════════════════════════════════════ */
+:root {
+  --white:    #FFFFFF;
+  --grey:     rgba(255,255,255,0.65);
+  --grey-lt:  rgba(255,255,255,0.38);
+  --grey-xlt: rgba(255,255,255,0.07);
+  --charcoal: #FFFFFF;
+  --mid:      rgba(255,255,255,0.80);
+  --bg:       #000000;
+  --slide-w:  1280;
+  --slide-h:  720;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RESET
+═══════════════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 100%; height: 100%; overflow: hidden;
+  background: var(--bg);
+  font-family: 'Inter', 'Helvetica Neue', system-ui, sans-serif;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   STAGE — scales to fill screen
+═══════════════════════════════════════════════════════════ */
+#stage {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#deck {
+  position: relative;
+  width: 1280px;
+  height: 720px;
+  overflow: hidden;
+  background: #000000;
+  flex-shrink: 0;
+  transform-origin: center center;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SLIDES
+═══════════════════════════════════════════════════════════ */
+.slide {
+  position: absolute;
+  inset: 0;
+  background: #000000;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(32px) scale(1.015);
+  transition: opacity 0.55s cubic-bezier(.4,0,.2,1),
+              transform 0.55s cubic-bezier(.4,0,.2,1);
+}
+.slide.active {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(0) scale(1);
+}
+.slide.past {
+  transform: translateX(-32px) scale(0.985);
+  opacity: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MECHANICAL LAYER (SVG)
+═══════════════════════════════════════════════════════════ */
+.mech {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+
+/* Gear animation */
+@keyframes gcw  { to { transform: rotate(360deg);  } }
+@keyframes gccw { to { transform: rotate(-360deg); } }
+
+.gcw  { animation: gcw  36s linear infinite; }
+.gccw { animation: gccw 21.6s linear infinite; } /* 36 × 12/20 */
+.gcw2 { animation: gcw  60s linear infinite; }
+.gcw3 { animation: gcw  24s linear infinite; }
+.gccw3{ animation: gccw 16s linear infinite; }
+
+/* ═══════════════════════════════════════════════════════════
+   CONTENT CONTAINERS
+═══════════════════════════════════════════════════════════ */
+.content {
+  position: absolute;
+  inset: 0;
+}
+
+/* Staggered entry */
+.slide.active .ca { animation: enterUp 0.5s cubic-bezier(.2,.8,.2,1) 0.08s both; }
+.slide.active .cb { animation: enterUp 0.5s cubic-bezier(.2,.8,.2,1) 0.18s both; }
+.slide.active .cc { animation: enterUp 0.5s cubic-bezier(.2,.8,.2,1) 0.28s both; }
+.slide.active .cd { animation: enterUp 0.5s cubic-bezier(.2,.8,.2,1) 0.36s both; }
+.slide.active .ce { animation: enterUp 0.5s cubic-bezier(.2,.8,.2,1) 0.44s both; }
+
+@keyframes enterUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   LEGO PIECE ASSEMBLY ANIMATION
+   Each SVG group wrapped in .lp snaps in/out like a real piece
+═══════════════════════════════════════════════════════════ */
+@keyframes lSnap {
+  from { opacity: 0; transform: translate(var(--tx,0px), var(--ty,-28px)) scale(0.80); }
+  65%  { opacity: 1; transform: translate(0,0) scale(1.045); }
+  to   { opacity: 1; transform: translate(0,0) scale(1); }
+}
+@keyframes lUnsnap {
+  to { opacity: 0; transform: translate(var(--tx,0px), var(--ty,-28px)) scale(0.80); }
+}
+.lp {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.slide.active .lp {
+  animation: lSnap 0.44s cubic-bezier(.2,.85,.3,1.4) var(--d, 0.08s) both;
+}
+.slide.past .lp {
+  animation: lUnsnap 0.26s cubic-bezier(.5,0,.9,1) 0s both;
+}
+.slide.active .frame-unit.revealed .lp {
+  animation: lSnap 0.55s cubic-bezier(.15,.8,.25,1.35) var(--d, 0.52s) both;
+}
+/* Frame panel pieces must NOT auto-snap on slide enter — only on .revealed */
+.slide.active .frame-panel .lp {
+  animation: none;
+  opacity: 0;
+}
+/* Unsnap revealed frame pieces when slide exits */
+.slide.past .frame-unit.revealed .lp {
+  animation: lUnsnap 0.26s cubic-bezier(.5,0,.9,1) 0s both;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TYPOGRAPHY
+═══════════════════════════════════════════════════════════ */
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 11px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--grey);
+  font-weight: 400;
+}
+.eyebrow::before {
+  content: '';
+  display: block;
+  width: 28px;
+  height: 1px;
+  background: var(--grey);
+  flex-shrink: 0;
+}
+
+.rule { width: 100%; height: 1px; background: var(--grey-xlt); }
+
+/* ═══════════════════════════════════════════════════════════
+   SLIDE 1 — COVER
+═══════════════════════════════════════════════════════════ */
+#s1 .content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 88px;
+  max-width: 580px;
+}
+#s1 .h1 {
+  font-size: 80px;
+  font-weight: 700;
+  color: var(--charcoal);
+  letter-spacing: -.03em;
+  line-height: 1;
+  margin: 20px 0;
+}
+#s1 .h1 span { font-weight: 300; }
+#s1 .sub {
+  font-size: 20px;
+  font-weight: 300;
+  color: var(--mid);
+  line-height: 1.5;
+  margin-top: 20px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SLIDE 2 — PROBLEM (3-frame progressive reveal)
+═══════════════════════════════════════════════════════════ */
+#s2 .mech { z-index: 2; }
+#s2 .content {
+  padding: 230px 0 0;
+  display: flex;
+  flex-direction: column;
+}
+#s2 .s2-headline {
+  position: absolute;
+  top: 4px;
+  width: 100%;
+  text-align: center;
+  font-size: 64px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: -1.5px;
+  line-height: 1;
+}
+#s2 .frame-row {
+  display: flex;
+  gap: 15px;
+  align-self: center;
+}
+.frame-unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  opacity: 0;
+  pointer-events: none;
+}
+.frame-caption {
+  margin-top: 14px;
+  width: 400px;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.4s ease 0.65s, transform 0.4s ease 0.65s;
+}
+.frame-unit.revealed .frame-caption {
+  opacity: 1;
+  transform: translateY(0);
+}
+.frame-title {
+  font-size: 36px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.5px;
+  white-space: nowrap;
+  margin-bottom: 6px;
+}
+.frame-title .acc { color: #e63946; }
+.frame-sub {
+  font-size: 12px;
+  color: rgba(255,255,255,0.55);
+  line-height: 1.55;
+}
+.frame-unit.revealed {
+  pointer-events: auto;
+  animation: fsnap 0.45s cubic-bezier(.2,.8,.3,1.3) both;
+}
+.frame-unit.revealed .frame-caption {
+  animation: fcap 0.4s cubic-bezier(.2,.8,.2,1) 0.3s both;
+}
+@keyframes fsnap {
+  from { opacity: 0; transform: translateY(-18px) scale(0.94); }
+  60%  { opacity: 1; transform: translateY(4px) scale(1.01); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes fcap {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.frame-panel {
+  position: relative;
+  width: 400px;
+  height: 323px;
+}
+.frame-panel .fp-svg {
+  display: block;
+  position: absolute;
+  top: 0; left: 0;
+  pointer-events: none;
+  overflow: visible;
+  z-index: 1;
+}
+/* video sits behind the SVG border overlay */
+.fp-video {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  width: 376px;
+  height: 299px;
+  object-fit: cover;
+  display: block;
+  z-index: 0;
+}
+.frame-caption {
+  margin-top: 16px;
+  width: 320px;
+  opacity: 0;
+}
+.frame-caption .fc-lead {
+  font-size: 11px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--grey);
+  margin-bottom: 6px;
+  font-weight: 400;
+}
+.frame-caption .fc-body {
+  font-size: 15px;
+  color: var(--mid);
+  line-height: 1.5;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SLIDE 3 — CRISIS
+═══════════════════════════════════════════════════════════ */
+#s3 .content {
+  display: flex;
+  align-items: center;
+  padding: 0 88px;
+  gap: 72px;
+}
+#s3 .left { flex: 0 0 auto; max-width: 480px; }
+#s3 .right { flex: 1; }
+#s3 .metric {
+  font-size: 100px;
+  font-weight: 800;
+  color: var(--charcoal);
+  letter-spacing: -.04em;
+  line-height: 1;
+}
+#s3 .metric-unit {
+  font-size: 20px;
+  font-weight: 300;
+  color: var(--mid);
+  margin-top: 6px;
+  letter-spacing: .02em;
+}
+#s3 .stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-top: 40px;
+}
+#s3 .sb {
+  border-left: 1.5px solid var(--grey-xlt);
+  padding-left: 16px;
+}
+#s3 .sv {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--charcoal);
+}
+#s3 .sl {
+  font-size: 13px;
+  color: var(--grey);
+  line-height: 1.4;
+  margin-top: 4px;
+}
+#s3 .rh {
+  font-size: 44px;
+  font-weight: 700;
+  color: var(--charcoal);
+  line-height: 1.1;
+  letter-spacing: -.02em;
+  margin-bottom: 24px;
+}
+#s3 .rp {
+  font-size: 20px;
+  font-weight: 300;
+  color: var(--mid);
+  line-height: 1.5;
+}
+#s3 .rp strong { font-weight: 600; color: var(--charcoal); }
+
+/* ═══════════════════════════════════════════════════════════
+   SLIDE 4 — DEMO
+═══════════════════════════════════════════════════════════ */
+#s4 .content {
+  padding: 56px 88px 48px;
+  display: flex;
+  flex-direction: column;
+}
+#s4 .h2 {
+  font-size: 36px;
+  font-weight: 600;
+  color: var(--charcoal);
+  letter-spacing: -.015em;
+  line-height: 1.15;
+  max-width: 640px;
+}
+#s4 .h2 strong { font-weight: 800; }
+#s4 .steps {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 28px;
+  margin-top: 56px;
+  padding-top: 56px;
+}
+#s4 .step { border-top: 1px solid var(--grey-xlt); padding-top: 18px; }
+#s4 .sn {
+  font-size: 10px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--grey);
+  margin-bottom: 14px;
+}
+#s4 .st {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--charcoal);
+  margin-bottom: 10px;
+}
+#s4 .sb2 {
+  font-size: 14px;
+  color: var(--mid);
+  line-height: 1.55;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SLIDE 5 — MARKET
+═══════════════════════════════════════════════════════════ */
+#s5 .content {
+  padding: 56px 88px 48px;
+  display: flex;
+  flex-direction: column;
+}
+#s5 .h2 {
+  font-size: 34px;
+  font-weight: 600;
+  color: var(--charcoal);
+  letter-spacing: -.015em;
+  line-height: 1.2;
+  max-width: 700px;
+}
+#s5 .kpis {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 28px 56px;
+  margin-top: 40px;
+}
+#s5 .kpi {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-left: 1.5px solid var(--grey-xlt);
+  padding-left: 24px;
+}
+#s5 .kv2 {
+  font-size: 44px;
+  font-weight: 700;
+  color: var(--charcoal);
+  letter-spacing: -.02em;
+  line-height: 1;
+}
+#s5 .kd {
+  font-size: 15px;
+  color: var(--mid);
+  line-height: 1.4;
+  margin-top: 6px;
+}
+#s5 .ks {
+  font-size: 11px;
+  color: var(--grey);
+  margin-top: 4px;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SLIDE 7 — LEGO CLOCK
+═══════════════════════════════════════════════════════════ */
+#s7-hand { transition: transform 0.09s cubic-bezier(0.15, 2.8, 0.5, 1); }
+
+/* ═══════════════════════════════════════════════════════════
+   SLIDE 6 — CLOSE
+═══════════════════════════════════════════════════════════ */
+#s6 .content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+#s6 .cl {
+  font-size: 11px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--grey);
+  margin-bottom: 28px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+#s6 .cl::before, #s6 .cl::after {
+  content: '';
+  display: block;
+  width: 48px;
+  height: 1px;
+  background: var(--grey-xlt);
+}
+#s6 .h1b {
+  font-size: 80px;
+  font-weight: 700;
+  color: var(--charcoal);
+  letter-spacing: -.03em;
+  line-height: 1;
+  text-align: center;
+  margin-bottom: 24px;
+}
+#s6 .tl {
+  font-size: 24px;
+  font-weight: 300;
+  color: var(--mid);
+  text-align: center;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════════════════════════ */
+#nav {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  z-index: 999;
+}
+.nb {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.7);
+  font-size: 15px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .2s, border-color .2s;
+  backdrop-filter: blur(4px);
+}
+.nb:hover { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.3); }
+#ctr {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 12px;
+  color: rgba(255,255,255,0.4);
+  min-width: 44px;
+  text-align: center;
+  letter-spacing: .08em;
+}
+/* Dots */
+#dots { display: flex; gap: 6px; align-items: center; }
+.dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  transition: background .2s, transform .2s;
+  cursor: pointer;
+}
+.dot.on { background: rgba(255,255,255,0.7); transform: scale(1.3); }
+</style>
+</head>
+<body>
+
+<div id="stage">
+  <div id="deck">
+
+  <!-- ═══════════════════════════════════════════════════
+       SLIDE 1 · COVER
+  ═══════════════════════════════════════════════════ -->
+  <section class="slide active" id="s1">
+    <img src="../Downloads/this for one.png"
+         style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);
+                width:1020px;object-fit:contain;pointer-events:none;
+                -webkit-mask-image:linear-gradient(to bottom,transparent 0%,black 22%,black 100%);
+                mask-image:linear-gradient(to bottom,transparent 0%,black 22%,black 100%);" />
+    <svg class="mech" viewBox="0 0 1280 720" id="svg1"></svg>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════
+       SLIDE 2 · PROBLEM
+  ═══════════════════════════════════════════════════ -->
+  <section class="slide" id="s2">
+    <svg class="mech" viewBox="0 0 1280 720" id="svg2"></svg>
+    <div class="content">
+      <div class="s2-headline ca">One hour costs ...</div>
+      <div class="frame-row">
+        <div class="frame-unit" data-f="1">
+          <div class="frame-panel">
+            <video class="fp-video" src="../Downloads/1.mp4" muted loop playsinline preload="auto"></video>
+            <svg class="fp-svg" viewBox="0 0 400 323" width="400" height="323"></svg>
+          </div>
+          <div class="frame-caption">
+            <div class="frame-title">time</div>
+            <div class="frame-sub">Munich drivers lost 55 hours in traffic in 2024.</div>
+          </div>
+        </div>
+        <div class="frame-unit" data-f="2">
+          <div class="frame-panel">
+            <video class="fp-video" src="../Downloads/2.mp4" muted loop playsinline preload="auto"></video>
+            <svg class="fp-svg" viewBox="0 0 400 323" width="400" height="323"></svg>
+          </div>
+          <div class="frame-caption">
+            <div class="frame-title">time &amp; money</div>
+            <div class="frame-sub">$2.3 million in one hour of downtime at a large car plant.</div>
+          </div>
+        </div>
+        <div class="frame-unit" data-f="3">
+          <div class="frame-panel">
+            <video class="fp-video" src="../Downloads/3.mp4" muted loop playsinline preload="auto"></video>
+            <svg class="fp-svg" viewBox="0 0 400 323" width="400" height="323"></svg>
+          </div>
+          <div class="frame-caption">
+            <div class="frame-title">time &amp; money &amp; <span class="acc">lives</span></div>
+            <div class="frame-sub">In a stroke, 1.9 million brain cells die every minute.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════
+       SLIDE 3 · LEGO CLOCK
+  ═══════════════════════════════════════════════════ -->
+  <section class="slide" id="s7">
+    <!-- LEFT COLUMN — text, vertically centered -->
+    <div style="position:absolute;left:52px;top:50%;transform:translateY(-50%);width:530px;
+                font-family:'Inter','Helvetica Neue',system-ui,sans-serif;">
+      <div style="font-size:52px;font-weight:900;color:#fff;line-height:1.1;letter-spacing:-1.5px;">CT down.<br>Clock running.</div>
+      <div style="font-size:92px;font-weight:900;color:#e63946;line-height:1;letter-spacing:-2px;margin-top:14px;">1.9 million</div>
+      <div style="font-size:17px;color:rgba(255,255,255,0.58);margin-top:8px;font-weight:400;">brain cells lost per minute of stroke.</div>
+      <div style="font-size:21px;font-weight:700;color:#fff;margin-top:20px;">Damage begins <span style="color:#e63946;">within minutes.</span></div>
+    </div>
+    <!-- RIGHT COLUMN top — clock -->
+    <svg id="s7-clock" viewBox="-200 -200 400 400" width="340" height="340"
+      style="position:absolute;right:138px;top:20px;pointer-events:none;"></svg>
+    <!-- RIGHT COLUMN bottom — video -->
+    <video src="../Downloads/video-veo3-20wA6LTwTHqxHFI4Mv6G9K.mp4"
+           style="position:absolute;right:10px;top:378px;width:596px;height:335px;
+                  object-fit:contain;
+                  -webkit-mask-image:linear-gradient(to right,transparent 0%,black 4%,black 96%,transparent 100%),linear-gradient(to bottom,transparent 0%,black 4%,black 96%,transparent 100%);
+                  -webkit-mask-composite:source-in;
+                  mask-image:linear-gradient(to right,transparent 0%,black 4%,black 96%,transparent 100%),linear-gradient(to bottom,transparent 0%,black 4%,black 96%,transparent 100%);
+                  mask-composite:intersect;"
+           autoplay muted playsinline onended="this.pause()"></video>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════
+       SLIDE 4 · SOLUTION
+  ═══════════════════════════════════════════════════ -->
+  <section class="slide" id="s8">
+    <!-- CT room blueprint — right background -->
+    <img src="../Downloads/LEGO MRI Room Blueprint.png"
+         style="position:absolute;right:0;top:50%;transform:translateY(-50%);
+                width:860px;object-fit:contain;pointer-events:none;
+                -webkit-mask-image:linear-gradient(to right,transparent 0%,black 14%,black 100%);
+                mask-image:linear-gradient(to right,transparent 0%,black 14%,black 100%);" />
+    <!-- Left text column -->
+    <div style="position:absolute;left:64px;top:50%;transform:translateY(-50%);
+                width:500px;font-family:'Inter','Helvetica Neue',system-ui,sans-serif;">
+      <div style="font-size:76px;font-weight:900;color:#fff;line-height:1.02;letter-spacing:-2.5px;">
+        Get the<br>CT back.<br>Fast.
+      </div>
+      <div style="font-size:22px;font-weight:700;color:#e63946;margin-top:30px;display:flex;align-items:center;gap:10px;">
+        <span style="font-size:28px;line-height:1;">↺</span> ReStart makes it possible.
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════
+       SLIDE 5 · BIG LEGO FRAME
+  ═══════════════════════════════════════════════════ -->
+  <section class="slide" id="s3">
+    <svg class="mech" viewBox="0 0 1280 720" id="svg3"></svg>
+    <div style="position:absolute;top:56px;bottom:56px;left:100px;right:100px;
+                display:flex;align-items:center;justify-content:center;">
+      <div style="font-family:'Inter','Helvetica Neue',system-ui,sans-serif;
+                  font-size:68px;font-weight:900;color:#fff;line-height:1.15;
+                  letter-spacing:-2px;text-align:center;max-width:920px;">
+        From smoking CT to repair guide in
+        <span style="background:rgba(253,224,110,0.95);color:#111;
+                     padding:2px 16px;border-radius:4px;letter-spacing:-1px;">XX</span>
+        seconds.
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════
+       SLIDE 6 · FROM INNOVATION TO IMPACT
+  ═══════════════════════════════════════════════════ -->
+  <section class="slide" id="s11">
+    <svg viewBox="0 0 1280 720" id="svg11" style="position:absolute;inset:0;width:100%;height:100%;"></svg>
+  </section>
+  <!-- ═══════════════════════════════════════════════════
+       SLIDE · BUSINESS CASE
+  ═══════════════════════════════════════════════════ -->
+  <section class="slide" id="s10">
+    <!-- blueprint corners -->
+    <svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;" viewBox="0 0 1280 720">
+      <line x1="32" y1="20" x2="32" y2="54" stroke="rgba(255,255,255,1)" stroke-width="0.5"/>
+      <line x1="20" y1="32" x2="54" y2="32" stroke="rgba(255,255,255,1)" stroke-width="0.5"/>
+      <line x1="1248" y1="20" x2="1248" y2="54" stroke="rgba(255,255,255,1)" stroke-width="0.5"/>
+      <line x1="1226" y1="32" x2="1260" y2="32" stroke="rgba(255,255,255,1)" stroke-width="0.5"/>
+      <line x1="32" y1="700" x2="32" y2="666" stroke="rgba(255,255,255,1)" stroke-width="0.5"/>
+      <line x1="20" y1="688" x2="54" y2="688" stroke="rgba(255,255,255,1)" stroke-width="0.5"/>
+      <line x1="1248" y1="700" x2="1248" y2="666" stroke="rgba(255,255,255,1)" stroke-width="0.5"/>
+      <line x1="1226" y1="688" x2="1260" y2="688" stroke="rgba(255,255,255,1)" stroke-width="0.5"/>
+    </svg>
+
+    <!-- headline -->
+    <div style="position:absolute;left:64px;top:130px;right:64px;
+                font-family:'Inter','Helvetica Neue',sans-serif;font-size:28px;font-weight:900;
+                color:rgba(255,255,255,0.88);letter-spacing:-0.5px;">
+      Backup: how we calculate the savings
+    </div>
+
+    <!-- formula cards row -->
+    <div style="position:absolute;top:182px;left:0;right:0;
+                display:flex;align-items:center;justify-content:center;gap:0;">
+
+      <!-- CARD 1 — Yearly downtime -->
+      <div style="position:relative;width:322px;height:216px;flex-shrink:0;">
+        <svg class="fpx-svg" viewBox="0 0 322 216" width="322" height="216"
+             style="position:absolute;inset:0;pointer-events:none;z-index:1;overflow:visible;"></svg>
+        <div style="position:absolute;top:20px;left:20px;right:20px;bottom:20px;
+                    font-family:'Inter',sans-serif;overflow:hidden;">
+          <span style="display:inline-block;background:#e63946;color:#fff;font-size:11px;font-weight:800;
+                       padding:2px 7px;border-radius:3px;margin-bottom:4px;">1</span>
+          <div style="font-size:14px;font-weight:700;color:rgba(255,255,255,0.8);">Yearly downtime</div>
+          <div style="font-size:48px;font-weight:900;color:#e63946;line-height:1;letter-spacing:-2px;margin-top:4px;">87.5 h</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-top:6px;line-height:1.4;">unplanned, per CT site and year</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.35);margin-top:6px;font-family:'Inter', system-ui, sans-serif;letter-spacing:0.03em;">CADTH CT inventory 2022–23</div>
+        </div>
+      </div>
+
+      <!-- × -->
+      <div style="font-size:32px;font-weight:300;color:rgba(255,255,255,0.5);width:46px;text-align:center;">×</div>
+
+      <!-- CARD 2 — ReStart share (highlighted) -->
+      <div style="position:relative;width:322px;height:216px;flex-shrink:0;">
+        <svg class="fpx-svg fpx-highlight" viewBox="0 0 322 216" width="322" height="216"
+             style="position:absolute;inset:0;pointer-events:none;z-index:1;overflow:visible;"></svg>
+        <div style="position:absolute;top:20px;left:20px;right:20px;bottom:20px;
+                    font-family:'Inter',sans-serif;overflow:hidden;">
+          <span style="display:inline-block;background:#e63946;color:#fff;font-size:11px;font-weight:800;
+                       padding:2px 7px;border-radius:3px;margin-bottom:4px;">2</span>
+          <div style="font-size:14px;font-weight:700;color:rgba(255,255,255,0.8);">ReStart share</div>
+          <div style="display:inline-block;background:rgba(253,224,110,0.92);color:#111;font-size:44px;
+                      font-weight:900;line-height:1;letter-spacing:-1px;padding:2px 14px;
+                      border-radius:4px;margin-top:4px;">XX %</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.55);margin-top:7px;line-height:1.4;">repair time our algorithm saves<br>(fastest disassembly path vs. standard)</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.35);margin-top:4px;font-family:'Inter', system-ui, sans-serif;">ReStart algorithm</div>
+        </div>
+      </div>
+
+      <!-- = -->
+      <div style="font-size:32px;font-weight:300;color:rgba(255,255,255,0.5);width:46px;text-align:center;">=</div>
+
+      <!-- CARD 3 — Hours saved -->
+      <div style="position:relative;width:322px;height:216px;flex-shrink:0;">
+        <svg class="fpx-svg" viewBox="0 0 322 216" width="322" height="216"
+             style="position:absolute;inset:0;pointer-events:none;z-index:1;overflow:visible;"></svg>
+        <div style="position:absolute;top:20px;left:20px;right:20px;bottom:20px;
+                    font-family:'Inter',sans-serif;overflow:hidden;">
+          <span style="display:inline-block;background:#e63946;color:#fff;font-size:11px;font-weight:800;
+                       padding:2px 7px;border-radius:3px;margin-bottom:4px;">3</span>
+          <div style="font-size:14px;font-weight:700;color:rgba(255,255,255,0.8);">Hours saved</div>
+          <div style="font-size:38px;font-weight:900;color:#e63946;line-height:1;letter-spacing:-1px;margin-top:4px;">87.5 h × %</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.55);margin-top:7px;line-height:1.4;">then × 2.4 exams/h × €100–200 per exam<br>= € saved</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.35);margin-top:4px;font-family:'Inter', system-ui, sans-serif;">CADTH 2022–23; € per exam assumed</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- savings table -->
+    <table style="position:absolute;top:424px;left:80px;right:80px;width:calc(100% - 160px);
+                  border-collapse:collapse;font-family:'Inter',sans-serif;font-size:13px;color:rgba(255,255,255,0.75);">
+      <thead>
+        <tr style="border-bottom:1px solid rgba(255,255,255,0.4);">
+          <th style="text-align:left;padding:7px 12px;font-weight:700;color:rgba(255,255,255,0.55);font-size:11px;font-family:'Inter', system-ui, sans-serif;letter-spacing:0.04em;">ReStart share</th>
+          <th style="text-align:left;padding:7px 12px;font-weight:700;color:rgba(255,255,255,0.55);font-size:11px;font-family:'Inter', system-ui, sans-serif;letter-spacing:0.04em;">Hours saved / CT / year</th>
+          <th style="text-align:left;padding:7px 12px;font-weight:700;color:rgba(255,255,255,0.55);font-size:11px;font-family:'Inter', system-ui, sans-serif;letter-spacing:0.04em;">Exams kept</th>
+          <th style="text-align:left;padding:7px 12px;font-weight:700;color:rgba(255,255,255,0.55);font-size:11px;font-family:'Inter', system-ui, sans-serif;letter-spacing:0.04em;">€ saved / CT / year</th>
+          <th style="text-align:left;padding:7px 12px;font-weight:700;color:rgba(255,255,255,0.55);font-size:11px;font-family:'Inter', system-ui, sans-serif;letter-spacing:0.04em;">Technician hours saved*</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
+          <td style="padding:10px 12px;">10 %</td>
+          <td style="padding:10px 12px;">9 h</td>
+          <td style="padding:10px 12px;">21</td>
+          <td style="padding:10px 12px;">€2,100–4,200</td>
+          <td style="padding:10px 12px;color:rgba(255,255,255,0.4);">2 h</td>
+        </tr>
+        <tr style="background:rgba(255,255,255,0.07);border-bottom:1px solid rgba(255,255,255,0.1);">
+          <td style="padding:10px 12px;font-weight:800;color:#fff;">25 %</td>
+          <td style="padding:10px 12px;font-weight:800;color:#fff;">22 h</td>
+          <td style="padding:10px 12px;font-weight:800;color:#fff;">53</td>
+          <td style="padding:10px 12px;font-weight:800;color:#fff;">€5,300–10,500</td>
+          <td style="padding:10px 12px;font-weight:800;color:rgba(255,255,255,0.5);">5 h</td>
+        </tr>
+        <tr>
+          <td style="padding:10px 12px;">40 %</td>
+          <td style="padding:10px 12px;">35 h</td>
+          <td style="padding:10px 12px;">84</td>
+          <td style="padding:10px 12px;">€8,400–16,800</td>
+          <td style="padding:10px 12px;color:rgba(255,255,255,0.4);">8 h</td>
+        </tr>
+      </tbody>
+    </table>
+
+  </section>
+
+  </div><!-- /deck -->
+</div><!-- /stage -->
+
+<!-- Navigation -->
+<nav id="nav">
+  <button class="nb" id="prev">&#8592;</button>
+  <div id="dots"></div>
+  <button class="nb" id="next">&#8594;</button>
+</nav>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   SVG HELPERS
+═══════════════════════════════════════════════════════════ */
+
+/* Generate gear tooth path (rectangular teeth, blueprint style) */
+function gearPath(N, R, r, offset = 0) {
+  const pts = [];
+  const toothHalf = Math.PI / N * 0.4;
+  for (let i = 0; i < N; i++) {
+    const a = (i * 2 * Math.PI / N) + offset;
+    pts.push([r * Math.cos(a - toothHalf * 1.7), r * Math.sin(a - toothHalf * 1.7)]);
+    pts.push([R * Math.cos(a - toothHalf),         R * Math.sin(a - toothHalf)]);
+    pts.push([R * Math.cos(a + toothHalf),         R * Math.sin(a + toothHalf)]);
+    pts.push([r * Math.cos(a + toothHalf * 1.7), r * Math.sin(a + toothHalf * 1.7)]);
+  }
+  return 'M' + pts.map(p => `${p[0].toFixed(2)},${p[1].toFixed(2)}`).join('L') + 'Z';
+}
+
+/* Complete gear group: body + hub + bore + cross-hair + spoke lines */
+function gear(cx, cy, N, R, r, hub, bore, animCls, extraRotate = 0) {
+  const path = gearPath(N, R, r, extraRotate * Math.PI / 180);
+  const spokes = [];
+  for (let i = 0; i < 6; i++) {
+    const a = i * Math.PI / 3;
+    const x1 = (bore + 2) * Math.cos(a), y1 = (bore + 2) * Math.sin(a);
+    const x2 = (hub - 2) * Math.cos(a), y2 = (hub - 2) * Math.sin(a);
+    spokes.push(`<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="rgba(255,255,255,1)" stroke-width="0.5"/>`);
+  }
+  return `
+<g transform="translate(${cx},${cy})">
+  <g class="${animCls}" style="transform-origin:0px 0px">
+    <path d="${path}" fill="none" stroke="rgba(255,255,255,1)" stroke-width="0.75" stroke-linejoin="round"/>
+    <circle r="${hub}" fill="none" stroke="rgba(255,255,255,1)" stroke-width="0.75"/>
+    <circle r="${bore}" fill="none" stroke="rgba(255,255,255,1)" stroke-width="0.6"/>
+    ${spokes.join('')}
+    <line x1="${-bore}" y1="0" x2="${bore}" y2="0" stroke="rgba(255,255,255,1)" stroke-width="0.4"/>
+    <line x1="0" y1="${-bore}" x2="0" y2="${bore}" stroke="rgba(255,255,255,1)" stroke-width="0.4"/>
+  </g>
+</g>`;
+}
+
+/* Technic beam with round holes — stadium shape like real LEGO pieces */
+function beam(x, y, holes, dir = 'h') {
+  const H = 20, S = 20, HR = 5.8;
+  const W = holes * S;
+  const st = 'rgba(255,255,255,1)';
+  let g = `<g transform="translate(${x},${y})">`;
+  if (dir === 'h') {
+    g += `<rect x="0" y="0" width="${W}" height="${H}" rx="${H/2}" fill="#000000" stroke="${st}" stroke-width="1.1"/>`;
+    g += `<rect x="1.5" y="1.5" width="${W-3}" height="${H-3}" rx="${H/2-1.5}" fill="none" stroke="${st}" stroke-width="0.35" opacity="0.4"/>`;
+    for (let i = 0; i < holes; i++) {
+      const hx = S/2 + i*S, hy = H/2;
+      g += `<circle cx="${hx}" cy="${hy}" r="${HR}" fill="rgba(255,255,255,0.12)" stroke="${st}" stroke-width="0.8"/>`;
+      g += `<circle cx="${hx}" cy="${hy}" r="${HR*0.38}" fill="none" stroke="${st}" stroke-width="0.35" opacity="0.5"/>`;
+    }
+  } else {
+    g += `<rect x="0" y="0" width="${H}" height="${W}" rx="${H/2}" fill="#000000" stroke="${st}" stroke-width="1.1"/>`;
+    g += `<rect x="1.5" y="1.5" width="${H-3}" height="${W-3}" rx="${H/2-1.5}" fill="none" stroke="${st}" stroke-width="0.35" opacity="0.4"/>`;
+    for (let i = 0; i < holes; i++) {
+      const hx = H/2, hy = S/2 + i*S;
+      g += `<circle cx="${hx}" cy="${hy}" r="${HR}" fill="rgba(255,255,255,0.12)" stroke="${st}" stroke-width="0.8"/>`;
+      g += `<circle cx="${hx}" cy="${hy}" r="${HR*0.38}" fill="none" stroke="${st}" stroke-width="0.35" opacity="0.5"/>`;
+    }
+  }
+  return g + '</g>';
+}
+
+/* Liftarm at angle */
+function liftarm(x1, y1, x2, y2, holes) {
+  const dx = x2 - x1, dy = y2 - y1;
+  const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+  return `<g transform="translate(${x1},${y1}) rotate(${angle.toFixed(2)})">` +
+         beam(0, -10, holes) + '</g>';
+}
+
+/* Connector / bolt — looks like a LEGO Technic pin */
+function bolt(cx, cy, r = 7) {
+  const st = 'rgba(255,255,255,1)';
+  return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="rgba(255,255,255,0.08)" stroke="${st}" stroke-width="1.0"/>` +
+         `<circle cx="${cx}" cy="${cy}" r="${r-1.5}" fill="none" stroke="${st}" stroke-width="0.3" opacity="0.4"/>` +
+         `<circle cx="${cx}" cy="${cy}" r="${(r*0.38).toFixed(1)}" fill="rgba(255,255,255,0.12)" stroke="${st}" stroke-width="0.5"/>`;
+}
+
+/* ── Global LEGO piece helpers ───────────────────────────────────────────
+   All use LU=20px (1 stud pitch), stadium profile, fill+bevel+holes.    */
+const LU = 20, BW = 20, HR = 5.8;
+const _st = () => 'rgba(255,255,255,1)';
+
+/* Technic Liftarm beam — n holes, horizontal or vertical, at (x,y) */
+function lBeam(x, y, n, vert = false) {
+  const st = _st(), LEN = n * LU;
+  let s = '';
+  if (!vert) {
+    s += `<rect x="${x}" y="${y}" width="${LEN}" height="${BW}" rx="${BW/2}" fill="#000000" stroke="${st}" stroke-width="1.2"/>`;
+    s += `<rect x="${x+1.5}" y="${y+1.5}" width="${LEN-3}" height="${BW-3}" rx="${BW/2-1.5}" fill="none" stroke="${st}" stroke-width="0.35" opacity="0.4"/>`;
+    for (let i = 0; i < n; i++) {
+      const hx = x + LU/2 + i*LU, hy = y + BW/2;
+      s += `<circle cx="${hx}" cy="${hy}" r="${HR}" fill="rgba(255,255,255,0.12)" stroke="${st}" stroke-width="0.85"/>`;
+      s += `<circle cx="${hx}" cy="${hy}" r="${HR*0.38}" fill="none" stroke="${st}" stroke-width="0.35" opacity="0.5"/>`;
+    }
+  } else {
+    s += `<rect x="${x}" y="${y}" width="${BW}" height="${LEN}" rx="${BW/2}" fill="#000000" stroke="${st}" stroke-width="1.2"/>`;
+    s += `<rect x="${x+1.5}" y="${y+1.5}" width="${BW-3}" height="${LEN-3}" rx="${BW/2-1.5}" fill="none" stroke="${st}" stroke-width="0.35" opacity="0.4"/>`;
+    for (let i = 0; i < n; i++) {
+      const hx = x + BW/2, hy = y + LU/2 + i*LU;
+      s += `<circle cx="${hx}" cy="${hy}" r="${HR}" fill="rgba(255,255,255,0.12)" stroke="${st}" stroke-width="0.85"/>`;
+      s += `<circle cx="${hx}" cy="${hy}" r="${HR*0.38}" fill="none" stroke="${st}" stroke-width="0.35" opacity="0.5"/>`;
+    }
+  }
+  return s;
+}
+
+/* 6536 Cross-Block Connector — round hub with axle cross-hole, at center (cx,cy) */
+function lCrossBlock(cx, cy, scale = 1) {
+  const st = _st(), r = BW/2 * scale, cr = r * 0.44, t = cr * 0.3, h = cr * 0.78;
+  return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="rgba(255,255,255,0.08)" stroke="${st}" stroke-width="1.2"/>` +
+         `<circle cx="${cx}" cy="${cy}" r="${r-1.5*scale}" fill="none" stroke="${st}" stroke-width="0.35" opacity="0.4"/>` +
+         `<circle cx="${cx}" cy="${cy}" r="${cr}" fill="rgba(255,255,255,0.12)" stroke="${st}" stroke-width="0.8"/>` +
+         `<rect x="${cx-t}" y="${cy-h}" width="${t*2}" height="${h*2}" fill="rgba(255,255,255,0.12)" stroke="${st}" stroke-width="0.4"/>` +
+         `<rect x="${cx-h}" y="${cy-t}" width="${h*2}" height="${t*2}" fill="rgba(255,255,255,0.12)" stroke="${st}" stroke-width="0.4"/>`;
+}
+
+/* 3713 Bush — round spacer, looks like a thick ring on an axle */
+function lBush(cx, cy) {
+  const st = _st(), r = BW/2 * 0.7;
+  return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="rgba(255,255,255,0.08)" stroke="${st}" stroke-width="1.1"/>` +
+         `<circle cx="${cx}" cy="${cy}" r="${r*0.5}" fill="rgba(255,255,255,0.12)" stroke="${st}" stroke-width="0.8"/>`;
+}
+
+/* 2780 Pin with friction — small circular pin piece */
+function lPin(cx, cy) {
+  const st = _st();
+  return `<circle cx="${cx}" cy="${cy}" r="5" fill="rgba(255,255,255,0.10)" stroke="${st}" stroke-width="1.0"/>` +
+         `<circle cx="${cx}" cy="${cy}" r="2.2" fill="rgba(255,255,255,0.15)" stroke="${st}" stroke-width="0.5"/>`;
+}
+
+/* L-shaped 90° bracket from two beams — corner connector shorthand */
+function lCorner(x, y, flipX = false, flipY = false, nH = 3, nV = 3) {
+  const sx = flipX ? -1 : 1, sy = flipY ? -1 : 1;
+  const bx = flipX ? x - nH*LU : x;
+  const by = flipY ? y - nV*LU : y;
+  return lBeam(bx, y, nH) + lBeam(x, by, nV, true);
+}
+
+/* Part number annotation */
+function ann(cx, cy, n) {
+  return `<circle cx="${cx}" cy="${cy}" r="11" fill="none" stroke="rgba(255,255,255,1)" stroke-width="0.6"/>`;
+}
+
+/* Fine dimension line */
+function dim(x1, y1, x2, y2, label, offDir = 'above') {
+  const dx = x2-x1, dy = y2-y1, L = Math.sqrt(dx*dx+dy*dy);
+  const nx = -dy/L, ny = dx/L;
+  const off = offDir === 'above' ? -16 : 16;
+  const ox = nx*off, oy = ny*off;
+  const mx = (x1+x2)/2, my = (y1+y2)/2;
+  return `
+    <line x1="${x1}" y1="${y1}" x2="${(x1+ox).toFixed(1)}" y2="${(y1+oy).toFixed(1)}" stroke="rgba(255,255,255,1)" stroke-width="0.4" stroke-dasharray="3,2"/>
+    <line x1="${x2}" y1="${y2}" x2="${(x2+ox).toFixed(1)}" y2="${(y2+oy).toFixed(1)}" stroke="rgba(255,255,255,1)" stroke-width="0.4" stroke-dasharray="3,2"/>
+    <line x1="${(x1+ox).toFixed(1)}" y1="${(y1+oy).toFixed(1)}" x2="${(x2+ox).toFixed(1)}" y2="${(y2+oy).toFixed(1)}" stroke="rgba(255,255,255,1)" stroke-width="0.5"/>
+    <line x1="${(x1+ox).toFixed(1)}" y1="${(y1+oy).toFixed(1)}" x2="${(x1+ox+nx*4).toFixed(1)}" y2="${(y1+oy+ny*4).toFixed(1)}" stroke="rgba(255,255,255,1)" stroke-width="0.5"/>
+    <line x1="${(x2+ox).toFixed(1)}" y1="${(y2+oy).toFixed(1)}" x2="${(x2+ox-nx*4).toFixed(1)}" y2="${(y2+oy-ny*4).toFixed(1)}" stroke="rgba(255,255,255,1)" stroke-width="0.5"/>`;
+}
+
+/* Shared frame corners + title block */
+function frameCorners(sheetN, sheetTotal) {
+  const C = `
+    <line x1="32" y1="20" x2="32" y2="54" stroke="rgba(255,255,255,1)" stroke-width="0.5"/>
+    <line x1="20" y1="32" x2="54" y2="32" stroke="rgba(255,255,255,1)" stroke-width="0.5"/>
+    <line x1="1248" y1="20" x2="1248" y2="54" stroke="rgba(255,255,255,1)" stroke-width="0.5"/>
+    <line x1="1226" y1="32" x2="1260" y2="32" stroke="rgba(255,255,255,1)" stroke-width="0.5"/>
+    <line x1="32" y1="700" x2="32" y2="666" stroke="rgba(255,255,255,1)" stroke-width="0.5"/>
+    <line x1="20" y1="688" x2="54" y2="688" stroke="rgba(255,255,255,1)" stroke-width="0.5"/>
+    <line x1="1248" y1="700" x2="1248" y2="666" stroke="rgba(255,255,255,1)" stroke-width="0.5"/>
+    <line x1="1226" y1="688" x2="1260" y2="688" stroke="rgba(255,255,255,1)" stroke-width="0.5"/>
+  `;
+  const TB = `
+    <g transform="translate(920,662)">
+      <rect x="0" y="0" width="320" height="44" fill="none" stroke="rgba(255,255,255,1)" stroke-width="0.5"/>
+      <line x1="0" y1="20" x2="320" y2="20" stroke="rgba(255,255,255,1)" stroke-width="0.4"/>
+      <line x1="160" y1="0" x2="160" y2="44" stroke="rgba(255,255,255,1)" stroke-width="0.4"/>
+      <text x="8" y="13" font-size="7.5" fill="rgba(255,255,255,1)" font-family="Inter, system-ui, sans-serif" letter-spacing="0.08em">PROJECT</text>
+      <text x="8" y="36" font-size="8.5" fill="rgba(255,255,255,1)" font-family="Inter, system-ui, sans-serif" font-weight="700">ReStart</text>
+      <text x="168" y="13" font-size="7.5" fill="rgba(255,255,255,1)" font-family="Inter, system-ui, sans-serif" letter-spacing="0.08em">SHEET</text>
+      <text x="168" y="36" font-size="8.5" fill="rgba(255,255,255,1)" font-family="Inter, system-ui, sans-serif">${String(sheetN).padStart(2,'0')} / ${String(sheetTotal).padStart(2,'0')}</text>
+    </g>
+  `;
+  return C;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SLIDE BUILDERS
+═══════════════════════════════════════════════════════════ */
+
+/* ── Real LDraw part paths from 30465-Helicopter.ldr ─────────────────────
+   Generated via ldr_to_svg.py — side-view edge outlines at scale 2.0×
+   Coordinates: centered at (0,0); use ldPart(name, cx, cy) to place.    */
+const LD = {
+  beam7: { d:`M-138.0,20.0L-136.6,20.0L-132.8,20.0L-126.8,20.0L-120.0,20.0L120.0,20.0L126.8,20.0L132.8,20.0L136.6,20.0L138.0,20.0 M-138.0,-20.0L-136.6,-20.0L-132.8,-20.0L-126.8,-20.0L-120.0,-20.0L120.0,-20.0L126.8,-20.0L132.8,-20.0L136.6,-20.0L138.0,-20.0 M136.0,20.0L134.8,20.0L131.4,20.0L126.2,20.0L120.0,20.0L113.8,20.0L108.6,20.0L105.2,20.0L104.0,20.0 M136.0,16.0L134.8,16.0L131.4,16.0L126.2,16.0L120.0,16.0L113.8,16.0L108.6,16.0L105.2,16.0L104.0,16.0 M132.0,16.0L131.0,16.0L128.4,16.0L124.6,16.0L120.0,16.0L115.4,16.0L111.6,16.0L109.0,16.0L108.0,16.0 M136.0,-20.0L134.8,-20.0L131.4,-20.0L126.2,-20.0L120.0,-20.0L113.8,-20.0L108.6,-20.0L105.2,-20.0L104.0,-20.0 M136.0,-16.0L134.8,-16.0L131.4,-16.0L126.2,-16.0L120.0,-16.0L113.8,-16.0L108.6,-16.0L105.2,-16.0L104.0,-16.0 M132.0,-16.0L131.0,-16.0L128.4,-16.0L124.6,-16.0L120.0,-16.0L115.4,-16.0L111.6,-16.0L109.0,-16.0L108.0,-16.0 M98.0,-20.0L96.6,-20.0L92.8,-20.0L107.2,-20.0L103.4,-20.0L102.0,-20.0 M98.0,-4.0L96.6,-4.0L92.8,-4.0L92.8,-20.0 M102.0,-4.0L103.4,-4.0L107.2,-4.0L107.2,-20.0 M98.0,20.0L96.6,20.0L92.8,20.0L107.2,20.0L103.4,20.0L102.0,20.0 M98.0,4.0L96.6,4.0L92.8,4.0L92.8,20.0 M102.0,4.0L103.4,4.0L107.2,4.0L107.2,20.0 M96.0,-20.0L94.8,-20.0L91.4,-20.0L86.2,-20.0L80.0,-20.0L73.8,-20.0L68.6,-20.0L65.2,-20.0L64.0,-20.0 M96.0,-16.0L94.8,-16.0L91.4,-16.0L86.2,-16.0L80.0,-16.0L73.8,-16.0L68.6,-16.0L65.2,-16.0L64.0,-16.0 M92.0,-16.0L91.0,-16.0L88.4,-16.0L84.6,-16.0L80.0,-16.0L75.4,-16.0L71.6,-16.0L69.0,-16.0L68.0,-16.0 M96.0,20.0L94.8,20.0L91.4,20.0L86.2,20.0L80.0,20.0L73.8,20.0L68.6,20.0L65.2,20.0L64.0,20.0 M96.0,16.0L94.8,16.0L91.4,16.0L86.2,16.0L80.0,16.0L73.8,16.0L68.6,16.0L65.2,16.0L64.0,16.0 M92.0,16.0L91.0,16.0L88.4,16.0L84.6,16.0L80.0,16.0L75.4,16.0L71.6,16.0L69.0,16.0L68.0,16.0 M58.0,-20.0L56.6,-20.0L52.8,-20.0L67.2,-20.0L63.4,-20.0L62.0,-20.0 M58.0,-4.0L56.6,-4.0L52.8,-4.0L52.8,-20.0 M62.0,-4.0L63.4,-4.0L67.2,-4.0L67.2,-20.0 M58.0,20.0L56.6,20.0L52.8,20.0L67.2,20.0L63.4,20.0L62.0,20.0 M58.0,4.0L56.6,4.0L52.8,4.0L52.8,20.0 M62.0,4.0L63.4,4.0L67.2,4.0L67.2,20.0 M56.0,-20.0L54.8,-20.0L51.4,-20.0L46.2,-20.0L40.0,-20.0L33.8,-20.0L28.6,-20.0L25.2,-20.0L24.0,-20.0 M56.0,-16.0L54.8,-16.0L51.4,-16.0L46.2,-16.0L40.0,-16.0L33.8,-16.0L28.6,-16.0L25.2,-16.0L24.0,-16.0 M52.0,-16.0L51.0,-16.0L48.4,-16.0L44.6,-16.0L40.0,-16.0L35.4,-16.0L31.6,-16.0L29.0,-16.0L28.0,-16.0 M56.0,20.0L54.8,20.0L51.4,20.0L46.2,20.0L40.0,20.0L33.8,20.0L28.6,20.0L25.2,20.0L24.0,20.0 M56.0,16.0L54.8,16.0L51.4,16.0L46.2,16.0L40.0,16.0L33.8,16.0L28.6,16.0L25.2,16.0L24.0,16.0 M52.0,16.0L51.0,16.0L48.4,16.0L44.6,16.0L40.0,16.0L35.4,16.0L31.6,16.0L29.0,16.0L28.0,16.0 M18.0,-20.0L16.6,-20.0L12.8,-20.0L27.2,-20.0L23.4,-20.0L22.0,-20.0 M18.0,-4.0L16.6,-4.0L12.8,-4.0L12.8,-20.0 M22.0,-4.0L23.4,-4.0L27.2,-4.0L27.2,-20.0 M18.0,20.0L16.6,20.0L12.8,20.0L27.2,20.0L23.4,20.0L22.0,20.0 M18.0,4.0L16.6,4.0L12.8,4.0L12.8,20.0 M22.0,4.0L23.4,4.0L27.2,4.0L27.2,20.0 M16.0,-20.0L14.8,-20.0L11.4,-20.0L6.2,-20.0L0.0,-20.0L-6.2,-20.0L-11.4,-20.0L-14.8,-20.0L-16.0,-20.0 M16.0,-16.0L14.8,-16.0L11.4,-16.0L6.2,-16.0L0.0,-16.0L-6.2,-16.0L-11.4,-16.0L-14.8,-16.0L-16.0,-16.0 M12.0,-16.0L11.0,-16.0L8.4,-16.0L4.6,-16.0L0.0,-16.0L-4.6,-16.0L-8.4,-16.0L-11.0,-16.0L-12.0,-16.0 M16.0,20.0L14.8,20.0L11.4,20.0L6.2,20.0L0.0,20.0L-6.2,20.0L-11.4,20.0L-14.8,20.0L-16.0,20.0 M16.0,16.0L14.8,16.0L11.4,16.0L6.2,16.0L0.0,16.0L-6.2,16.0L-11.4,16.0L-14.8,16.0L-16.0,16.0 M12.0,16.0L11.0,16.0L8.4,16.0L4.6,16.0L0.0,16.0L-4.6,16.0L-8.4,16.0L-11.0,16.0L-12.0,16.0 M-22.0,-20.0L-23.4,-20.0L-27.2,-20.0L-12.8,-20.0L-16.6,-20.0L-18.0,-20.0 M-22.0,-4.0L-23.4,-4.0L-27.2,-4.0L-27.2,-20.0 M-18.0,-4.0L-16.6,-4.0L-12.8,-4.0L-12.8,-20.0 M-22.0,20.0L-23.4,20.0L-27.2,20.0L-12.8,20.0L-16.6,20.0L-18.0,20.0 M-22.0,4.0L-23.4,4.0L-27.2,4.0L-27.2,20.0 M-18.0,4.0L-16.6,4.0L-12.8,4.0L-12.8,20.0 M-24.0,-20.0L-25.2,-20.0L-28.6,-20.0L-33.8,-20.0L-40.0,-20.0L-46.2,-20.0L-51.4,-20.0L-54.8,-20.0L-56.0,-20.0 M-24.0,-16.0L-25.2,-16.0L-28.6,-16.0L-33.8,-16.0L-40.0,-16.0L-46.2,-16.0L-51.4,-16.0L-54.8,-16.0L-56.0,-16.0 M-28.0,-16.0L-29.0,-16.0L-31.6,-16.0L-35.4,-16.0L-40.0,-16.0L-44.6,-16.0L-48.4,-16.0L-51.0,-16.0L-52.0,-16.0 M-24.0,20.0L-25.2,20.0L-28.6,20.0L-33.8,20.0L-40.0,20.0L-46.2,20.0L-51.4,20.0L-54.8,20.0L-56.0,20.0 M-24.0,16.0L-25.2,16.0L-28.6,16.0L-33.8,16.0L-40.0,16.0L-46.2,16.0L-51.4,16.0L-54.8,16.0L-56.0,16.0 M-28.0,16.0L-29.0,16.0L-31.6,16.0L-35.4,16.0L-40.0,16.0L-44.6,16.0L-48.4,16.0L-51.0,16.0L-52.0,16.0 M-62.0,-20.0L-63.4,-20.0L-67.2,-20.0L-52.8,-20.0L-56.6,-20.0L-58.0,-20.0 M-62.0,-4.0L-63.4,-4.0L-67.2,-4.0L-67.2,-20.0 M-58.0,-4.0L-56.6,-4.0L-52.8,-4.0L-52.8,-20.0 M-62.0,20.0L-63.4,20.0L-67.2,20.0L-52.8,20.0L-56.6,20.0L-58.0,20.0 M-62.0,4.0L-63.4,4.0L-67.2,4.0L-67.2,20.0 M-58.0,4.0L-56.6,4.0L-52.8,4.0L-52.8,20.0 M-64.0,-20.0L-65.2,-20.0L-68.6,-20.0L-73.8,-20.0L-80.0,-20.0L-86.2,-20.0L-91.4,-20.0L-94.8,-20.0L-96.0,-20.0 M-64.0,-16.0L-65.2,-16.0L-68.6,-16.0L-73.8,-16.0L-80.0,-16.0L-86.2,-16.0L-91.4,-16.0L-94.8,-16.0L-96.0,-16.0 M-68.0,-16.0L-69.0,-16.0L-71.6,-16.0L-75.4,-16.0L-80.0,-16.0L-84.6,-16.0L-88.4,-16.0L-91.0,-16.0L-92.0,-16.0 M-64.0,20.0L-65.2,20.0L-68.6,20.0L-73.8,20.0L-80.0,20.0L-86.2,20.0L-91.4,20.0L-94.8,20.0L-96.0,20.0 M-64.0,16.0L-65.2,16.0L-68.6,16.0L-73.8,16.0L-80.0,16.0L-86.2,16.0L-91.4,16.0L-94.8,16.0L-96.0,16.0 M-68.0,16.0L-69.0,16.0L-71.6,16.0L-75.4,16.0L-80.0,16.0L-84.6,16.0L-88.4,16.0L-91.0,16.0L-92.0,16.0 M-102.0,-20.0L-103.4,-20.0L-107.2,-20.0L-92.8,-20.0L-96.6,-20.0L-98.0,-20.0 M-102.0,-4.0L-103.4,-4.0L-107.2,-4.0L-107.2,-20.0 M-98.0,-4.0L-96.6,-4.0L-92.8,-4.0L-92.8,-20.0 M-102.0,20.0L-103.4,20.0L-107.2,20.0L-92.8,20.0L-96.6,20.0L-98.0,20.0 M-102.0,4.0L-103.4,4.0L-107.2,4.0L-107.2,20.0 M-98.0,4.0L-96.6,4.0L-92.8,4.0L-92.8,20.0 M-104.0,-20.0L-105.2,-20.0L-108.6,-20.0L-113.8,-20.0L-120.0,-20.0L-126.2,-20.0L-131.4,-20.0L-134.8,-20.0L-136.0,-20.0 M-104.0,-16.0L-105.2,-16.0L-108.6,-16.0L-113.8,-16.0L-120.0,-16.0L-126.2,-16.0L-131.4,-16.0L-134.8,-16.0L-136.0,-16.0 M-108.0,-16.0L-109.0,-16.0L-111.6,-16.0L-115.4,-16.0L-120.0,-16.0L-124.6,-16.0L-128.4,-16.0L-131.0,-16.0L-132.0,-16.0 M-104.0,20.0L-105.2,20.0L-108.6,20.0L-113.8,20.0L-120.0,20.0L-126.2,20.0L-131.4,20.0L-134.8,20.0L-136.0,20.0 M-104.0,16.0L-105.2,16.0L-108.6,16.0L-113.8,16.0L-120.0,16.0L-126.2,16.0L-131.4,16.0L-134.8,16.0L-136.0,16.0 M-108.0,16.0L-109.0,16.0L-111.6,16.0L-115.4,16.0L-120.0,16.0L-124.6,16.0L-128.4,16.0L-131.0,16.0L-132.0,16.0 M92.8,-4.0L107.2,-4.0 M92.8,4.0L107.2,4.0 M52.8,-4.0L67.2,-4.0 M52.8,4.0L67.2,4.0 M12.8,-4.0L27.2,-4.0 M12.8,4.0L27.2,4.0 M-27.2,-4.0L-12.8,-4.0 M-27.2,4.0L-12.8,4.0 M-67.2,-4.0L-52.8,-4.0 M-67.2,4.0L-52.8,4.0 M-107.2,-4.0L-92.8,-4.0 M-107.2,4.0L-92.8,4.0`, w:276, h:40 },
+  beam5: { d:`M-98.0,20.0L-96.6,20.0L-92.8,20.0L-86.8,20.0L-80.0,20.0L-73.8,20.0L-68.6,20.0L-65.2,20.0L-64.0,20.0 M-98.0,-20.0L-96.6,-20.0L-92.8,-20.0L-86.8,-20.0L-80.0,-20.0L-73.8,-20.0L-68.6,-20.0L-65.2,-20.0L-64.0,-20.0 M98.0,20.0L96.6,20.0L92.8,20.0L86.8,20.0L80.0,20.0L73.8,20.0L68.6,20.0L65.2,20.0L64.0,20.0 M98.0,-20.0L96.6,-20.0L92.8,-20.0L86.8,-20.0L80.0,-20.0L73.8,-20.0L68.6,-20.0L65.2,-20.0L64.0,-20.0 M62.0,20.0L63.4,20.0L67.2,20.0L52.8,20.0L56.6,20.0L58.0,20.0 M62.0,4.0L63.4,4.0L67.2,4.0L67.2,20.0 M58.0,4.0L56.6,4.0L52.8,4.0L52.8,20.0 M62.0,-20.0L63.4,-20.0L67.2,-20.0L52.8,-20.0L56.6,-20.0L58.0,-20.0 M62.0,-4.0L63.4,-4.0L67.2,-4.0L67.2,-20.0 M58.0,-4.0L56.6,-4.0L52.8,-4.0L52.8,-20.0 M96.0,20.0L94.8,20.0L91.4,20.0L86.2,20.0L80.0,20.0L-80.0,20.0L-86.2,20.0L-91.4,20.0L-94.8,20.0L-96.0,20.0 M64.0,16.0L65.2,16.0L68.6,16.0L73.8,16.0L80.0,16.0L86.2,16.0L91.4,16.0L94.8,16.0L96.0,16.0 M68.0,16.0L69.0,16.0L71.6,16.0L75.4,16.0L80.0,16.0L84.6,16.0L88.4,16.0L91.0,16.0L92.0,16.0 M96.0,-20.0L94.8,-20.0L91.4,-20.0L86.2,-20.0L80.0,-20.0L-80.0,-20.0L-86.2,-20.0L-91.4,-20.0L-94.8,-20.0L-96.0,-20.0 M64.0,-16.0L65.2,-16.0L68.6,-16.0L73.8,-16.0L80.0,-16.0L86.2,-16.0L91.4,-16.0L94.8,-16.0L96.0,-16.0 M68.0,-16.0L69.0,-16.0L71.6,-16.0L75.4,-16.0L80.0,-16.0L84.6,-16.0L88.4,-16.0L91.0,-16.0L92.0,-16.0 M22.0,20.0L23.4,20.0L27.2,20.0L12.8,20.0L16.6,20.0L18.0,20.0 M22.0,4.0L23.4,4.0L27.2,4.0L27.2,20.0 M18.0,4.0L16.6,4.0L12.8,4.0L12.8,20.0 M22.0,-20.0L23.4,-20.0L27.2,-20.0L12.8,-20.0L16.6,-20.0L18.0,-20.0 M22.0,-4.0L23.4,-4.0L27.2,-4.0L27.2,-20.0 M18.0,-4.0L16.6,-4.0L12.8,-4.0L12.8,-20.0 M24.0,20.0L25.2,20.0L28.6,20.0L33.8,20.0L40.0,20.0L46.2,20.0L51.4,20.0L54.8,20.0L56.0,20.0 M24.0,16.0L25.2,16.0L28.6,16.0L33.8,16.0L40.0,16.0L46.2,16.0L51.4,16.0L54.8,16.0L56.0,16.0 M28.0,16.0L29.0,16.0L31.6,16.0L35.4,16.0L40.0,16.0L44.6,16.0L48.4,16.0L51.0,16.0L52.0,16.0 M24.0,-20.0L25.2,-20.0L28.6,-20.0L33.8,-20.0L40.0,-20.0L46.2,-20.0L51.4,-20.0L54.8,-20.0L56.0,-20.0 M24.0,-16.0L25.2,-16.0L28.6,-16.0L33.8,-16.0L40.0,-16.0L46.2,-16.0L51.4,-16.0L54.8,-16.0L56.0,-16.0 M28.0,-16.0L29.0,-16.0L31.6,-16.0L35.4,-16.0L40.0,-16.0L44.6,-16.0L48.4,-16.0L51.0,-16.0L52.0,-16.0 M-18.0,20.0L-16.6,20.0L-12.8,20.0L-27.2,20.0L-23.4,20.0L-22.0,20.0 M-18.0,4.0L-16.6,4.0L-12.8,4.0L-12.8,20.0 M-22.0,4.0L-23.4,4.0L-27.2,4.0L-27.2,20.0 M-18.0,-20.0L-16.6,-20.0L-12.8,-20.0L-27.2,-20.0L-23.4,-20.0L-22.0,-20.0 M-18.0,-4.0L-16.6,-4.0L-12.8,-4.0L-12.8,-20.0 M-22.0,-4.0L-23.4,-4.0L-27.2,-4.0L-27.2,-20.0 M-16.0,20.0L-14.8,20.0L-11.4,20.0L-6.2,20.0L0.0,20.0L6.2,20.0L11.4,20.0L14.8,20.0L16.0,20.0 M-16.0,16.0L-14.8,16.0L-11.4,16.0L-6.2,16.0L0.0,16.0L6.2,16.0L11.4,16.0L14.8,16.0L16.0,16.0 M-12.0,16.0L-11.0,16.0L-8.4,16.0L-4.6,16.0L0.0,16.0L4.6,16.0L8.4,16.0L11.0,16.0L12.0,16.0 M-16.0,-20.0L-14.8,-20.0L-11.4,-20.0L-6.2,-20.0L0.0,-20.0L6.2,-20.0L11.4,-20.0L14.8,-20.0L-16.0,-20.0 M-16.0,-16.0L-14.8,-16.0L-11.4,-16.0L-6.2,-16.0L0.0,-16.0L6.2,-16.0L11.4,-16.0L14.8,-16.0L16.0,-16.0 M-12.0,-16.0L-11.0,-16.0L-8.4,-16.0L-4.6,-16.0L0.0,-16.0L4.6,-16.0L8.4,-16.0L11.0,-16.0L12.0,-16.0 M-58.0,20.0L-56.6,20.0L-52.8,20.0L-67.2,20.0L-63.4,20.0L-62.0,20.0 M-58.0,4.0L-56.6,4.0L-52.8,4.0L-52.8,20.0 M-62.0,4.0L-63.4,4.0L-67.2,4.0L-67.2,20.0 M-58.0,-20.0L-56.6,-20.0L-52.8,-20.0L-67.2,-20.0L-63.4,-20.0L-62.0,-20.0 M-58.0,-4.0L-56.6,-4.0L-52.8,-4.0L-52.8,-20.0 M-62.0,-4.0L-63.4,-4.0L-67.2,-4.0L-67.2,-20.0 M-56.0,20.0L-54.8,20.0L-51.4,20.0L-46.2,20.0L-40.0,20.0L-33.8,20.0L-28.6,20.0L-25.2,20.0L-24.0,20.0 M-56.0,16.0L-54.8,16.0L-51.4,16.0L-46.2,16.0L-40.0,16.0L-33.8,16.0L-28.6,16.0L-25.2,16.0L-24.0,16.0 M-52.0,16.0L-51.0,16.0L-48.4,16.0L-44.6,16.0L-40.0,16.0L-35.4,16.0L-31.6,16.0L-29.0,16.0L-28.0,16.0 M-56.0,-20.0L-54.8,-20.0L-51.4,-20.0L-46.2,-20.0L-40.0,-20.0L-33.8,-20.0L-28.6,-20.0L-25.2,-20.0L-24.0,-20.0 M-56.0,-16.0L-54.8,-16.0L-51.4,-16.0L-46.2,-16.0L-40.0,-16.0L-33.8,-16.0L-28.6,-16.0L-25.2,-16.0L-24.0,-16.0 M-52.0,-16.0L-51.0,-16.0L-48.4,-16.0L-44.6,-16.0L-40.0,-16.0L-35.4,-16.0L-31.6,-16.0L-29.0,-16.0L-28.0,-16.0 M-64.0,16.0L-65.2,16.0L-68.6,16.0L-73.8,16.0L-80.0,16.0L-86.2,16.0L-91.4,16.0L-94.8,16.0L-96.0,16.0 M-68.0,16.0L-69.0,16.0L-71.6,16.0L-75.4,16.0L-80.0,16.0L-84.6,16.0L-88.4,16.0L-91.0,16.0L-92.0,16.0 M-64.0,-16.0L-65.2,-16.0L-68.6,-16.0L-73.8,-16.0L-80.0,-16.0L-86.2,-16.0L-91.4,-16.0L-94.8,-16.0L-96.0,-16.0 M-68.0,-16.0L-69.0,-16.0L-71.6,-16.0L-75.4,-16.0L-80.0,-16.0L-84.6,-16.0L-88.4,-16.0L-91.0,-16.0L-92.0,-16.0 M67.2,4.0L52.8,4.0 M67.2,-4.0L52.8,-4.0 M27.2,4.0L12.8,4.0 M27.2,-4.0L12.8,-4.0 M-12.8,4.0L-27.2,4.0 M-12.8,-4.0L-27.2,-4.0 M-52.8,4.0L-67.2,4.0 M-52.8,-4.0L-67.2,-4.0`, w:196, h:40 },
+  crossblock: { d:`M20.0,32.0L20.0,31.2L20.0,24.0L-20.0,24.0L-20.0,31.2L-20.0,32.0 M20.0,8.0L20.0,8.8L20.0,16.0L-20.0,16.0L-20.0,8.8L-20.0,8.0 M-12.0,6.0L-12.0,7.0L-12.0,10.2L-12.0,14.6L-12.0,20.0L-12.0,25.4L-12.0,29.8L-12.0,33.0L-12.0,34.0 M12.0,6.0L12.0,7.0L12.0,10.2L12.0,14.6L12.0,20.0L12.0,25.4L12.0,29.8L12.0,33.0L12.0,34.0 M20.0,2.0L20.0,3.4L20.0,7.2L20.0,13.2L20.0,20.0L20.0,24.0 M20.0,38.0L20.0,36.6L20.0,32.8L20.0,26.8L20.0,20.0L20.0,16.0 M-20.0,2.0L-20.0,3.4L-20.0,7.2L-20.0,13.2L-20.0,20.0L-20.0,24.0 M-20.0,38.0L-20.0,36.6L-20.0,32.8L-20.0,26.8L-20.0,20.0L-20.0,16.0 M14.0,2.0L14.0,3.4L14.0,7.2L14.0,13.2L14.0,20.0L14.0,26.8L14.0,32.8L14.0,36.6L14.0,38.0 M-14.0,2.0L-14.0,3.4L-14.0,7.2L-14.0,13.2L-14.0,20.0L-14.0,26.8L-14.0,32.8L-14.0,36.6L-14.0,38.0 M18.0,2.0L18.0,3.4L18.0,7.2L18.0,13.2L18.0,20.0L18.0,-20.0L16.6,-26.8L12.8,-32.8L6.8,-36.6L0.0,-38.0L-6.8,-36.6L-12.8,-32.8L-16.6,-26.8L-18.0,-20.0L-16.6,-13.2L-12.8,-7.2L-6.8,-3.4L0.0,-2.0L6.8,-3.4L12.8,-7.2L16.6,-13.2 M-18.0,2.0L-18.0,3.4L-18.0,7.2L-18.0,13.2L-18.0,20.0L-18.0,-20.0 M8.0,18.0L-8.0,18.0L-8.8,18.2L-9.4,18.6L-9.8,19.2L-10.0,20.0L-9.8,20.8L-9.4,21.4L-8.8,21.8L-8.0,22.0L8.0,22.0L8.8,21.8L9.4,21.4L9.8,20.8L10.0,20.0L9.8,19.2L9.4,18.6L8.8,18.2Z M16.0,-20.0L14.8,-26.2L11.4,-31.4L6.2,-34.8L0.0,-36.0L-6.2,-34.8L-11.4,-31.4L-14.8,-26.2L-16.0,-20.0L-14.8,-13.8L-11.4,-8.6L-6.2,-5.2L0.0,-4.0L6.2,-5.2L11.4,-8.6L14.8,-13.8Z M12.0,-20.0L11.0,-24.6L8.4,-28.4L4.6,-31.0L0.0,-32.0L-4.6,-31.0L-8.4,-28.4L-11.0,-24.6L-12.0,-20.0L-11.0,-15.4L-8.4,-11.6L-4.6,-9.0L0.0,-8.0L4.6,-9.0L8.4,-11.6L11.0,-15.4Z M12.0,6.8L14.0,2.8L14.0,-9.2L14.0,20.0 M-12.0,6.8L-14.0,2.8L-14.0,-9.2L-14.0,20.0 M20.0,31.2L-20.0,31.2 M20.0,8.8L-20.0,8.8 M-16.6,-13.2L-14.0,-9.2L-12.8,-7.2 M12.8,-7.2L14.0,-9.2L16.6,-13.2`, w:40, h:76 },
+};
+
+/* Place a real LDraw part by name, centered at (cx,cy), optional scale/rotation */
+function ldPart(name, cx, cy, sc=1, rot=0) {
+  const p = LD[name]; if (!p) return '';
+  const st = `fill="none" stroke="rgba(255,255,255,1)" stroke-width="${(1/sc).toFixed(2)}"`;
+  const tr = `translate(${cx},${cy})${rot?` rotate(${rot})`:''} scale(${sc})`;
+  return `<g transform="${tr}" ${st}><path d="${p.d}"/></g>`;
+}
+
+/* Wraps any SVG content in an animated piece group.
+   tx/ty = entry direction (px), delay = entry delay (s) */
+function lp(content, tx = 0, ty = 0, delay = 0.1) {
+  return `<g class="lp" style="--tx:${tx}px;--ty:${ty}px;--d:${delay}s">${content}</g>`;
+}
+
+/* LEGO Technic axle — capsule body + two ridge lines (like a real cross-axle in side view) */
+function axle(x1, y1, x2, y2) {
+  const L   = Math.hypot(x2-x1, y2-y1);
+  const ang = Math.atan2(y2-y1, x2-x1) * 180 / Math.PI;
+  const mx  = (x1+x2)/2, my = (y1+y2)/2;
+  const r   = 4.2;   // axle radius
+  const c   = 'rgba(255,255,255,1)';
+  const L2  = (L/2).toFixed(1), r2 = (L/2 - r*1.5).toFixed(1);
+  return `<g transform="translate(${mx.toFixed(1)},${my.toFixed(1)}) rotate(${ang.toFixed(1)})">` +
+    `<rect x="-${L2}" y="-${r}" width="${L.toFixed(1)}" height="${(r*2).toFixed(1)}" rx="${r}" fill="rgba(0,0,0,0.45)" stroke="${c}" stroke-width="1.1"/>` +
+    `<line x1="-${r2}" y1="-1.7" x2="${r2}" y2="-1.7" stroke="${c}" stroke-width="0.55" opacity="0.45"/>` +
+    `<line x1="-${r2}" y1="1.7"  x2="${r2}" y2="1.7"  stroke="${c}" stroke-width="0.55" opacity="0.45"/>` +
+    `</g>`;
+}
+
+
+function buildS1(el) {
+  /* Decorative gear trio — top-right corner, meshed */
+  const g1 = gear(1150, 110, 20, 72, 57, 22,  8, 'gcw');
+  const g2 = gear(1058, 110, 12, 44, 35, 14,  5, 'gccw',  9);
+  const g3 = gear(1001, 110,  8, 28, 22, 10,  4, 'gcw3', 22);
+
+  const title = `
+    <text x="560" y="148"
+          text-anchor="middle" font-family="'Inter', system-ui, sans-serif"
+          font-size="92" font-weight="700" letter-spacing="10"
+          fill="rgba(255,255,255,0.93)">ReStart</text>
+    <text x="560" y="200"
+          text-anchor="middle" font-family="'Inter','Helvetica Neue',system-ui,sans-serif"
+          font-size="17" letter-spacing="4"
+          fill="rgba(255,255,255,0.40)">AI-POWERED REPAIR GUIDES · MEDICAL EQUIPMENT</text>
+    <line x1="200" y1="224" x2="920" y2="224"
+          stroke="rgba(255,255,255,0.16)" stroke-width="0.5"/>
+  `;
+
+  el.innerHTML =
+    lp(g1,  30, -25, 0.08) +
+    lp(g2,  20, -18, 0.18) +
+    lp(g3,  12, -12, 0.26) +
+    lp(title,  0, -30, 0.35) +
+    lp(frameCorners(1, 6), 0, 20, 0.50);
+}
+
+function buildS2(el) {
+  const ST = 'rgba(255,255,255,0.80)';
+  const beamY = 98, BH = 40, N = 64, LU = 20;
+  const HR = 7, HI = 4.6;
+
+  /* ── Full-width top rail ── */
+  let rail = '';
+  rail += `<rect x="0" y="${beamY}" width="1280" height="${BH}" rx="${BH/2}" fill="#000000" stroke="${ST}" stroke-width="1.5"/>`;
+  rail += `<rect x="2" y="${beamY+2}" width="1276" height="${BH-4}" rx="${BH/2-2}" fill="none" stroke="${ST}" stroke-width="0.5" opacity="0.35"/>`;
+  for (let i = 0; i < N; i++) {
+    const hx = LU/2 + i*LU, hy = beamY + BH/2;
+    if (hx < 52 || hx > 1228) continue; // skip holes hidden under gears
+    rail += `<circle cx="${hx}" cy="${hy}" r="${HR}" fill="rgba(0,0,0,0.6)" stroke="${ST}" stroke-width="1.1"/>`;
+    rail += `<circle cx="${hx}" cy="${hy}" r="${HI}" fill="none" stroke="${ST}" stroke-width="0.6"/>`;
+    rail += `<line x1="${(hx-HI*0.65).toFixed(1)}" y1="${hy}" x2="${(hx+HI*0.65).toFixed(1)}" y2="${hy}" stroke="${ST}" stroke-width="0.4"/>`;
+    rail += `<line x1="${hx}" y1="${(hy-HI*0.65).toFixed(1)}" x2="${hx}" y2="${(hy+HI*0.65).toFixed(1)}" stroke="${ST}" stroke-width="0.4"/>`;
+  }
+
+  /* ── Gear ends ── */
+  const gL = gear(26, beamY + BH/2, 8, 22, 17, 7, 3, 'gccw');
+  const gR = gear(1254, beamY + BH/2, 8, 22, 17, 7, 3, 'gcw');
+
+  /* ── 3 hanging assemblies ──
+     Frame centers: 3×400 + 2×15 = 1230px, margins = 25px each side
+     Centers: 25+200=225, 640, 1055                                   */
+  const fCX = [225, 640, 1055];
+  const hangTop = beamY + BH;  // 108
+  const hangBot = 230;         // top of frame panels (CSS padding-top)
+
+  const hangs = fCX.map(cx => {
+    let h = '';
+    // Upper bracket clamped to rail
+    h += `<rect x="${cx-14}" y="${hangTop+2}" width="28" height="20" rx="5" fill="#000000" stroke="${ST}" stroke-width="1.3"/>`;
+    h += `<circle cx="${cx-7}" cy="${hangTop+12}" r="4.5" fill="rgba(255,255,255,0.1)" stroke="${ST}" stroke-width="0.9"/>`;
+    h += `<circle cx="${cx+7}" cy="${hangTop+12}" r="4.5" fill="rgba(255,255,255,0.1)" stroke="${ST}" stroke-width="0.9"/>`;
+    // Vertical rod
+    const rY1 = hangTop + 24, rY2 = hangBot - 22;
+    h += `<rect x="${cx-6}" y="${rY1}" width="12" height="${rY2-rY1}" rx="5" fill="#000000" stroke="${ST}" stroke-width="1.3"/>`;
+    h += `<line x1="${cx-1.5}" y1="${rY1+5}" x2="${cx-1.5}" y2="${rY2-5}" stroke="${ST}" stroke-width="0.4" opacity="0.5"/>`;
+    h += `<line x1="${cx+1.5}" y1="${rY1+5}" x2="${cx+1.5}" y2="${rY2-5}" stroke="${ST}" stroke-width="0.4" opacity="0.5"/>`;
+    // Lower bracket connecting to frame
+    h += `<rect x="${cx-14}" y="${hangBot-22}" width="28" height="20" rx="5" fill="#000000" stroke="${ST}" stroke-width="1.3"/>`;
+    h += `<circle cx="${cx-7}" cy="${hangBot-12}" r="4.5" fill="rgba(255,255,255,0.1)" stroke="${ST}" stroke-width="0.9"/>`;
+    h += `<circle cx="${cx+7}" cy="${hangBot-12}" r="4.5" fill="rgba(255,255,255,0.1)" stroke="${ST}" stroke-width="0.9"/>`;
+    return h;
+  });
+
+  el.innerHTML =
+    lp(rail + gL + gR,  0, -60, 0.05) +
+    lp(hangs[0],      -20, -30, 0.20) +
+    lp(hangs[1],        0, -30, 0.28) +
+    lp(hangs[2],       20, -30, 0.36);
+}
+
+function buildS3(el) {
+  /* Big outer LEGO Technic beam frame — full-slide border */
+  const BW = 36, LU = 20, HR = 8, HI = 5.2;
+  const W = 'rgba(255,255,255,1)';
+  const sc = BW / 40;
+  const chw = 76 * sc / 2;
+  const FX1 = 28, FY1 = 18, FX2 = 1252, FY2 = 702;
+  const topCY   = FY1 + BW/2;
+  const botCY   = FY2 - BW/2;
+  const leftCX  = FX1 + BW/2;
+  const rightCX = FX2 - BW/2;
+
+  function hBeam(cx, cy, len) {
+    const nH = Math.round((len - BW) / LU) + 1;
+    const tL = (nH - 1) * LU + BW;
+    let g = `<rect x="${cx-tL/2}" y="${cy-BW/2}" width="${tL}" height="${BW}" rx="${BW/2}" fill="rgba(0,0,0,0.6)" stroke="${W}" stroke-width="1.6"/>`;
+    g += `<rect x="${cx-tL/2+2}" y="${cy-BW/2+2}" width="${tL-4}" height="${BW-4}" rx="${BW/2-2}" fill="none" stroke="${W}" stroke-width="0.5" opacity="0.28"/>`;
+    for (let i = 0; i < nH; i++) {
+      const hx = cx - (nH-1)*LU/2 + i*LU;
+      g += `<circle cx="${hx.toFixed(1)}" cy="${cy}" r="${HR}" fill="rgba(0,0,0,0.6)" stroke="${W}" stroke-width="1.1"/>`;
+      g += `<circle cx="${hx.toFixed(1)}" cy="${cy}" r="${HI}" fill="none" stroke="${W}" stroke-width="0.6"/>`;
+      g += `<line x1="${(hx-HI*0.65).toFixed(1)}" y1="${cy}" x2="${(hx+HI*0.65).toFixed(1)}" y2="${cy}" stroke="${W}" stroke-width="0.4"/>`;
+      g += `<line x1="${hx.toFixed(1)}" y1="${cy-HI*0.65}" x2="${hx.toFixed(1)}" y2="${cy+HI*0.65}" stroke="${W}" stroke-width="0.4"/>`;
+    }
+    return g;
+  }
+  function vBeam(cx, cy, len) {
+    const nH = Math.round((len - BW) / LU) + 1;
+    const tL = (nH - 1) * LU + BW;
+    let g = `<rect x="${cx-BW/2}" y="${cy-tL/2}" width="${BW}" height="${tL}" rx="${BW/2}" fill="rgba(0,0,0,0.6)" stroke="${W}" stroke-width="1.6"/>`;
+    g += `<rect x="${cx-BW/2+2}" y="${cy-tL/2+2}" width="${BW-4}" height="${tL-4}" rx="${BW/2-2}" fill="none" stroke="${W}" stroke-width="0.5" opacity="0.28"/>`;
+    for (let i = 0; i < nH; i++) {
+      const hy = cy - (nH-1)*LU/2 + i*LU;
+      g += `<circle cx="${cx}" cy="${hy.toFixed(1)}" r="${HR}" fill="rgba(0,0,0,0.6)" stroke="${W}" stroke-width="1.1"/>`;
+      g += `<circle cx="${cx}" cy="${hy.toFixed(1)}" r="${HI}" fill="none" stroke="${W}" stroke-width="0.6"/>`;
+      g += `<line x1="${cx-HI*0.65}" y1="${hy.toFixed(1)}" x2="${cx+HI*0.65}" y2="${hy.toFixed(1)}" stroke="${W}" stroke-width="0.4"/>`;
+      g += `<line x1="${cx}" y1="${(hy-HI*0.65).toFixed(1)}" x2="${cx}" y2="${(hy+HI*0.65).toFixed(1)}" stroke="${W}" stroke-width="0.4"/>`;
+    }
+    return g;
+  }
+
+  const hLen = FX2 - FX1 - BW * 2;
+  const vLen = FY2 - FY1 - BW * 2;
+  el.innerHTML =
+    lp(hBeam(640, topCY,   hLen),  0, -28, 0.08) +
+    lp(hBeam(640, botCY,   hLen),  0,  28, 0.16) +
+    lp(vBeam(leftCX,  360, vLen), -28,  0, 0.24) +
+    lp(vBeam(rightCX, 360, vLen),  28,  0, 0.32) +
+    lp(ldPart('crossblock', FX1+chw, topCY, sc,  90) +
+       ldPart('crossblock', FX2-chw, topCY, sc, -90) +
+       ldPart('crossblock', FX2-chw, botCY, sc, -90) +
+       ldPart('crossblock', FX1+chw, botCY, sc,  90),  0, 0, 0.42) +
+    lp(frameCorners(5, 7), 0, 20, 0.52);
+}
+
+function buildS11(el) {
+  /* FROM INNOVATION TO IMPACT — red accents, orthogonal beam connections, full 3D bricks, no footer */
+  const R = '#ef4444';
+  const W = 'rgba(255,255,255,1)';
+  const SW = 1.8;
+
+  /* 3-D classic LEGO brick: right-side face, top face with studs, front face */
+  function brick3D(cx, by, bw, bh, nStuds) {
+    const TX = 13, TH = 12;
+    const SR = 9, SRy = 5.8;
+    let g = '';
+    // right side face (behind front face, drawn first)
+    g += `<path d="M${cx+bw/2},${by} L${cx+bw/2+TX},${by-TH} L${cx+bw/2+TX},${by+bh-TH} L${cx+bw/2},${by+bh} Z" fill="rgba(10,10,10,0.97)" stroke="${W}" stroke-width="${SW}"/>`;
+    // top face
+    g += `<path d="M${cx-bw/2},${by} L${cx+bw/2},${by} L${cx+bw/2+TX},${by-TH} L${cx-bw/2+TX},${by-TH} Z" fill="rgba(20,20,20,0.97)" stroke="${W}" stroke-width="${SW}"/>`;
+    // studs on top face
+    const sxStart = cx - bw/2 + 16 + TX/2;
+    const sStep   = (bw - 32) / (nStuds - 1);
+    for (let i = 0; i < nStuds; i++) {
+      const sx = (sxStart + i * sStep).toFixed(1);
+      const sy = by - TH/2;
+      g += `<ellipse cx="${sx}" cy="${sy}" rx="${SR}" ry="${SRy}" fill="rgba(5,5,5,0.98)" stroke="${W}" stroke-width="${SW*0.85}"/>`;
+      g += `<ellipse cx="${sx}" cy="${sy-2}" rx="${SR*0.52}" ry="${SRy*0.45}" fill="none" stroke="${W}" stroke-width="0.5" opacity="0.4"/>`;
+    }
+    // front face (on top of everything)
+    g += `<rect x="${cx-bw/2}" y="${by}" width="${bw}" height="${bh}" rx="8" fill="rgba(4,4,4,0.93)" stroke="${W}" stroke-width="${SW}"/>`;
+    g += `<rect x="${cx-bw/2+3.5}" y="${by+3.5}" width="${bw-7}" height="${bh-7}" rx="5.5" fill="none" stroke="${W}" stroke-width="0.45" opacity="0.22"/>`;
+    return g;
+  }
+
+  /* Orthogonal connection beam helpers (like frame border beams, BW=16) */
+  const CBW = 16, CLU = 16, CHR = 4.4, CHI = 2.8;
+  function connH(cx, cy, len) {
+    const nH = Math.round((len - CBW) / CLU) + 1;
+    const tL = (nH - 1) * CLU + CBW;
+    let g = `<rect x="${cx-tL/2}" y="${cy-CBW/2}" width="${tL}" height="${CBW}" rx="${CBW/2}" fill="rgba(0,0,0,0.8)" stroke="${W}" stroke-width="1.3"/>`;
+    g += `<rect x="${cx-tL/2+2}" y="${cy-CBW/2+2}" width="${tL-4}" height="${CBW-4}" rx="${CBW/2-2}" fill="none" stroke="${W}" stroke-width="0.4" opacity="0.22"/>`;
+    for (let i = 0; i < nH; i++) {
+      const hx = (cx - (nH-1)*CLU/2 + i*CLU).toFixed(1);
+      g += `<circle cx="${hx}" cy="${cy}" r="${CHR}" fill="rgba(0,0,0,0.65)" stroke="${W}" stroke-width="1.0"/>`;
+      g += `<circle cx="${hx}" cy="${cy}" r="${CHI}" fill="none" stroke="${W}" stroke-width="0.35"/>`;
+      g += `<line x1="${(+hx-CHI*0.65).toFixed(1)}" y1="${cy}" x2="${(+hx+CHI*0.65).toFixed(1)}" y2="${cy}" stroke="${W}" stroke-width="0.3"/>`;
+      g += `<line x1="${hx}" y1="${(cy-CHI*0.65).toFixed(1)}" x2="${hx}" y2="${(cy+CHI*0.65).toFixed(1)}" stroke="${W}" stroke-width="0.3"/>`;
+    }
+    return g;
+  }
+  function connV(cx, cy, len) {
+    const nH = Math.round((len - CBW) / CLU) + 1;
+    const tL = (nH - 1) * CLU + CBW;
+    let g = `<rect x="${cx-CBW/2}" y="${cy-tL/2}" width="${CBW}" height="${tL}" rx="${CBW/2}" fill="rgba(0,0,0,0.8)" stroke="${W}" stroke-width="1.3"/>`;
+    g += `<rect x="${cx-CBW/2+2}" y="${cy-tL/2+2}" width="${CBW-4}" height="${tL-4}" rx="${CBW/2-2}" fill="none" stroke="${W}" stroke-width="0.4" opacity="0.22"/>`;
+    for (let i = 0; i < nH; i++) {
+      const hy = (cy - (nH-1)*CLU/2 + i*CLU).toFixed(1);
+      g += `<circle cx="${cx}" cy="${hy}" r="${CHR}" fill="rgba(0,0,0,0.65)" stroke="${W}" stroke-width="1.0"/>`;
+      g += `<circle cx="${cx}" cy="${hy}" r="${CHI}" fill="none" stroke="${W}" stroke-width="0.35"/>`;
+      g += `<line x1="${(cx-CHI*0.65).toFixed(1)}" y1="${hy}" x2="${(cx+CHI*0.65).toFixed(1)}" y2="${hy}" stroke="${W}" stroke-width="0.3"/>`;
+      g += `<line x1="${cx}" y1="${(+hy-CHI*0.65).toFixed(1)}" x2="${cx}" y2="${(+hy+CHI*0.65).toFixed(1)}" stroke="${W}" stroke-width="0.3"/>`;
+    }
+    return g;
+  }
+  /* Cross-block corner connector */
+  function joint(cx, cy) {
+    return ldPart('crossblock', cx, cy, CBW/40, 0);
+  }
+
+  /* ── LAYOUT ─────────────────────────────────────────── */
+  const bW = 254, bH = 110, bTop = 92;
+  const margin = 57;
+  const gap = (1280 - 2*margin - 4*bW) / 3;         // 50
+  const bCX = [0,1,2,3].map(i => margin + bW/2 + i*(bW+gap));
+  // bCX ≈ [184, 488, 792, 1096]
+
+  const oW = 352, oH = 128, oTop = 505;
+  const oCX = [308, 972];
+  const gearX = 640, gearY = 390;
+
+  /* Vertical spacings for orthogonal routing */
+  const pinCY   = bTop + bH + 18;        // 220 — pin centre
+  const pinBotY = pinCY + 12;            // 232 — below pin
+  const inBusY  = 302;                   // input horizontal bus
+  const gTopEdge  = gearY - 44;          // 346 — top of gear radius
+  const gBotEdge  = gearY + 44;          // 434 — bottom
+  const outBusY = 464;                   // output horizontal bus
+  const arrY    = oTop - 14;             // 491 — arrow tip
+
+  /* ── ICONS ──────────────────────────────────────────── */
+  const drawIcon = [
+    (ix, iy) => `
+      <rect x="${ix-23}" y="${iy-21}" width="19" height="19" rx="2" fill="none" stroke="${W}" stroke-width="2"/>
+      <rect x="${ix+4}" y="${iy-21}" width="19" height="19" rx="2" fill="none" stroke="${W}" stroke-width="2"/>
+      <rect x="${ix-10}" y="${iy-1}" width="19" height="19" rx="2" fill="none" stroke="${W}" stroke-width="2"/>`,
+    (ix, iy) => `
+      <rect x="${ix-14}" y="${iy-23}" width="28" height="37" rx="3" fill="none" stroke="${W}" stroke-width="2"/>
+      <rect x="${ix-7}" y="${iy-28}" width="14" height="8" rx="2" fill="rgba(0,0,0,0.9)" stroke="${W}" stroke-width="1.8"/>
+      <line x1="${ix-7}" y1="${iy-13}" x2="${ix+7}" y2="${iy-13}" stroke="${W}" stroke-width="1.5"/>
+      <line x1="${ix-7}" y1="${iy-5}" x2="${ix+7}" y2="${iy-5}" stroke="${W}" stroke-width="1.5"/>
+      <line x1="${ix-7}" y1="${iy+3}" x2="${ix+7}" y2="${iy+3}" stroke="${W}" stroke-width="1.5"/>`,
+    (ix, iy) => {
+      const gp = gearPath(10, 23, 16);
+      return `<g transform="translate(${ix},${iy})"><path d="${gp}" fill="none" stroke="${W}" stroke-width="1.9"/><circle r="7" fill="none" stroke="${W}" stroke-width="1.5"/></g>`;
+    },
+    (ix, iy) => `
+      <path d="M${ix},${iy-25} L${ix+17},${iy-9} C${ix+17},${iy+10} ${ix+9},${iy+18} ${ix},${iy+22} C${ix-9},${iy+18} ${ix-17},${iy+10} ${ix-17},${iy-9} Z" fill="none" stroke="${W}" stroke-width="2"/>
+      <polyline points="${ix-7},${iy+4} ${ix-1},${iy+10} ${ix+10},${iy-5}" fill="none" stroke="${W}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`,
+  ];
+  const labels = [
+    ['SMART','GROUPING'], ['REPAIR','PLANNING'], ['LEAN','TECHNOLOGY'], ['SAFETY &amp;','QUALITY'],
+  ];
+
+  /* ── INPUT BRICKS ───────────────────────────────────── */
+  let inBricks = '';
+  bCX.forEach((cx, i) => {
+    inBricks += brick3D(cx, bTop, bW, bH, 7);
+    const divX = cx - bW/2 + bW * 0.33;
+    inBricks += `<line x1="${divX.toFixed(1)}" y1="${bTop+8}" x2="${divX.toFixed(1)}" y2="${bTop+bH-8}" stroke="${W}" stroke-width="1.5" opacity="0.6"/>`;
+    const iconX = cx - bW/2 + bW * 0.165;
+    const iconY = bTop + bH / 2;
+    inBricks += drawIcon[i](iconX, iconY);
+    const tX = (divX + cx + bW/2) / 2;
+    inBricks += `<text x="${tX.toFixed(1)}" y="${bTop+bH/2-9}" text-anchor="middle" font-family="'Inter',system-ui,sans-serif" font-size="13.5" font-weight="800" fill="${W}" letter-spacing="0.5">${labels[i][0]}</text>`;
+    inBricks += `<text x="${tX.toFixed(1)}" y="${bTop+bH/2+13}" text-anchor="middle" font-family="'Inter',system-ui,sans-serif" font-size="13.5" font-weight="800" fill="${W}" letter-spacing="0.5">${labels[i][1]}</text>`;
+    // pin connector at brick bottom
+    inBricks += `<circle cx="${cx}" cy="${pinCY}" r="12" fill="rgba(0,0,0,0.9)" stroke="${W}" stroke-width="${SW}"/>`;
+    inBricks += `<circle cx="${cx}" cy="${pinCY}" r="6" fill="none" stroke="${W}" stroke-width="1.2"/>`;
+    inBricks += `<line x1="${cx-4}" y1="${pinCY}" x2="${cx+4}" y2="${pinCY}" stroke="${W}" stroke-width="1.1"/>`;
+    inBricks += `<line x1="${cx}" y1="${pinCY-4}" x2="${cx}" y2="${pinCY+4}" stroke="${W}" stroke-width="1.1"/>`;
+  });
+
+  /* ── ORTHOGONAL BEAM CONNECTIONS ────────────────────── */
+  let conns = '';
+
+  // 4 vertical beams: pin → input bus
+  bCX.forEach(cx => {
+    const len = inBusY - pinBotY;
+    conns += connV(cx, (pinBotY + inBusY) / 2, len);
+    conns += joint(cx, inBusY);        // crossblock corner at bus junction
+  });
+
+  // Input horizontal bus (spanning all 4 brick centres)
+  const inBusLen = bCX[3] - bCX[0] + CBW;
+  conns += connH(gearX, inBusY, inBusLen);
+
+  // Vertical drop: input bus → gear top
+  const dropLen = gTopEdge - inBusY;
+  conns += connV(gearX, (inBusY + gTopEdge) / 2, dropLen);
+  conns += joint(gearX, inBusY);      // centre crossblock on bus
+
+  // Central gear
+  const centralGear = gear(gearX, gearY, 14, 44, 33, 16, 9, 'gcw');
+
+  // Vertical drop: gear bottom → output bus
+  const outDropLen = outBusY - gBotEdge;
+  conns += connV(gearX, (gBotEdge + outBusY) / 2, outDropLen);
+  conns += joint(gearX, outBusY);    // centre crossblock
+
+  // Output horizontal bus
+  const outBusLen = oCX[1] - oCX[0] + CBW;
+  conns += connH((oCX[0] + oCX[1]) / 2, outBusY, outBusLen);
+  conns += joint(oCX[0], outBusY);
+  conns += joint(oCX[1], outBusY);
+
+  // 2 vertical beams: output bus → arrows
+  oCX.forEach(cx => {
+    const len = arrY - outBusY;
+    conns += connV(cx, (outBusY + arrY) / 2, len);
+  });
+
+  // Red arrows
+  oCX.forEach(cx => {
+    conns += `<polygon points="${cx-11},${arrY-6} ${cx+11},${arrY-6} ${cx},${arrY+10}" fill="${R}"/>`;
+  });
+
+  /* ── OUTPUT BRICKS ──────────────────────────────────── */
+  const outLabels = [['LESS','COST &amp; EFFORT'],['MORE','UPTIME &amp; SAFETY']];
+  let outBricks = '';
+  oCX.forEach((cx, i) => {
+    outBricks += brick3D(cx, oTop, oW, oH, 10);
+    outBricks += `<text x="${cx}" y="${oTop+oH*0.46}" text-anchor="middle" font-family="'Inter',system-ui,sans-serif" font-size="54" font-weight="900" fill="${R}" letter-spacing="-2">${outLabels[i][0]}</text>`;
+    outBricks += `<text x="${cx}" y="${oTop+oH*0.78}" text-anchor="middle" font-family="'Inter',system-ui,sans-serif" font-size="13" font-weight="700" fill="${R}" letter-spacing="2">${outLabels[i][1]}</text>`;
+  });
+
+  /* ── TITLE ──────────────────────────────────────────── */
+  const title =
+    `<text x="640" y="56" text-anchor="middle" font-family="'Inter',system-ui,sans-serif" font-size="33" font-weight="900" fill="${W}" letter-spacing="2.5">FROM INNOVATION TO IMPACT</text>` +
+    `<line x1="82" y1="70" x2="530" y2="70" stroke="${W}" stroke-width="0.8" opacity="0.38"/>` +
+    `<line x1="750" y1="70" x2="1198" y2="70" stroke="${W}" stroke-width="0.8" opacity="0.38"/>`;
+
+  el.innerHTML =
+    lp(title,                    0, -20, 0.05) +
+    lp(inBricks,                 0, -28, 0.12) +
+    lp(conns + centralGear,      0,  14, 0.30) +
+    lp(outBricks,                0,  32, 0.46);
+}
+
+function buildS4(el) {
+  /* 4-station assembly conveyor */
+  const stX = [152, 405, 658, 912];
+
+  /* 3-row conveyor rail (more beam density) */
+  const conveyorBeam = beam(78, 136, 56) + beam(78, 156, 56) + beam(78, 176, 56);
+
+  /* 4 stations individually — smaller gears */
+  const stations = stX.map((sx, i) => {
+    const N = [10, 14, 10, 8][i];
+    const R = [24, 32, 24, 20][i];   // was [38,48,38,32]
+    const r = [19, 25, 19, 16][i];
+    const cls = i%2===0 ? 'gcw3' : 'gccw3';
+    let s = '';
+    s += gear(sx, 136, N, R, r, [8,10,8,7][i], [3,4,3,3][i], cls, i*20);
+    /* 4-hole vertical mounting column per station */
+    for (let dy = 196; dy <= 320; dy += 20) s += beam(sx-10, dy, 1, 'v');
+    s += beam(sx-30, 190, 4);    // horizontal bracket
+    s += bolt(sx, 136);           // axle pin
+    bolt(sx-20, 196); bolt(sx, 196); bolt(sx+20, 196);
+    if (i < 3) {
+      s += `<line x1="${sx+R+4}" y1="136" x2="${stX[i+1]-R-4}" y2="136" stroke="rgba(255,255,255,1)" stroke-width="0.6" stroke-dasharray="4,3"/>`;
+    }
+    s += ann(sx, 136-R-14, String(i+1));
+    return s;
+  });
+
+  /* Base plate below stations (3 rows) */
+  const basePlate = beam(78, 340, 56) + beam(78, 360, 56) + beam(78, 380, 56);
+
+  /* Background gear — smaller */
+  const bgGear = gear(1180, 148, 20, 68, 54, 20, 7, 'gcw2', 0);
+
+  /* Labels + frame */
+  let meta = '';
+  meta += `<line x1="78" y1="700" x2="1202" y2="700" stroke="rgba(255,255,255,1)" stroke-width="0.4"/>`;
+  meta += frameCorners(4, 6);
+
+  el.innerHTML =
+    lp(conveyorBeam,   0, -40, 0.10) +
+    lp(stations[0],  -30, -20, 0.28) +
+    lp(stations[1],  -10, -20, 0.36) +
+    lp(stations[2],   10, -20, 0.44) +
+    lp(stations[3],   30, -20, 0.52) +
+    lp(basePlate,      0,  30, 0.58) +
+    lp(bgGear,        40, -20, 0.64) +
+    lp(meta,           0,  20, 0.72);
+}
+
+function buildS5(el) {
+  /* 2×2 KPI grid with structural dividers */
+
+  /* Background gear — smaller (R=90, was R=160) */
+  const bgGear = gear(1190, 110, 24, 90, 72, 26, 9, 'gcw2', 0);
+
+  /* Horizontal divider beam — same position */
+  const hDivider = beam(78, 376, 56);
+
+  /* Vertical dividers — 2 columns of stacked 1-hole beams for LEGO look */
+  let vDividers = '';
+  for (let y = 100; y <= 660; y += 20) {
+    vDividers += beam(624, y, 1, 'v');
+    vDividers += beam(644, y, 1, 'v');   // double column = more LEGO parts
+  }
+  vDividers += `<line x1="634" y1="100" x2="634" y2="668" stroke="rgba(255,255,255,1)" stroke-width="0.5" stroke-dasharray="6,4" opacity="0.5"/>`;
+
+  /* Connector bolts */
+  let bolts = '';
+  bolts += bolt(634, 376, 9);
+  bolts += bolt(78, 376) + bolt(1202, 376);
+  bolts += bolt(634, 100) + bolt(634, 668);
+  /* Extra bolts along dividers for LEGO detail */
+  [200, 290, 470, 560].forEach(y => { bolts += bolt(634, y, 7); bolts += bolt(644, y, 5); });
+
+  /* Labels + frame */
+  let meta = '';
+  meta += `
+    <line x1="78" y1="700" x2="1202" y2="700" stroke="rgba(255,255,255,1)" stroke-width="0.4"/>`;
+  meta += frameCorners(5, 6);
+
+  el.innerHTML =
+    lp(bgGear,     40,   0, 0.10) +
+    lp(hDivider,    0, -30, 0.28) +
+    lp(vDividers, -20,   0, 0.36) +
+    lp(bolts,       0,   0, 0.48) +
+    lp(meta,        0,  20, 0.68);
+}
+
+function buildS6(el) {
+  /* Full assembly — central gear + 4 satellites — scaled down ~40% */
+
+  /* Central gear: 24T, R=108 (was R=180) */
+  const centralGear = gear(640, 360, 24, 108, 86, 30, 11, 'gcw', 0);
+
+  /* 4 satellite gears (12T, R=64) from NSEW */
+  const satDist = 108 + 64;
+  const satAngles = [0, Math.PI/2, Math.PI, 3*Math.PI/2];
+  const satPhasings = [9, 9, 9, 9];
+  const satTx = [60, 0, -60, 0];
+  const satTy = [0, 60, 0, -60];
+  const satDelay = [0.30, 0.38, 0.46, 0.54];
+
+  const satellites = satAngles.map((a, i) => {
+    const cx = 640 + satDist * Math.cos(a);
+    const cy = 360 + satDist * Math.sin(a);
+    let s = gear(cx, cy, 12, 64, 51, 18, 6, 'gccw', i*15 + satPhasings[i]);
+    const ax1x = 640 + 14*Math.cos(a), ax1y = 360 + 14*Math.sin(a);
+    const ax2x = cx - 14*Math.cos(a), ax2y = cy - 14*Math.sin(a);
+    s += `<line x1="${ax1x.toFixed(1)}" y1="${ax1y.toFixed(1)}" x2="${ax2x.toFixed(1)}" y2="${ax2y.toFixed(1)}" stroke="rgba(255,255,255,1)" stroke-width="0.5" stroke-dasharray="6,4" opacity="0.4"/>`;
+    return s;
+  });
+
+  /* 4 corner micro-gears (8T, R=48) flying in from diagonals */
+  /* diagDist: center to center = satDist + satR + microR = 172 + 64 + 32 */
+  const diagDist = 108 + 64 + 64 + 32;
+  const diagAngles = [Math.PI/4, 3*Math.PI/4, 5*Math.PI/4, 7*Math.PI/4];
+  const diagTx = [40, -40, -40, 40];
+  const diagTy = [40,  40, -40, -40];
+  const diagDelay = [0.60, 0.66, 0.72, 0.68];
+
+  const diagGears = diagAngles.map((a, i) => {
+    const cx = 640 + diagDist * Math.cos(a);
+    const cy = 360 + diagDist * Math.sin(a);
+    if (cx > 30 && cx < 1250 && cy > 30 && cy < 690)
+      return gear(cx, cy, 8, 32, 25, 10, 4, 'gcw3', i*22);
+    return '';
+  });
+
+  /* Beam structure radiating between satellites */
+  let radialBeams = '';
+  satAngles.forEach((a, i) => {
+    const cx = 640 + satDist * Math.cos(a);
+    const cy = 360 + satDist * Math.sin(a);
+    /* short beams orthogonal to each satellite */
+    const perp = a + Math.PI/2;
+    const bx = cx + 70*Math.cos(perp) - 10;
+    const by = cy + 70*Math.sin(perp) - 10;
+    radialBeams += beam(bx, by, 4, Math.abs(Math.cos(a)) > 0.5 ? 'h' : 'v');
+    const bx2 = cx - 90*Math.cos(perp) - 10;
+    const by2 = cy - 90*Math.sin(perp) - 10;
+    radialBeams += beam(bx2, by2, 4, Math.abs(Math.cos(a)) > 0.5 ? 'h' : 'v');
+    radialBeams += bolt(cx, cy, 6);
+  });
+
+  /* Structural frame + dims + labels */
+  let frame = `
+    <rect x="78" y="66" width="1124" height="588" fill="none" stroke="rgba(255,255,255,0.38)" stroke-width="0.6"/>
+    <line x1="78" y1="66" x2="94" y2="66" stroke="rgba(255,255,255,1)" stroke-width="0.8"/>
+    <line x1="78" y1="66" x2="78" y2="82" stroke="rgba(255,255,255,1)" stroke-width="0.8"/>
+    <line x1="1202" y1="66" x2="1186" y2="66" stroke="rgba(255,255,255,1)" stroke-width="0.8"/>
+    <line x1="1202" y1="66" x2="1202" y2="82" stroke="rgba(255,255,255,1)" stroke-width="0.8"/>
+    <line x1="78" y1="654" x2="94" y2="654" stroke="rgba(255,255,255,1)" stroke-width="0.8"/>
+    <line x1="78" y1="654" x2="78" y2="638" stroke="rgba(255,255,255,1)" stroke-width="0.8"/>
+    <line x1="1202" y1="654" x2="1186" y2="654" stroke="rgba(255,255,255,1)" stroke-width="0.8"/>
+    <line x1="1202" y1="654" x2="1202" y2="638" stroke="rgba(255,255,255,1)" stroke-width="0.8"/>
+  `;
+  frame += dim(532, 360, 748, 360, 'Ø 216 mm');
+  frame += ann(640, 360, 'C');
+  frame += `<line x1="78" y1="700" x2="1202" y2="700" stroke="rgba(255,255,255,1)" stroke-width="0.4"/>`;
+  frame += frameCorners(6, 6);
+
+  el.innerHTML =
+    lp(centralGear, 0, 0, 0.10) +
+    satellites.map((s, i) => lp(s, satTx[i], satTy[i], satDelay[i])).join('') +
+    diagGears.map((s, i) => s ? lp(s, diagTx[i], diagTy[i], diagDelay[i]) : '').join('') +
+    lp(radialBeams, 0, 0, 0.74) +
+    lp(frame, 0, 30, 0.80);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   FRAME PANEL SVG BUILDER
+   Full LEGO rectangle: 4 corners + top/bottom bars + side beams
+   Every single piece is its own lp() — snaps in one-by-one
+═══════════════════════════════════════════════════════════ */
+function buildFramePanel(svgEl, frameDelay = 0) {
+  /* Inner video opening stays at 376×299.
+     Border B=12px: crossblock corners (sc=0.3) + axle edges. */
+  const B = 12, iW = 376, iH = 299;
+  const W = iW + 2*B;   // 329
+  const H = iH + 2*B;   // 266
+  const sc = B / 40;    // 0.3
+  const chw = 76 * sc / 2;  // crossblock half-width when rot 90°
+  const ST = 'stroke="rgba(255,255,255,1)" fill="none" stroke-width="1.5"';
+  const D = 0.07;
+  let d = frameDelay;
+  const next = () => { const v = d; d += D; return v; };
+  let svg = '';
+
+  // Corner connectors
+  svg += lp(ldPart('crossblock', chw,   B/2,   sc,  90), -20, -20, next()); // TL
+  svg += lp(ldPart('crossblock', W-chw, B/2,   sc, -90),  20, -20, next()); // TR
+  svg += lp(ldPart('crossblock', W-chw, H-B/2, sc, -90),  20,  20, next()); // BR
+  svg += lp(ldPart('crossblock', chw,   H-B/2, sc,  90), -20,  20, next()); // BL
+
+  // Axles connecting the corner connectors
+  svg += lp(axle(chw*2, B/2,   W-chw*2, B/2),    0, -20, next()); // top
+  svg += lp(axle(chw*2, H-B/2, W-chw*2, H-B/2),  0,  20, next()); // bottom
+  svg += lp(axle(B/2,   B,     B/2,     H-B),   -20,   0, next()); // left
+  svg += lp(axle(W-B/2, B,     W-B/2,   H-B),    20,   0, next()); // right
+
+  svgEl.innerHTML = svg;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CARD FRAME BUILDER — thick LEGO beams for small cards
+   Same style as buildS3 but reads W/H from SVG attributes
+═══════════════════════════════════════════════════════════ */
+function buildCardFrame(svgEl) {
+  const W_card = parseFloat(svgEl.getAttribute('width'));
+  const H_card = parseFloat(svgEl.getAttribute('height'));
+  const BW = 18, LU = 16, HR = 4.4, HI = 2.8;
+  const isHL = svgEl.classList.contains('fpx-highlight');
+  const Wc = isHL ? 'rgba(253,224,110,0.9)' : 'rgba(255,255,255,1)';
+  const sc = BW / 40;         // 0.45
+  const chw = 76 * sc / 2;   // 17.1
+
+  const topCY   = BW / 2;
+  const botCY   = H_card - BW / 2;
+  const leftCX  = BW / 2;
+  const rightCX = W_card - BW / 2;
+
+  function hBeam(cx, cy, len) {
+    const nH = Math.round((len - BW) / LU) + 1;
+    const tL = (nH - 1) * LU + BW;
+    let g = `<rect x="${cx-tL/2}" y="${cy-BW/2}" width="${tL}" height="${BW}" rx="${BW/2}" fill="rgba(0,0,0,0.75)" stroke="${Wc}" stroke-width="1.4"/>`;
+    g += `<rect x="${cx-tL/2+2}" y="${cy-BW/2+2}" width="${tL-4}" height="${BW-4}" rx="${BW/2-2}" fill="none" stroke="${Wc}" stroke-width="0.4" opacity="0.3"/>`;
+    for (let i = 0; i < nH; i++) {
+      const hx = (cx - (nH-1)*LU/2 + i*LU).toFixed(1);
+      g += `<circle cx="${hx}" cy="${cy}" r="${HR}" fill="rgba(0,0,0,0.6)" stroke="${Wc}" stroke-width="1.0"/>`;
+      g += `<circle cx="${hx}" cy="${cy}" r="${HI}" fill="none" stroke="${Wc}" stroke-width="0.4"/>`;
+      g += `<line x1="${(+hx-HI*0.65).toFixed(1)}" y1="${cy}" x2="${(+hx+HI*0.65).toFixed(1)}" y2="${cy}" stroke="${Wc}" stroke-width="0.3"/>`;
+      g += `<line x1="${hx}" y1="${(cy-HI*0.65).toFixed(1)}" x2="${hx}" y2="${(cy+HI*0.65).toFixed(1)}" stroke="${Wc}" stroke-width="0.3"/>`;
+    }
+    return g;
+  }
+
+  function vBeam(cx, cy, len) {
+    const nH = Math.round((len - BW) / LU) + 1;
+    const tL = (nH - 1) * LU + BW;
+    let g = `<rect x="${cx-BW/2}" y="${cy-tL/2}" width="${BW}" height="${tL}" rx="${BW/2}" fill="rgba(0,0,0,0.75)" stroke="${Wc}" stroke-width="1.4"/>`;
+    g += `<rect x="${cx-BW/2+2}" y="${cy-tL/2+2}" width="${BW-4}" height="${tL-4}" rx="${BW/2-2}" fill="none" stroke="${Wc}" stroke-width="0.4" opacity="0.3"/>`;
+    for (let i = 0; i < nH; i++) {
+      const hy = (cy - (nH-1)*LU/2 + i*LU).toFixed(1);
+      g += `<circle cx="${cx}" cy="${hy}" r="${HR}" fill="rgba(0,0,0,0.6)" stroke="${Wc}" stroke-width="1.0"/>`;
+      g += `<circle cx="${cx}" cy="${hy}" r="${HI}" fill="none" stroke="${Wc}" stroke-width="0.4"/>`;
+      g += `<line x1="${(cx-HI*0.65).toFixed(1)}" y1="${hy}" x2="${(cx+HI*0.65).toFixed(1)}" y2="${hy}" stroke="${Wc}" stroke-width="0.3"/>`;
+      g += `<line x1="${cx}" y1="${(+hy-HI*0.65).toFixed(1)}" x2="${cx}" y2="${(+hy+HI*0.65).toFixed(1)}" stroke="${Wc}" stroke-width="0.3"/>`;
+    }
+    return g;
+  }
+
+  const hLen = W_card - BW * 2;
+  const vLen = H_card - BW * 2;
+
+  const top    = hBeam(W_card/2, topCY,     hLen);
+  const bottom = hBeam(W_card/2, botCY,     hLen);
+  const left   = vBeam(leftCX,  H_card/2,  vLen);
+  const right  = vBeam(rightCX, H_card/2,  vLen);
+  const corners =
+    ldPart('crossblock', chw,          topCY, sc,  90) +
+    ldPart('crossblock', W_card-chw,   topCY, sc, -90) +
+    ldPart('crossblock', W_card-chw,   botCY, sc, -90) +
+    ldPart('crossblock', chw,          botCY, sc,  90);
+
+  svgEl.innerHTML =
+    lp(top,      0, -20, 0.10) +
+    lp(bottom,   0,  20, 0.18) +
+    lp(left,   -20,   0, 0.26) +
+    lp(right,   20,   0, 0.34) +
+    lp(corners,  0,   0, 0.42);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   INIT SVG LAYERS
+═══════════════════════════════════════════════════════════ */
+const builders = [buildS1, buildS2, buildS3, buildS4, buildS5, buildS6];
+document.querySelectorAll('.mech').forEach((el, i) => builders[i] && builders[i](el));
+buildS11(document.getElementById('svg11'));
+document.querySelectorAll('#s2 .fp-svg').forEach((el, i) => {
+  el.dataset.frame = i + 1;
+  buildFramePanel(el, 0); // delays are relative to .revealed being added
+});
+document.querySelectorAll('.fpx-svg').forEach(el => buildCardFrame(el));
+
+/* ═══════════════════════════════════════════════════════════
+   SLIDE 7 — LEGO CLOCK (octagonal beam ring, live second hand)
+═══════════════════════════════════════════════════════════ */
+(function buildS7Clock() {
+  const svg = document.getElementById('s7-clock');
+  if (!svg) return;
+  const W  = 'rgba(255,255,255,1)';
+  const LU = 20;    // LEGO unit (px)
+  const BW = 23;    // beam width
+  const HR = 7;     // hole outer radius
+  const HI = 4.5;   // hole chamfer radius
+  const R  = 162;   // octagon vertex radius
+
+  function techBeam(cx, cy, angDeg, nHoles) {
+    const tW = (nHoles - 1) * LU;
+    const tL = tW + BW;
+    let g = `<g transform="translate(${cx.toFixed(1)},${cy.toFixed(1)}) rotate(${angDeg.toFixed(1)})">`;
+    g += `<rect x="${(-tL/2).toFixed(1)}" y="${(-BW/2).toFixed(1)}" width="${tL}" height="${BW}" rx="${BW/2}" fill="rgba(0,0,0,0.65)" stroke="${W}" stroke-width="1.5"/>`;
+    g += `<rect x="${(-tL/2+2).toFixed(1)}" y="${(-BW/2+2).toFixed(1)}" width="${tL-4}" height="${BW-4}" rx="${BW/2-2}" fill="none" stroke="${W}" stroke-width="0.5" opacity="0.35"/>`;
+    for (let i = 0; i < nHoles; i++) {
+      const hx = (-tW/2 + i*LU).toFixed(1);
+      g += `<circle cx="${hx}" cy="0" r="${HR}" fill="rgba(0,0,0,0.6)" stroke="${W}" stroke-width="1.1"/>`;
+      g += `<circle cx="${hx}" cy="0" r="${HI}" fill="none" stroke="${W}" stroke-width="0.6"/>`;
+      g += `<line x1="${(+hx-HI*0.65).toFixed(1)}" y1="0" x2="${(+hx+HI*0.65).toFixed(1)}" y2="0" stroke="${W}" stroke-width="0.4"/>`;
+      g += `<line x1="${hx}" y1="${(-HI*0.65).toFixed(1)}" x2="${hx}" y2="${(HI*0.65).toFixed(1)}" stroke="${W}" stroke-width="0.4"/>`;
+    }
+    return g + '</g>';
+  }
+
+  function crossBlock(cx, cy, angDeg) {
+    const S = 27, arm = S * 0.3;
+    let g = `<g transform="translate(${cx.toFixed(1)},${cy.toFixed(1)}) rotate(${angDeg.toFixed(1)})">`;
+    g += `<rect x="${-S/2}" y="${-S/2}" width="${S}" height="${S}" rx="5" fill="rgba(0,0,0,0.65)" stroke="${W}" stroke-width="1.5"/>`;
+    g += `<rect x="${-S/2+2}" y="${-S/2+2}" width="${S-4}" height="${S-4}" rx="3" fill="none" stroke="${W}" stroke-width="0.5" opacity="0.35"/>`;
+    g += `<rect x="${(-S*0.1).toFixed(1)}" y="${-arm}" width="${(S*0.2).toFixed(1)}" height="${(arm*2).toFixed(1)}" rx="2" fill="rgba(0,0,0,0.4)" stroke="${W}" stroke-width="1.3"/>`;
+    g += `<rect x="${-arm}" y="${(-S*0.1).toFixed(1)}" width="${(arm*2).toFixed(1)}" height="${(S*0.2).toFixed(1)}" rx="2" fill="rgba(0,0,0,0.4)" stroke="${W}" stroke-width="1.3"/>`;
+    g += `<circle cx="0" cy="0" r="3.8" fill="rgba(0,0,0,0.6)" stroke="${W}" stroke-width="1.0"/>`;
+    return g + '</g>';
+  }
+
+  let out = '';
+
+  /* Outer octagonal ring — 6-hole beams (tL≈123px, side≈124px) */
+  for (let k = 0; k < 8; k++) {
+    const a0 = k * Math.PI / 4, a1 = (k+1) * Math.PI / 4;
+    const v0x = R*Math.sin(a0), v0y = -R*Math.cos(a0);
+    const v1x = R*Math.sin(a1), v1y = -R*Math.cos(a1);
+    const ang = Math.atan2(v1y-v0y, v1x-v0x) * 180/Math.PI;
+    out += techBeam((v0x+v1x)/2, (v0y+v1y)/2, ang, 6);
+  }
+
+  /* Cross-block connectors at vertices */
+  for (let k = 0; k < 8; k++) {
+    const a = k * Math.PI / 4;
+    out += crossBlock(R*Math.sin(a), -R*Math.cos(a), k*45);
+  }
+
+  /* Center hub */
+  out += `<circle r="14" fill="rgba(0,0,0,0.9)" stroke="${W}" stroke-width="1.5"/>`;
+  out += `<circle r="8"  fill="none" stroke="${W}" stroke-width="0.8" opacity="0.5"/>`;
+
+  /* Second hand group — 6-hole beam, pivot hole at center */
+  out += `<g id="s7-hand" style="transform-origin:0px 0px">`;
+  out += techBeam(50, 0, 0, 6);
+  out += `</g>`;
+
+  /* Center cap */
+  out += `<circle r="6" fill="${W}"/>`;
+
+  svg.innerHTML = out;
+})();
+
+
+
+let clockInterval = null;
+
+function tickClock() {
+  const hand = document.getElementById('s7-hand');
+  if (!hand) return;
+  const s = new Date().getSeconds();
+  if (s === 0) {
+    hand.style.transition = 'none';
+    requestAnimationFrame(() => { hand.style.transition = ''; });
+  }
+  hand.style.transform = `rotate(${s * 6}deg)`;
+}
+
+function startClock() {
+  tickClock();
+  if (!clockInterval) clockInterval = setInterval(tickClock, 1000);
+}
+
+function stopClock() {
+  clearInterval(clockInterval);
+  clockInterval = null;
+}
+
+
+/* ── Neural fill animation: red spreads from centre, stays red ── */
+let brainAnimId = null;
+
+function startBrainAnim() {}
+function stopBrainAnim() {}
+
+/* ═══════════════════════════════════════════════════════════
+   DECK SCALING
+═══════════════════════════════════════════════════════════ */
+const deck = document.getElementById('deck');
+function resize() {
+  const s = Math.min(window.innerWidth / 1280, window.innerHeight / 720) * 0.97;
+  deck.style.transform = `scale(${s})`;
+}
+window.addEventListener('resize', resize);
+resize();
+
+/* ═══════════════════════════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════════════════════════ */
+const slides = [...document.querySelectorAll('.slide')];
+const N = slides.length;
+let cur = 0;
+
+/* Build dots */
+const dotsEl = document.getElementById('dots');
+const dotEls = slides.map((_, i) => {
+  const d = document.createElement('div');
+  d.className = 'dot' + (i === 0 ? ' on' : '');
+  d.onclick = () => goTo(i);
+  dotsEl.appendChild(d);
+  return d;
+});
+
+function goTo(next) {
+  if (next === cur || next < 0 || next >= N) return;
+  const dir = next > cur ? 'fwd' : 'bwd';
+
+  /* Cancel frame cascade if leaving slide 2 */
+  if (cur === 1) resetS2();
+
+  /* Stop clock + brain anim if leaving clock slide */
+  if (slides[cur] && slides[cur].id === 's7') { stopClock(); stopBrainAnim(); }
+
+  /* Outgoing */
+  slides[cur].classList.remove('active');
+  slides[cur].classList.add('past');
+  dotEls[cur].classList.remove('on');
+
+  /* Briefly speed up all visible gears via CSS class */
+  deck.classList.add('shifting');
+  setTimeout(() => deck.classList.remove('shifting'), 600);
+
+  cur = next;
+
+  /* Trigger frame auto-assembly when entering slide 2 */
+  if (cur === 1) startS2Cascade();
+
+  /* Start clock + brain anim when entering clock slide */
+  if (slides[cur] && slides[cur].id === 's7') {
+    startClock(); startBrainAnim();
+    const v = document.querySelector('#s7 video');
+    if (v) { v.currentTime = 0; v.play(); }
+  }
+
+  /* Incoming — start slightly offset, then settle */
+  slides[cur].style.transform = dir === 'fwd'
+    ? 'translateX(32px) scale(1.015)'
+    : 'translateX(-32px) scale(1.015)';
+  slides[cur].classList.remove('past');
+
+  /* Force reflow */
+  void slides[cur].offsetHeight;
+
+  slides[cur].classList.add('active');
+  slides[cur].style.transform = '';
+  dotEls[cur].classList.add('on');
+
+  /* Clean up past class after transition */
+  slides.forEach((s, i) => {
+    if (i !== cur) {
+      setTimeout(() => s.classList.remove('past'), 600);
+    }
+  });
+
+  document.getElementById('ctr') && (document.getElementById('ctr').textContent = `${cur+1} / ${N}`);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SLIDE 2 — AUTO-CASCADE FRAME ASSEMBLY
+   Frames build one-by-one automatically when slide activates
+═══════════════════════════════════════════════════════════ */
+let s2Timers = [];
+
+function revealFrame(n) {
+  const unit = document.querySelector(`.frame-unit[data-f="${n}"]`);
+  if (!unit) return;
+  unit.classList.remove('revealed');
+  void unit.offsetHeight;
+  unit.classList.add('revealed');
+  const vid = unit.querySelector('.fp-video');
+  if (vid) vid.play().catch(() => {});
+}
+function hideFrame(n) {
+  const unit = document.querySelector(`.frame-unit[data-f="${n}"]`);
+  if (unit) unit.classList.remove('revealed');
+}
+function pauseS2Videos() {
+  document.querySelectorAll('#s2 .fp-video').forEach(v => { v.pause(); v.currentTime = 0; });
+}
+function resetS2() {
+  s2Timers.forEach(clearTimeout);
+  s2Timers = [];
+  [1, 2, 3].forEach(hideFrame);
+  pauseS2Videos();
+}
+function startS2Cascade() {
+  resetS2();
+  /* Each frame takes ~1.35s to assemble (20 pieces × 65ms).
+     Start frame 2 at 1.5s, frame 3 at 3.0s. */
+  s2Timers.push(setTimeout(() => revealFrame(1), 350));
+  s2Timers.push(setTimeout(() => revealFrame(2), 1850));
+  s2Timers.push(setTimeout(() => revealFrame(3), 3350));
+}
+
+/* Dot click resets and re-triggers cascade */
+dotEls[1].onclick = () => { resetS2(); goTo(1); };
+
+/* Prev/Next — just navigate, no per-frame stepping */
+document.getElementById('prev').onclick = () => goTo(cur - 1);
+document.getElementById('next').onclick = () => goTo(cur + 1);
+
+document.addEventListener('keydown', e => {
+  if (['ArrowRight','ArrowDown',' '].includes(e.key)) {
+    e.preventDefault(); goTo(cur + 1);
+  }
+  if (['ArrowLeft','ArrowUp'].includes(e.key)) {
+    e.preventDefault(); goTo(cur - 1);
+  }
+  if (e.key === 'Home') { resetS2(); goTo(0); }
+  if (e.key === 'End') goTo(N-1);
+});
+
+/* Gear speed-up style during shift */
+const style = document.createElement('style');
+style.textContent = `
+  .shifting .gcw  { animation-duration: 4s !important; }
+  .shifting .gccw { animation-duration: 2.4s !important; }
+  .shifting .gcw2 { animation-duration: 6s !important; }
+  .shifting .gcw3 { animation-duration: 2.4s !important; }
+  .shifting .gccw3{ animation-duration: 1.6s !important; }
+`;
+document.head.appendChild(style);
+
+</script>
+</body>
+</html>

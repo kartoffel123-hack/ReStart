@@ -13,15 +13,20 @@ type TrayMove = {name:string; members:TriangleSoup[]; points:Vec3[]};
 /** With last-out/first-in restoration, each mover's return sees the exact
  * same neighbours as its departure. roundTrip sweeps both ways on that state.
  * Continue past a collision only to measure the conditional downstream path. */
-export function traySequence(initial:TriangleSoup[], moves:TrayMove[]) {
+export function traySequence(initial:TriangleSoup[], moves:TrayMove[], policy:'what-if'|'reachable-only'='what-if') {
     let scene=initial, reachable=true;
+    const parkedNames:string[]=[];
     const operations=moves.map(move=>{
         const trip=roundTrip(move.members,scene,move.points);
         reachable=reachable && trip.contacts.length===0;
-        scene=parkForTrial(scene,trip.members,trip.points.at(-1)!);
-        return {name:move.name,...trip,reachableByTestedPrefix:reachable};
+        const parkedForNextOperation=policy==='what-if' || trip.contacts.length===0;
+        if(parkedForNextOperation) {
+            scene=parkForTrial(scene,trip.members,trip.points.at(-1)!);
+            parkedNames.push(move.name);
+        }
+        return {name:move.name,...trip,reachableByTestedPrefix:reachable,parkedForNextOperation};
     });
-    return {operations,restoreOrder:moves.map(m=>m.name).reverse(),contactFreeRoundTrip:reachable};
+    return {operations,restoreOrder:parkedNames.reverse(),contactFreeRoundTrip:reachable};
 }
 
 async function survey() {

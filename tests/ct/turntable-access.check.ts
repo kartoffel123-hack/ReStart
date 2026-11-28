@@ -65,3 +65,14 @@ test('a blocked plate cannot earn a reachable wall tray by leaving its home pose
     assert.deepEqual(result.restoreOrder,['wall','plate']);
     assert.equal(result.contactFreeRoundTrip,false);
 });
+
+test('a facing that cannot reach its tray stays in the wall path while a clear facing can be restored', () => {
+    const facing=piece('facing',0,4), stop=piece('stop',4,4), clear=piece('clear',16,4), wall=piece('wall',0,0);
+    const result=traySequence([facing,stop,clear,wall],[
+        {name:'blocked face',members:[facing],points:[[0,0,0],[8,0,0]]},
+        {name:'clear face',members:[clear],points:[[0,0,0],[0,8,0]]},
+        {name:'wall',members:[wall],points:[[0,0,0],[0,8,0]]}
+    ],'reachable-only');
+    assert.deepEqual(result.operations.map(op=>op.contacts),[['stop'],[],['facing']]);
+    assert.deepEqual(result.restoreOrder,['clear face']);
+});

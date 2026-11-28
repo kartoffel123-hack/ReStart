@@ -1,0 +1,13 @@
+{
+    "archiveSha256": "b1db600444284e3ac44b3aa2001e390a2abc1df43bb4852c9ccabe2a0f2b3070",
+    "sourceSha256": "b94332a64f28fe2bcd4dfead7ab195398885cedb85dca7b1f0c5997975a3aef2",
+    "stepSha256": "33be022914d8b8d0aeed30eb2810f4c429eb19c8d517933449f653fb14056f39",
+    "ctGeneration": "c78413ffcecdfb9f6dbf0a387fbca403f13212bb80a97e0fc459e1be44933d45",
+    "graphRevision": "78c069e218b9e6d57723d243b9adc6cf821f0d22f8019907a785db81f72c720c",
+    "datasetRevision": "704c13e6a4ec012a12e801d06bab407239afb4d75a23621a80b4c7ec14607619",
+    "target": "4000041/L201",
+    "fingerprint": "5c500211464f9a7e9a80c5ec485a24f9081180d71b0bda7bebfe1cfddeadc46f",
+    "helicopterIndexSha256": "7b7668fb6110860e7ce9ed7634f7c3a691b491b80d491530e0ad8dc7cdefde74",
+    "helicopterTarget": "30465/NAUO33/NAUO39",
+    "helicopterFingerprint": "69cafa076d244933930f8579d98f33adaece5ccc6b10a7c1e14967a578525555"
+}

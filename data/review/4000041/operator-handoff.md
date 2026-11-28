@@ -52,4 +52,6 @@ The intended hard target is the **black toothed turntable top** (`L112`, `88738_
 
 **Mechanics review needed before authoring a gear manual:** establish on a spare turntable whether the toothed half is individually serviceable, what yields or disengages, and how the replacement is reseated and checked for normal rotation. Record the observed interface, tool, support and stop for review. Moving both halves together does not exchange the top. A complete replacement turntable is a different target; do not use it as evidence for `L112`.
 
+**Bench check with diagonal access assumed:** treating the intact pair as already on the bench, the [coaxial twist-and-pull study](turntable-bench.md) finds no rigid release orientation in either axial direction. The assumed diagonal transport is not an evidence upgrade for the access path or the exchange.
+
 To rebuild: run the scoped Fusion export and independent STEP check in [plan 02](../../../docs/plans/0.2.0/02-software-design-implementation-plan.md), then `npm run model:import -- --dataset 4000041`. Clearance also needs the pinned full-kit obstacle GLB; rebuild it from the historical full CAD export with `npm run model:import -- --dataset 4000041 --profile reference` if absent. Run `npm run model:compile -- --dataset 4000041` and `npm run model:verify -- --dataset 4000041 --profile demo` before staging.

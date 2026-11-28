@@ -1,11 +1,18 @@
 """Test a rigid coaxial twist-and-pull of L112 with the turntable on the bench."""
 
 import json
+import hashlib
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 import numpy as np
 import trimesh
+from OCP.BRepClass3d import BRepClass3d_SolidClassifier
+from OCP.gp import gp_Pnt
+from OCP.TopAbs import TopAbs_IN, TopAbs_ON, TopAbs_OUT
 
+from tools.ct.facing_origin import reopen_step
+from tools.ct.source import STAGING
 from tools.ct.turntable_fit import installed, load_scoped_scene
 
 
@@ -64,7 +71,10 @@ def measure(directory):
         margin = angular_margin(depths, np.linalg.norm(points[:,1:]-centre,axis=1), 1.)
         if margin.min() <= 0:
             raise ValueError(f'No continuous interference certificate for {stroke} mm')
-        results.append(dict(strokeXMm=stroke, stepDegrees=1, weakestAngleDegrees=int(margin.argmin()),
+        angle = int(margin.argmin())
+        index = depths[angle].argmax()
+        results.append(dict(strokeXMm=stroke, stepDegrees=1, weakestAngleDegrees=angle,
+                            weakestSampleHomeMm=points[index].tolist(), weakestSampleMovedMm=poses[angle,index].tolist(),
                             minimumSampledDepthMm=float(depths.max(axis=1).min()),
                             continuousLowerBoundMm=float(margin.min()), topPointsAtHomeMm=points.tolist()))
     return dict(geometrySha256=digest, top=top_id, bottom=bottom_id, axisCentreYZMm=centre.tolist(),
@@ -72,5 +82,35 @@ def measure(directory):
                 axialBarriers=results)
 
 
+def confirm_step(result):
+    step = STAGING/'fusion-demo.step'
+    digest = hashlib.sha256(step.read_bytes()).hexdigest()
+    if digest != '33be022914d8b8d0aeed30eb2810f4c429eb19c8d517933449f653fb14056f39':
+        raise ValueError('Scoped STEP revision changed')
+    targets = {('MRI:1','88738_raw.dat:1'):(result['top'],'88738_raw.dat'),
+               ('MRI:1','18939.dat:1'):(result['bottom'],'18939.dat')}
+    with TemporaryDirectory() as directory:
+        parts = reopen_step(step,targets,Path(directory))
+    top = BRepClass3d_SolidClassifier(parts[result['top']][2])
+    bottom = BRepClass3d_SolidClassifier(parts[result['bottom']][2])
+
+    def require_state(classifier, point, expected):
+        classifier.Perform(gp_Pnt(*point),.0001)
+        if classifier.State() != expected:
+            raise ValueError(f'Independent STEP witness disagrees at {point}')
+
+    seated = result['seatedWitness']['topPointMm']
+    require_state(top,seated,TopAbs_ON)
+    for point in twisted(np.array([seated]),np.array(result['axisCentreYZMm']),0,np.array([0,6]))[:,0]:
+        require_state(bottom,point,TopAbs_IN)
+    for barrier in result['axialBarriers']:
+        require_state(top,barrier['weakestSampleHomeMm'],TopAbs_ON)
+        require_state(bottom,barrier['weakestSampleHomeMm'],TopAbs_OUT)
+        require_state(bottom,barrier['weakestSampleMovedMm'],TopAbs_IN)
+    return dict(stepSha256=digest, seatedInterferenceDegrees=[0,6], axialWitnessesConfirmed=len(result['axialBarriers']))
+
+
 if __name__ == '__main__':
-    print(json.dumps(measure(Path('.staging/4000041/demo')), indent=2))
+    result = measure(Path('.staging/4000041/demo'))
+    result['independentStepCheck'] = confirm_step(result)
+    print(json.dumps(result, indent=2))

@@ -1,4 +1,4 @@
-import { cp, mkdir, readFile, rename, writeFile } from 'node:fs/promises';
+import { cp, readFile, rename, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { NodeIO } from '@gltf-transform/core';
@@ -7,10 +7,11 @@ import { z } from 'zod';
 import { replay } from '../../src/domain/replay.js';
 import { procedureFingerprint } from '../../src/domain/fingerprint.js';
 import { checkTile } from './tile-clearance.js';
-import { ctStage } from './import.js';
+import { assertSurfaceCoverage,ctStage } from './import.js';
 import { readScope } from './compile.js';
 import { scannerEvidence } from './evidence.js';
 import { readScannerGeneration } from './site.js';
+import { installCandidate } from './generation.js';
 
 /** Read the staged bytes as a consumer. The source-to-STEP witness is independent
  * of the GLB and compiler. Never infer coverage from just the number of files. */
@@ -22,6 +23,7 @@ export async function verifyScanner(stage=ctStage) {
     const crosswalk=z.object({sha256:z.string(),records:z.record(z.string(),z.object({ref:z.string(),world:z.array(z.array(z.number()).length(4)).length(4)}))})
         .parse(JSON.parse(await readFile('.tmp/ct/fusion-4000041.crosswalk.json','utf8')));
     if(crosswalk.sha256!==model.source.stepSha256) throw new Error('STEP revision mismatch');
+    await assertSurfaceCoverage(crosswalk.sha256,[...new Set(Object.values(crosswalk.records).map(r=>r.ref))]);
     const inventory=manuals.inventory.map(p=>p.id).sort(),expected=Object.keys(crosswalk.records).sort();
     const nodes=(await new NodeIO().readBinary(glb)).getRoot().listNodes();
     const sets=[inventory,nodes.map(n=>String(n.getExtras().instanceId)).sort(),model.occurrences.filter(o=>o.kind==='piece').map(o=>o.id).sort()];
@@ -68,8 +70,7 @@ export async function verifyScanner(stage=ctStage) {
 export async function serveScannerCandidate() {
     const {base,generation}=await verifyScanner();
     const root='public/models/4000041',path=`candidates/${generation}/`;
-    await mkdir(join(root,'candidates'),{recursive:true});
-    await cp(base,join(root,path),{recursive:true});
+    await installCandidate(root,generation,dir=>cp(base,dir,{recursive:true}));
     const temp=join(root,`channel-${randomUUID()}.tmp`);
     await writeFile(temp,JSON.stringify({schemaVersion:1,stage:'candidate',path}));await rename(temp,join(root,'channel.json'));
     console.log(`Staged locally at /?dataset=4000041#/`);

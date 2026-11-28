@@ -13,6 +13,8 @@ Disassembly Analysis for MedTech"* by Siemens Healthineers
 
 ## The idea
 
+**CT scanner candidate (4000041):** `/?dataset=4000041#/` opens the scanner when its local candidate is staged. All 566 Studio placements have individual IDs. The first modeled repair exchanges the back-room wall tile, `4000041/L388`, in the same Mechanic Manual. `/?dataset=30465#/` pins the helicopter. The helicopter remains the default until the CT has an independent spare-replacement trial and hosted browser sign-off. See the [CT build and operator handoff](data/review/4000041/operator-handoff.md).
+
 **Runnable pilot:** `npm ci && npm run dev` on Node 24.22.3. At `#/`, search or pick one of
 70 real pieces. **12 single-target procedures** currently replay against the model. Try
 `30465/NAUO21` (large bush): park the bevel gear, exchange the bush, reseat the gear, then

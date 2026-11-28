@@ -83,10 +83,10 @@ export function DofOverviewScreen() {
         loadPackage(dataset.base, abort.signal)
             .then(bundle => {
                 if (abort.signal.aborted) return;
-                if (!bundle.dof) { setError('No reviewed connection and timing catalog for this dataset.'); return; }
                 setModel(bundle.model);
                 setPilot(bundle.pilot);
                 setCandidates(candidateSchema.parse(bundle.candidates));
+                if (!bundle.dof) { setError('No reviewed connection and timing catalog for this dataset.'); return; }
                 setDofCatalog(connectionDofCatalogSchema.parse(bundle.dof));
             })
             .catch((err) => {
@@ -199,6 +199,18 @@ export function DofOverviewScreen() {
                     </nav>
                 </header>
                 <p style={{ padding: 24 }}>{error || 'Lade STEP-Freiheitsgrade und Zeiten…'}</p>
+                {model && pilot && !dofCatalog && <section aria-label="Modeled repair access">
+                    <h2>Modeled repair access</h2>
+                    <p>These are the strokes in the current repair manuals. Other pieces have no assessed freedom of movement.</p>
+                    <table className="rs-dof-table"><thead><tr><th>Occurrence</th><th>Release direction</th><th>Travel</th><th>Disassembly timing</th></tr></thead>
+                        <tbody>{[pilot.repair,...pilot.alternatives].map(job=>{
+                            const id=job.targetIds[0]!;
+                            const op=model.operations.find(o=>job.operationIds.includes(o.id) && o.phase==='remove' && o.members.includes(id));
+                            if(!op) return null;
+                            return <tr key={id}><td><a href={`#/graph?piece=${encodeURIComponent(id)}`}>{id}</a></td><td>{op.directionLabel}</td>
+                                <td>{op.strokeMm} mm</td><td>{job.timing.estimatedSeconds===null?'Unknown':`${job.timing.estimatedSeconds} s (estimate)`}</td></tr>;
+                        })}</tbody></table>
+                </section>}
             </main>
         );
     }

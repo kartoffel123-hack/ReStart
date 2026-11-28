@@ -1,4 +1,4 @@
-import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
+import { readFile, rename, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
@@ -7,6 +7,7 @@ import { planRepair } from '../../src/domain/planner.js';
 import { ctStage, inventorySchema, sha256 } from './import.js';
 import { checkTile } from './tile-clearance.js';
 import { scannerEvidence } from './evidence.js';
+import { installCandidate } from './generation.js';
 
 export const demoScopeSchema=z.object({candidate:z.string(),support:z.string(),travelMm:z.number().positive(),tool:z.string(),remove:z.string(),exchange:z.string(),restore:z.string(),check:z.string(),open:z.record(z.string(),z.string())});
 export const readScope=async()=>demoScopeSchema.parse(JSON.parse(await readFile('data/review/4000041/demo-targets.json','utf8')));
@@ -49,13 +50,17 @@ export async function compileScanner() {
         paths:Object.fromEntries(moves.map(m=>[m.id,[m.start,m.end].map(id=>[0,id===installed?0:scope.travelMm,0] as Vec3)])),movers:Object.fromEntries(moves.map(m=>[m.id,target]))};
     const files=new Map<string,Buffer>();
     const entry=(name:string,bytes:Buffer)=>{files.set(name,bytes);return {name,sha256:sha256(bytes)};};
-    const index={schema:'restart.dataset/2',datasetId:assemblyId,revision:model.graphRevision,geometry:entry(source.geometry,glb),graph:entry('graph.json',Buffer.from(JSON.stringify(model))),
+    const credits=z.object({definitions:z.record(z.string(),z.object({origin:z.string(),sha256:z.string(),credits:z.string().array()}))}).parse(JSON.parse(await readFile('.tmp/ct/source.json','utf8')));
+    const attribution={library:'The LDraw Parts Library',terms:['https://creativecommons.org/licenses/by/2.0/','https://creativecommons.org/licenses/by/4.0/'],
+        conversion:'Studio placement, surface-to-solid reconstruction, Fusion STEP export and browser tessellation. Original licence lines and author credits follow.',
+        review:'An absent licence line is not a redistribution grant. External publication of unmarked inputs requires separate review.',...credits};
+    const index={schema:'restart.dataset/2',datasetId:assemblyId,revision:model.graphRevision,credits:entry('credits.json',Buffer.from(JSON.stringify(attribution))),geometry:entry(source.geometry,glb),graph:entry('graph.json',Buffer.from(JSON.stringify(model))),
         candidates:entry('motion-candidates.json',Buffer.from('[]')),manuals:entry('manuals.json',Buffer.from(JSON.stringify(manuals)))};
     const indexBytes=Buffer.from(JSON.stringify(index)), generation=sha256(indexBytes);
-    const base=join(ctStage,'candidates',generation);
-    await mkdir(base,{recursive:true});
-    for (const [name,bytes] of files) await writeFile(join(base,name),bytes);
-    await writeFile(join(base,'index.json'),indexBytes);
+    await installCandidate(ctStage,generation,async dir=>{
+        for (const [name,bytes] of files) await writeFile(join(dir,name),bytes);
+        await writeFile(join(dir,'index.json'),indexBytes);
+    });
     const temp=join(ctStage,`candidate-${randomUUID()}.tmp`); await writeFile(temp,generation);await rename(temp,join(ctStage,'candidate'));
     console.log(`CT candidate ${generation}: ${target} releases, exchanges, reseats and checks; ${repair.disturbedCount} healthy pieces disturbed. Not approved for physical demonstration.`);
 }

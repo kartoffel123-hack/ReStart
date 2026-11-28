@@ -297,6 +297,7 @@ void main() {
             viewChanged=false;
             const t = reduced ? 1 : Math.min(1,(now-began)/1200);
             stud.position.copy(installed).add(displacement.lerpVectors(a,b,t)).addScaledVector(meshPoses.get(stud)!.explode,p.explode ?? 0);
+            renderer.domElement.dataset.activeVisible=String(p.replacementPreview || stud.visible);
             xr.current?.update();
             if(p.replacementPreview) inset.drawReplacement(renderer,el.clientWidth,el.clientHeight,now,stud);
             else {

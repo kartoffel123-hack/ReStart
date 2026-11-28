@@ -9,7 +9,7 @@ import { inspectAssemblyGlb } from '../lib/glb.js';
 import { sha256 } from './import.js';
 
 const entry=z.object({name:z.string().regex(/^[a-z0-9-]+\.(json|glb)$/),sha256:z.string().regex(/^[a-f0-9]{64}$/)});
-export const scannerIndex=z.object({datasetId:z.literal('4000041'),schema:z.literal('restart.dataset/2'),revision:z.string(),manuals:entry,graph:entry,geometry:entry,candidates:entry});
+export const scannerIndex=z.object({datasetId:z.literal('4000041'),schema:z.literal('restart.dataset/2'),revision:z.string(),manuals:entry,graph:entry,geometry:entry,candidates:entry,credits:entry.optional()});
 
 /** No Studio, STEP or staging workspace needed on the static host. */
 export async function readScannerGeneration(base:string,generation:string) {
@@ -20,6 +20,7 @@ export async function readScannerGeneration(base:string,generation:string) {
     const model=assemblyModelSchema.parse(JSON.parse((await bytes(meta.graph)).toString()));
     const manuals=datasetManualSchema.parse(JSON.parse((await bytes(meta.manuals)).toString()));
     await bytes(meta.candidates);
+    if(meta.credits) await bytes(meta.credits);
     const glb=await bytes(meta.geometry);
     if(model.graphRevision!==meta.revision || model.source.datasetRevision!==sha256(glb) || manuals.geometry!==meta.geometry.name) throw new Error('CT package revision mismatch');
     return {meta,glb,model,manuals};

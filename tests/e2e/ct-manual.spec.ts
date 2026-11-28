@@ -1,4 +1,5 @@
 import { expect,test } from '@playwright/test';
+import { readFile } from 'node:fs/promises';
 
 const target='4000041/L388';
 for(const viewport of [{width:1280,height:800},{width:390,height:844}]) {
@@ -28,6 +29,7 @@ for(const viewport of [{width:1280,height:800},{width:390,height:844}]) {
         for(const phase of ['remove','replace','restore','check']) {
             await expect(screen).toHaveAttribute('data-phase',phase);
             await expect(page.getByLabel('Assembly view').locator('canvas')).toHaveAttribute('data-active-instance',target,{timeout:30000});
+            await expect(page.getByLabel('Assembly view').locator('canvas')).toHaveAttribute('data-active-visible','true');
             await expect(screen.locator('.rs-manual__instruction')).toBeVisible();
             if(viewport.width===390) {
                 const field=(await page.getByLabel('Assembly view').boundingBox())!;
@@ -51,6 +53,13 @@ for(const viewport of [{width:1280,height:800},{width:390,height:844}]) {
         await expect(page.getByRole('heading',{name:'Repair complete'})).toBeVisible();
         await expect(page.getByText('0 healthy pieces disturbed in the modeled route.')).toBeVisible();
         await expect(page.getByText(target,{exact:true})).toBeVisible();
+        const downloaded=page.waitForEvent('download');
+        await page.getByRole('button',{name:'Export repair report'}).click();
+        const report=JSON.parse(await readFile((await (await downloaded).path())!,'utf8'));
+        expect(report.targetIds).toEqual([target]);
+        expect(report.repair.disturbedIds).toEqual([]);
+        expect(report.repair.procedureFingerprint).toMatch(/^[a-f0-9]{64}$/);
+        expect(report.check).toBe('operator-confirmed');
         expect(foreign).toEqual([]);
     });
 }
@@ -58,8 +67,41 @@ for(const viewport of [{width:1280,height:800},{width:390,height:844}]) {
 test('CT reviewer and graph stay on the selected scanner piece',async({page})=>{
     await page.goto(`/?dataset=4000041#/review?piece=${encodeURIComponent(target)}`);
     await expect(page.getByRole('combobox',{name:'Occurrence',exact:true})).toHaveValue(target);
+    await page.getByLabel('Reason',{exact:true}).fill('Test: require the seat to be released before lifting.');
+    await page.getByRole('button',{name:'Add blocker'}).click();
+    await expect(page.getByRole('status')).toContainText('no-feasible-route');
+    const download=page.waitForEvent('download');
+    await page.getByRole('button',{name:'Export draft'}).click();
+    const file=await (await download).path();
+    await page.getByRole('button',{name:'Restore baseline'}).click();
+    await expect(page.getByRole('status')).toContainText('replay passed');
+    await page.getByLabel('Import draft').setInputFiles(file!);
+    await expect(page.getByRole('status')).toContainText('no-feasible-route');
     await page.getByRole('link',{name:'Dependency graph',exact:true}).click();
     await expect(page.getByRole('heading',{name:'Dependency Graph · 4000041'})).toBeVisible({timeout:30000});
     await page.goto('/?dataset=4000041#/dof');
     await expect(page.getByText('No reviewed connection and timing catalog for this dataset.')).toBeVisible();
+    const row=page.getByRole('row').filter({has:page.getByRole('link',{name:target})});
+    await expect(row).toContainText('12 mm');
+    await expect(row).toContainText('Unknown');
+});
+
+test('a failed scanner fetch can retry, and a helicopter visit cannot consume its checkpoint',async({page})=>{
+    test.setTimeout(90000);
+    await page.emulateMedia({reducedMotion:'reduce'});
+    await page.route('**/models/4000041/candidates/*/manuals.json',route=>route.fulfill({json:{stale:true}}),{times:1});
+    await page.goto('/?dataset=4000041#/');
+    await expect(page.getByText('The repair inventory could not be loaded.')).toBeVisible();
+    await page.getByRole('button',{name:'Retry loading repair'}).click();
+    await page.getByText('Advanced Parameters').click();
+    await page.getByRole('combobox',{name:'Occurrence'}).selectOption(target);
+    await page.getByRole('button',{name:/replace grooved 1 × 4 tile/i}).click();
+    await page.getByRole('button',{name:'Confirm this step'}).click();
+    await expect(page.locator('[data-screen="manual"]')).toHaveAttribute('data-phase','replace');
+    await page.goto('/?dataset=30465#/');
+    await expect(page.getByText('LEGO Technic helicopter 30465',{exact:true})).toBeVisible();
+    await expect(page.getByText('Advanced Parameters')).toBeVisible();
+    await page.goto('/?dataset=4000041#/');
+    await page.getByRole('button',{name:'Kit matches — resume'}).click();
+    await expect(page.locator('[data-screen="manual"]')).toHaveAttribute('data-phase','replace');
 });

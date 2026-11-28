@@ -6,7 +6,7 @@ const file=z.object({name:z.string().regex(/^[a-z0-9-]+\.(json|glb)$/),sha256:z.
 const entries=z.object({revision:z.string(),graph:file,manuals:file,candidates:file,geometry:file,dof:file.optional()});
 const indexSchema=z.discriminatedUnion('schema',[
     entries.extend({schema:z.literal('restart.pilot/1')}),
-    entries.extend({schema:z.literal('restart.dataset/2'),datasetId:z.string()})
+    entries.extend({schema:z.literal('restart.dataset/2'),datasetId:z.string(),credits:file.optional()})
 ]);
 
 /** Verify exactly the generation selected by the small revalidated index. Do
@@ -43,7 +43,8 @@ export async function loadPackage(base:string,signal:AbortSignal) {
     if(model.graphRevision!==index.revision || pilot.geometry!==index.geometry.name || model.source.datasetRevision!==index.geometry.sha256 ||
         [pilot.repair,...pilot.alternatives,...(pilot.jointRepair?[pilot.jointRepair]:[])].some(r=>r.graphRevision!==model.graphRevision || r.datasetRevision!==model.source.datasetRevision)) throw new Error('Mixed package revision');
     const dof=index.dof ? decode(await bytes(index.dof)) : undefined;
-    return {model,pilot,stage:channel.stage,candidates:decode(candidates),dof,geometry:new Blob([geometry],{type:'model/gltf-binary'})};
+    const credits=index.schema==='restart.dataset/2' && index.credits ? decode(await bytes(index.credits)) : undefined;
+    return {model,pilot,stage:channel.stage,candidates:decode(candidates),dof,credits,geometry:new Blob([geometry],{type:'model/gltf-binary'})};
 }
 
 async function digest(buffer:ArrayBuffer) {

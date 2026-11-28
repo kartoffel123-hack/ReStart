@@ -23,6 +23,7 @@ export function StudPilot() {
     const [data, setData] = useState<PilotData>();
     const [model, setModel] = useState<AssemblyModel>();
     const [candidates, setCandidates] = useState<MotionCandidateSummary[]>([]);
+    const [credits,setCredits]=useState<unknown>();
     const [geometryUrl,setGeometryUrl]=useState('');
     const [stage,setStage]=useState<'pilot'|'release'|'candidate'>('pilot');
     const [session, setSession] = useState<ManualSession>();
@@ -55,8 +56,11 @@ export function StudPilot() {
                 setGeometryUrl(url);
                 setData(bundle.pilot);
                 setModel(bundle.model);
+                const requested=new URLSearchParams(window.location.hash.split('?')[1]).get('piece');
+                if(requested && bundle.pilot.inventory.some(p=>p.id===requested)) select(requested);
                 setCandidates(Array.isArray(bundle.candidates) ? (bundle.candidates as MotionCandidateSummary[]) : []);
                 setStage(bundle.stage);
+                setCredits(bundle.credits);
             }
         })().catch(() => { if (!abort.signal.aborted) setError(true); });
         return () => {abort.abort();if(url) URL.revokeObjectURL(url);};
@@ -93,7 +97,10 @@ export function StudPilot() {
         const member=data?.movers[s.operationId], to=data?.paths[s.operationId]?.[1];
         if(member && to) offsets[member]=to;
     }
-    const removed = session ? removedInstances(session.steps, session.confirmedCount, data?.movers ?? {}) : new Set<string>();
+    const removed = session ? new Set(removedInstances(session.steps, history ?? session.confirmedCount, data?.movers ?? {})) : new Set<string>();
+    // A fitted replacement is still off its seat at the start of restoration,
+    // but must be visible while the mechanic watches it travel back into place.
+    if(step?.phase==='restore' && data) removed.delete(data.movers[step.operationId]!);
     const scene = data && sceneTarget && <StudScene assemblyName={dataset.noun} url={geometryUrl} target={(step && data.movers[step.operationId]) || sceneTarget} selectionActive={!!target} replacementPreview={step?.phase==='replace'} removed={removed} offsets={offsets} colors={colors} isolate={false} explode={0} idleAutoRotate={!session && history===null} highlight={hovered}
         xrStep={step ? {id:step.stepId,text:`${step.ordinal}. ${step.instruction}`,replay:()=>play(n=>n+1),confirm:()=>{if(history===null && !checkFailed)setSession(s=>s && confirmStep(s,step.stepId));}} : undefined}
         start={path?.[0] ?? zero} end={path?.[1] ?? zero} focus={!!step}
@@ -192,7 +199,8 @@ export function StudPilot() {
                         onFocus={()=>setHovered(p.id)} onBlur={()=>setHovered('')}
                         onClick={()=>select(p.id)}>{p.name} — {p.id}</button>)}</section>)}</div>
                 </details>
-                <DescriptionPicker data={data} select={select} hover={setHovered}/>
+                 <DescriptionPicker data={data} select={select} hover={setHovered}/>
+                 {credits!==undefined && <button onClick={()=>exportJson('ct-geometry-credits.json',credits)}>Download geometry sources and credits</button>}
                 {data.pin && data.jointRepair && (target===data.pin || target===data.target) && <button onClick={()=>begin(data.pin!,true)}>Replace pin and light stud together</button>}
                  <p className="stud-picker__coverage">{stage==='release'?'Reviewed model routes':'Generated model routes'} · {jobs.length} of {data.inventory.length} targets available.</p>
             </details>
@@ -202,6 +210,12 @@ export function StudPilot() {
                      {(job || dataset.id==='30465') && <button className="stud-picker__primary" onClick={()=>job ? begin(target) : setReplaceWarning(true)}>Replace {label}</button>}
                      {(replaceWarning || (!job && dataset.id==='4000041')) && <p role="alert">No repair procedure is available for this piece.</p>}
                 </div> : <div className="stud-picker__selection stud-picker__selection--empty"><p>[Please select a piece in the 3D view]</p></div>}
+                {stage==='candidate' && !target && <>
+                    <p>{jobs.length} modeled repair available · {data.inventory.length} pieces to inspect</p>
+                    <button className="stud-picker__primary" onClick={()=>select(data.target)}>
+                        Show available repair: {data.inventory.find(p=>p.id===data.target)?.name}
+                    </button>
+                </>}
                 </> :
                 error ? <><p role="status">The repair inventory could not be loaded.</p><button onClick={() => retry(n => n+1)}>Retry loading repair</button></> : <p role="status">Loading repair…</p>}
     </PiecePickerScreen>;

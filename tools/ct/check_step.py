@@ -24,6 +24,7 @@ from OCP.XCAFDoc import XCAFDoc_DocumentTool
 
 from tools.ct.source import STAGING, load_source
 from tools.ct.fidelity import uncovered
+from tools.ct.demo_assembly import select_demo
 
 
 def label_name(label):
@@ -31,9 +32,10 @@ def label_name(label):
     return attr.Get().ToExtString() if label.FindAttribute(TDataStd_Name.GetID_s(), attr) else ''
 
 
-def inspect(sample, export_meshes=False):
-    path = STAGING / ('fusion-sample.step' if sample else 'fusion-4000041.step')
-    pieces = [p for p in load_source()['pieces'] if not sample or p['line'] in (111, 112, 250, 251, 385)]
+def inspect(sample, export_meshes=False, demo=False):
+    path = STAGING / ('fusion-demo.step' if demo else 'fusion-sample.step' if sample else 'fusion-4000041.step')
+    source = load_source()
+    pieces = select_demo(source) if demo else [p for p in source['pieces'] if not sample or p['line'] in (111, 112, 250, 251, 385)]
     doc = TDocStd_Document(TCollection_ExtendedString('MDTV-XCAF'))
     reader = STEPCAFControl_Reader()
     if reader.ReadFile(str(path)) != IFSelect_RetDone or not reader.Transfer(doc):
@@ -80,6 +82,8 @@ def inspect(sample, export_meshes=False):
                 angle_error = np.max(np.linalg.norm(basis-world[:3,:3], axis=0))
                 pos_error = np.linalg.norm(signs @ p['origin']*.4-world[:3,3])
                 if pos_error <= .1 and angle_error <= 2*np.sin(np.deg2rad(.5)/2):
+                    if demo and ancestors != [p['group'] + ':1']:
+                        raise ValueError(f'Wrong Fusion group for {p["id"]}: {locator}')
                     matches.append((p['id'], float(pos_error)))
             if len(matches) != 1 or matches[0][0] in records:
                 raise ValueError(f'Ambiguous/unmatched {locator} at {world[:3,3]}: {matches}')
@@ -108,7 +112,7 @@ def inspect(sample, export_meshes=False):
                 filename = f'definition-{len(definitions)}.stl'
                 mesh_sha = None
                 if export_meshes:
-                    directory = STAGING / 'step-meshes'
+                    directory = STAGING / ('demo-step-meshes' if demo else 'step-meshes')
                     directory.mkdir(exist_ok=True)
                     mesher = BRepMesh_IncrementalMesh(shape, .12, False, .4, True)
                     writer = StlAPI_Writer()
@@ -137,7 +141,7 @@ def inspect(sample, export_meshes=False):
     print(f'{len(records)}/{len(pieces)} source placements matched by definition and pose, '
           f'{sum(len(v["volumesMm3"]) for v in records.values())} positive-volume solids; STEP SHA-256 {sha}')
     if export_meshes:
-        filename = 'sample-surface-fidelity.json' if sample else 'surface-fidelity.json'
+        filename = 'demo-surface-fidelity.json' if demo else 'sample-surface-fidelity.json' if sample else 'surface-fidelity.json'
         (STAGING / filename).write_text(json.dumps({'stepSha256':sha,'definitions':fidelity},indent=2)+'\n')
         failures = [name for name,r in fidelity.items() if r['outsideSamples']]
         if failures:
@@ -147,7 +151,9 @@ def inspect(sample, export_meshes=False):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--sample', action='store_true')
+    selection = parser.add_mutually_exclusive_group()
+    selection.add_argument('--sample', action='store_true')
+    selection.add_argument('--demo', action='store_true')
     parser.add_argument('--export-meshes', action='store_true')
     args = parser.parse_args()
-    inspect(args.sample, args.export_meshes)
+    inspect(args.sample, args.export_meshes, args.demo)

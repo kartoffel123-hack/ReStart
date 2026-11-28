@@ -1,0 +1,7 @@
+{
+    "sourceSha256": "b94332a64f28fe2bcd4dfead7ab195398885cedb85dca7b1f0c5997975a3aef2",
+    "groups": ["MRI", "Mid section"],
+    "excludedOccurrences": {"4000041/L111": "76384.dat copy 10"},
+    "gearTarget": "4000041/L112",
+    "turntableBottom": "4000041/L192"
+}

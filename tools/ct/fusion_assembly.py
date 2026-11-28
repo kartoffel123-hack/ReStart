@@ -31,7 +31,7 @@ def installed_matrix(piece):
     return matrix
 
 
-def assemble(staging_path, sample=True):
+def assemble(staging_path, sample=True, demo=False):
     stage = Path(staging_path)
     catalog = json.loads((stage / 'source.json').read_text())
     report_path = stage/'solids/index.json'
@@ -39,6 +39,11 @@ def assemble(staging_path, sample=True):
         report_path = stage/'solids/sample.json'
     report = json.loads(report_path.read_text())
     pieces = [p for p in catalog['pieces'] if not sample or p['line'] in (111, 112, 250, 251, 385)]
+    if demo:
+        from tools.ct.demo_assembly import select_demo
+        if sample:
+            raise ValueError('Choose either a sample or the demo assembly')
+        pieces = select_demo(catalog)
     missing = {p['ref'] for p in pieces if 'file' not in report.get(p['ref'], {})}
     if missing:
         raise ValueError(f'Missing closed solid candidates: {sorted(missing)}')
@@ -74,7 +79,7 @@ def assemble(staging_path, sample=True):
         placed.transform2 = matrices[p['id']]
         occurrence.attributes.add('ReStart', 'instanceId', p['id'])
         occurrence.attributes.add('ReStart', 'sourceColor', p['color'])
-    filename = stage / ('fusion-sample.step' if sample else 'fusion-4000041.step')
+    filename = stage / ('fusion-demo.step' if demo else 'fusion-sample.step' if sample else 'fusion-4000041.step')
     opts = design.exportManager.createSTEPExportOptions(str(filename), root)
     if not design.exportManager.execute(opts):
         raise ValueError('Fusion assembly STEP export failed')

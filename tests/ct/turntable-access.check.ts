@@ -3,6 +3,7 @@ import { test } from 'node:test';
 import { BoxGeometry } from 'three';
 import { sweepPair } from '../../tools/ct/turntable-access.js';
 import { parkForTrial } from '../../tools/ct/turntable-blockers.js';
+import { wallThenBridge } from '../../tools/ct/side-wall.js';
 
 function piece(id:string, x:number, y:number) {
     const mesh=new BoxGeometry(2,2,2).toNonIndexed().translate(x,y,0);
@@ -40,4 +41,14 @@ test('a blocker stays in the kit at its tray offset, where it can obstruct the t
     assert.deepEqual(back.map(h=>h.fixed),['tile','support']);
     assert.throws(()=>parkForTrial(installed,['missing'],[8,5,0]),/missing/);
     assert.ok(sweepPair([gear],installed,[0,0,0],[0,10,0]).length>0);
+});
+
+test('a shifted wall can clear the bridge even when a mounting plate blocks getting it there and back', () => {
+    const bridge=piece('bridge',0,0), wall=piece('wall',0,5), plate=piece('plate',4,5);
+    const result=wallThenBridge([bridge,wall,plate],[wall],[[0,0,0],[8,0,0]],
+        [bridge],[[0,0,0],[0,10,0]]);
+    assert.deepEqual(result.wall.outward[0]!.map(h=>h.fixed),['plate']);
+    assert.deepEqual(result.wall.back[0]!.map(h=>h.fixed),['plate']);
+    assert.deepEqual(result.bridge.contacts,[]);
+    assert.equal(result.contactFreeRoundTrip,false);
 });

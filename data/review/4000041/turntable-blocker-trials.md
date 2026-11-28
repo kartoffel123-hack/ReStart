@@ -25,6 +25,22 @@ Two hypothetical flat jaws, each **4 mm wide, 34 mm long and 1 mm thick**, can a
 
 ## What remains in the intact-turntable path?
 
+### Follow-up: move the side wall before the bridge
+
+With both roof sections parked, `L110` and the pins installed, the `L248` side wall and its `L230` rail extend **0.15948 mm** into the bridge's X range. A **−0.21 mm X shift** of both would leave 0.05052 mm between their bounds and the bridge. The swept solids of `L331/L149/L332` have zero intersection with either shifted wall piece throughout the vertical bridge lift. The two seated pins `L180/L187` still register surface contacts. Moving `L248` alone leaves `L230` in the bridge corridor.
+
+None of the tested wall moves reaches that clear position without another interference. Tests kept all 566 occurrences, including the wall at its displaced pose during the bridge lift and return. The wall returns **after** the bridge is back in its socket. Vertical tray removals lift above the kit, transfer to −285 mm Z, and lower to bench height; the bridge uses its separate −210 mm Z tray.
+
+| Wall members moving together | Shift −0.21 mm X: confirmed solid overlap | Vertical removal: confirmed overlap at +2 mm Y |
+|---|---|---|
+| `L248` | `L248/L230`: 0.000001 → 1.404295 mm³ | `L248/L127`: 0.000134 → 8.446372 mm³ |
+| `L248/L230` | `L230/L273`: 0 → 2.102863 mm³ | `L230/L214`: 0.000008 → 110.324094 mm³ |
+| Same wall with both curved facing bricks `L127/L129` | Same `L273` collision | Same `L214` collision |
+
+Values compare installed overlap to overlap at the tested offset. Both outbound and reverse wall sweeps contact the named obstacles. Thus moving the plate with the brick would solve the **wall-to-bridge** interference but does not establish a reachable wall or bridge tray. To reproduce the ordered sweeps and solid checks: `node --import tsx tools/ct/side-wall.ts` followed by `.tmp/ct-cad-env/bin/python -B -m tools.ct.side_wall_fit`. Per-leg witnesses are in `.staging/4000041/demo/side-wall.json`.
+
+### Turntable contacts with the fixtures in trays
+
 The two turntable halves keep their installed relative transform. The [original positive-Z bench path](turntable-access.md#path-tested-assembly-coordinates-mm) is rerun with every parked piece physically present in its separate negative-Z tray. Counts are distinct stationary **surface contacts**, not required disassembly counts. A result below a blocked parking step is conditional on reaching that tray by another means.
 
 | Proposed parked state (roof always parked) | Lift / transfer / lower | Raise / transfer / reseat |

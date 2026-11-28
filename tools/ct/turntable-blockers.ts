@@ -20,7 +20,7 @@ export function parkForTrial(scene:TriangleSoup[], ids:string[], offset:Point):T
     return next;
 }
 
-function roundTrip(members:TriangleSoup[], scene:TriangleSoup[], points:Point[]) {
+export function roundTrip(members:TriangleSoup[], scene:TriangleSoup[], points:Point[]) {
     const legs = (path:Point[]) => path.slice(1).map((end,i)=>sweepPair(members,scene,path[i]!,end));
     const outward = legs(points), back = legs([...points].reverse());
     const contacts = [...new Set([...outward.flat(),...back.flat()].map(h=>h.fixed))].sort();

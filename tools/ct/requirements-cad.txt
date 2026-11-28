@@ -5,3 +5,4 @@ meshlib==3.2.0.75
 scipy==1.18.1
 vtk==9.6.2
 pillow==12.2.0
+shapely==2.2.0

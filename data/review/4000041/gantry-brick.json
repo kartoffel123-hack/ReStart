@@ -1,0 +1,30 @@
+{
+    "target": "4000041/L201",
+    "support": "4000041/L235",
+    "separator": "4000041/L550",
+    "check": "gantry-crown-fit",
+    "groups": [
+        {
+            "key": "cover-a", "label": "Five-piece crown section above the brick",
+            "members": ["4000041/L292", "4000041/L293", "4000041/L250", "4000041/L251", "4000041/L208"],
+            "padX": 358, "trayZ": 150,
+            "out": "Steady the scanner. Start with the highlighted crown half nearer the control room. Pinch its opposite low lips, lift the four curved slopes and the plate underneath together, and set it in the nearer bench position without turning it",
+            "back": "Return the first crown section with its four slopes still on their plate. Align it with the neighbouring section and press straight down"
+        },
+        {
+            "key": "cover-b", "label": "Five-piece crown section over the tool approach",
+            "members": ["4000041/L286", "4000041/L287", "4000041/L254", "4000041/L257", "4000041/L207"],
+            "padX": 326, "trayZ": 210,
+            "out": "Pinch the opposite low lips of the second roof section. Lift its four slopes and supporting plate together. Park this unit separately to clear the separator handle",
+            "back": "Return the tool-side crown section first. Keep its curved halves facing as before and seat its plate on the exposed studs"
+        }
+    ],
+    "brickTrayZ": 90,
+    "liftMm": 45,
+    "benchY": -3.2,
+    "toolOriginMm": [356.0018,96.0,-72.00756],
+    "extract": "Choose the plain white 1 × 4 brick beside the brick with side studs. Fit the separator's two underside sockets onto its middle two studs, handle pointing across the second roof opening. Hold the underlying plate still, lift straight up, then set the brick and tool aside",
+    "exchange": "Separate the original brick from the tool on the bench. Pick a matching plain white 1 × 4 spare and attach the separator to its middle two studs in the same orientation",
+    "insert": "Bring the spare over the original four-stud row. Lower it straight down, press it flush, then hold the brick seated while releasing the separator",
+    "functionCheck": "Inspect both ends of the crown and the scanner opening. Press each crown section gently and check that the replacement brick supports it without rocking."
+}

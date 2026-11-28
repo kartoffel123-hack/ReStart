@@ -36,4 +36,5 @@ export async function checkScannerSite(root:string) {
             procedureFingerprint(model,job.targetIds,job.operationIds,job.functionCheckId)!==job.procedureFingerprint) throw new Error(`Invalid CT job: ${job.targetIds}`);
     }
     console.log(`Static CT candidate intact: ${ids.length} pieces; ${Object.keys(manuals.repairs).length} modeled manuals.`);
+    return {generation:channel.path.split('/')[1]!,repairs:Object.values(manuals.repairs)};
 }

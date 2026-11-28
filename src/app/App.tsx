@@ -40,10 +40,20 @@ export function App(): ReactNode {
         return () => window.removeEventListener('hashchange', onHashChange);
     }, []);
 
+    useEffect(() => {
+        // Keep hash-only navigation and a later refresh on this generation's
+        // assembly, even if a deployment changes the default in the meantime.
+        const url = new URL(window.location.href);
+        if (url.searchParams.has('dataset')) return;
+        const dataset = selectDataset('', hash);
+        url.searchParams.set('dataset', dataset.id);
+        window.history.replaceState(window.history.state, '', url);
+    }, [hash]);
+
     let dataset;
     try { dataset = selectDataset(window.location.search, hash); }
     catch (error) { return <main role="alert">{String(error)} <a href="./">Open the default manual</a></main>; }
-    return <DatasetContext.Provider key={dataset.id} value={dataset}><Screen route={readRoute(hash)}/></DatasetContext.Provider>;
+    return <DatasetContext.Provider key={dataset.id} value={dataset}><Screen key={hash} route={readRoute(hash)}/></DatasetContext.Provider>;
 }
 
 function Screen({route}: {route: RouteId}): ReactNode {

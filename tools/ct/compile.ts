@@ -45,7 +45,7 @@ export async function compileScanner() {
     model.graphRevision=sha256(JSON.stringify(model));
     const repair=planRepair(model,[target],{maxExpandedStates:1000,allowIncumbent:false},{functionCheckId:'tile-fit'}).repair;
     if(!repair?.replay.ok || repair.disturbedCount!==0 || repair.operationIds.join()!=='release,exchange,reseat') throw new Error('CT tile exchange did not replay');
-    const manuals={defaultTarget:target,geometry:source.geometry,repairs:{[target]:repair},evidence:{[target]:await scannerEvidence(repair,true)},inventory:source.inventory.pieces.map(p=>({id:p.id,name:p.id===target?'Grooved 1 × 4 tile':p.name,designNo:p.ref,elementId:p.ref.replace(/\.dat$/,''),color:p.colorName})),
+    const manuals={defaultTarget:target,geometry:source.geometry,repairs:{[target]:repair},evidence:{[target]:await scannerEvidence(repair,true)},inventory:source.inventory.pieces.map(p=>({id:p.id,name:p.id===target?'Grooved 1 × 4 tile':p.name,designNo:p.ref.replace(/\.dat$/,''),elementId:'',color:p.colorName})),
         paths:Object.fromEntries(moves.map(m=>[m.id,[m.start,m.end].map(id=>[0,id===installed?0:scope.travelMm,0] as Vec3)])),movers:Object.fromEntries(moves.map(m=>[m.id,target]))};
     const files=new Map<string,Buffer>();
     const entry=(name:string,bytes:Buffer)=>{files.set(name,bytes);return {name,sha256:sha256(bytes)};};

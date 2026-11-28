@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 test('a mechanic exchanges the light stud, reseats it and checks the fit', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/?dataset=30465');
     // The raycast selects the same instance that appears in the scene.
     const canvas = page.locator('canvas[data-target-point]');
     await expect(canvas).toBeVisible();

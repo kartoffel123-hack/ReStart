@@ -1,7 +1,7 @@
 import { expect,test } from '@playwright/test';
 
 test('the cap is parked and restored around the blue pin exchange',async ({page})=>{
-    await page.goto('/');
+    await page.goto('/?dataset=30465');
     await page.getByText('Advanced Parameters').click();
     await page.getByRole('combobox',{name:'Occurrence'}).selectOption('30465/NAUO33/NAUO38');
     await page.getByRole('button',{name:/replace friction pin/i}).click();

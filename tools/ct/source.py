@@ -5,6 +5,7 @@ from collections import Counter
 import hashlib
 import json
 import math
+import re
 from pathlib import Path, PurePosixPath
 from xml.etree import ElementTree
 from zipfile import ZipFile
@@ -146,7 +147,19 @@ def main():
     parser.add_argument('--library', type=Path, default=LIBRARY)
     args = parser.parse_args()
     inventory = load_source()
-    definitions = Definitions(args.library).dependencies(inventory['pieces'])
+    library = Definitions(args.library)
+    definitions = library.dependencies(inventory['pieces'])
+    palette = {}
+    for line in (args.library / 'LDConfig.ldr').read_text(errors='replace').splitlines():
+        match = re.match(r'0 !COLOUR\s+(\S+)\s+CODE\s+(\d+)\s+VALUE\s+(#[0-9A-Fa-f]{6})',line)
+        if match:
+            palette[match[2]] = {'name': match[1].replace('_', ' '), 'rgb': match[3]}
+    for piece in inventory['pieces']:
+        name = piece['ref']
+        title = next((line[2:] for line in library.get(name) if line.startswith('0 ') and not line.startswith('0 FILE ')), name)
+        piece['name'] = ' '.join(title.split()) if title.lower() != 'untitledmodel' else name
+        piece['colorName'] = palette[piece['color']]['name']
+        piece['rgb'] = palette[piece['color']]['rgb']
     STAGING.mkdir(parents=True, exist_ok=True)
     manifest = STAGING / 'source.json'
     temporary = manifest.with_suffix('.tmp')

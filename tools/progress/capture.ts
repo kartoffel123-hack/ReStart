@@ -10,7 +10,7 @@
 import { createServer } from 'vite';
 import { chromium, type Page } from '@playwright/test';
 import { createHash } from 'node:crypto';
-import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { resolve } from 'node:path';
 import { findPreviousCapture } from './previous-capture.js';
@@ -136,6 +136,13 @@ async function capture(
 ): Promise<{ layout: string; stub: boolean }> {
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
     await page.goto(`${origin}/${scenario.route}`, { waitUntil: 'networkidle' });
+    if(scenario.setup==='ct-tile') {
+        await page.evaluate(()=>sessionStorage.clear());
+        await page.reload();
+        await page.getByText('Advanced Parameters').click();
+        await page.getByRole('combobox',{name:'Occurrence'}).selectOption('4000041/L388');
+        await page.getByRole('button',{name:/replace grooved 1 × 4 tile/i}).click();
+    }
     if (scenario.setup === 'cross-block') {
         await page.evaluate(() => sessionStorage.clear());
         await page.reload();
@@ -265,7 +272,7 @@ function identicalGroups(
 async function main(): Promise<void> {
     const args = parseArgs(process.argv.slice(2));
     const selected =
-        args.only.length > 0 ? SCENARIOS.filter((s) => args.only.includes(s.id)) : SCENARIOS.slice();
+        args.only.length > 0 ? SCENARIOS.filter((s) => args.only.includes(s.id)) : SCENARIOS.filter(s=>!s.requiresCtCandidate || existsSync('public/models/4000041/channel.json'));
     if (selected.length === 0) {
         throw new Error(`no capture scenario matched ${JSON.stringify(args.only)}`);
     }

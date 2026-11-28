@@ -25,12 +25,15 @@ export type Scenario = Readonly<{
     highlights: string;
     /** Selector that must exist before capturing; keeps captures deterministic. */
     waitFor?: string;
-    setup?: 'blocked-preview' | 'buried-pin' | 'cross-block' | 'expand-nauo56-sequence' | 'replacement-preview' | 'selected-picker' | 'repair-complete';
+    setup?: 'blocked-preview' | 'buried-pin' | 'cross-block' | 'expand-nauo56-sequence' | 'replacement-preview' | 'selected-picker' | 'repair-complete' | 'ct-tile';
+    requiresCtCandidate?: boolean;
     viewports?: readonly Viewport[];
     fullPage?: boolean;
 }>;
 
 export const SCENARIOS: readonly Scenario[] = [
+    {id:'ct-picker',label:'CT scanner selection',route:'?dataset=4000041#/',highlights:'The full scanner and all 566 selectable source placements.',waitFor:'canvas[data-target-point]',requiresCtCandidate:true},
+    {id:'ct-tile',label:'CT back-room tile removal',route:'?dataset=4000041#/',setup:'ct-tile',highlights:'Remove one specific white grooved tile at the end of the long wall.',waitFor:'[data-phase="remove"] canvas[data-active-instance="4000041/L388"]',requiresCtCandidate:true},
     {
         id: 'repair-complete',
         label: 'Completed light stud repair',

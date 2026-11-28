@@ -24,7 +24,7 @@ export function StudPilot() {
     const [model, setModel] = useState<AssemblyModel>();
     const [candidates, setCandidates] = useState<MotionCandidateSummary[]>([]);
     const [geometryUrl,setGeometryUrl]=useState('');
-    const [stage,setStage]=useState<'pilot'|'release'>('pilot');
+    const [stage,setStage]=useState<'pilot'|'release'|'candidate'>('pilot');
     const [session, setSession] = useState<ManualSession>();
     const [error, setError] = useState(false), [attempt, retry] = useState(0);
     const [replay, play] = useState(0), [reset, resetCamera] = useState(0);
@@ -133,12 +133,12 @@ export function StudPilot() {
             <p>Modeled release and return replayed. {(!joint && data.evidence?.[target!]?.physicallyVerified) ? `Physical trial: ${data.evidence[target!]!.benchRecordId}` : 'No independent physical trial recorded for this procedure.'}</p>
         </div>
         <details><summary>Repair details</summary>
-        <p>{stage==='pilot'?'Single-target pilot':'Released manual'}</p>
+        <p>{stage==='candidate'?'CT candidate · awaiting independent review':stage==='pilot'?'Single-target pilot':'Released manual'}</p>
         <p>Disassembly timing: {job.timing.timedActions} of {job.timing.totalActions} actions mapped. {job.timing.estimatedSeconds===null?'Duration unknown.':`${job.timing.estimatedSeconds} s (challenge estimate).`}</p>
         <p>{job.preservedUnits.length ? job.preservedUnits.map(u=>`${u.name}: ${u.outcome}`).join('; '):'Functional-unit membership has not been reviewed.'}</p>
         <details><summary>How this transfers to equipment service</summary><p>In a hypothetical equipment enclosure, a cover is a piece, its fasteners are connections and screwdriver access is a prerequisite. A fan cartridge can move intact while the housing stays installed. A real device needs its own service constraints and validated return path.</p></details>
         {data.signedRadialGapMm!==undefined && job.targetIds.some(id=>id===data.target || id===data.pin) && <p>Stud fit allowance: 0.06 mm. Modeled radial interference: {(-data.signedRadialGapMm).toFixed(3)} mm.</p>}
-        <p>Finger access and support have not been verified on the kit.</p>
+        {!data.evidence?.[target]?.physicallyVerified && <p>Finger access and support have not been verified on the kit.</p>}
         {target===data.pin && <p>The pin route assumes the split shank compresses inside the cross-block bore.</p>}
         <p>Procedure: <code>{job.procedureFingerprint}</code></p>
         </details>
@@ -194,7 +194,7 @@ export function StudPilot() {
                 </details>
                 <DescriptionPicker data={data} select={select} hover={setHovered}/>
                 {data.pin && data.jointRepair && (target===data.pin || target===data.target) && <button onClick={()=>begin(data.pin!,true)}>Replace pin and light stud together</button>}
-                <p className="stud-picker__coverage">{stage==='pilot'?'Generated model routes':'Reviewed model routes'} · {jobs.length} of {data.inventory.length} targets available.</p>
+                 <p className="stud-picker__coverage">{stage==='release'?'Reviewed model routes':'Generated model routes'} · {jobs.length} of {data.inventory.length} targets available.</p>
             </details>
                 <h3 className="stud-picker__selection-title">Selected piece</h3>
                 {target ? <div className="stud-picker__selection">

@@ -1,0 +1,16 @@
+{
+    "candidate": "4000041/L388",
+    "support": "4000041/L423",
+    "tool": "Fingertips on the two long sides, holding the wall steady",
+    "travelMm": 12,
+    "remove": "Find the white four-stud tile where the long back-room wall meets the perpendicular end tile. Hold the wall steady. Pinch the marked tile by its long edges and lift straight up.",
+    "exchange": "Set the removed tile aside. Take the matching white 1 × 4 grooved spare, smooth face up.",
+    "restore": "Align the spare over the same four studs. Press straight down evenly at both ends.",
+    "check": "Run a finger across the two ends of the tile. Check that the top is flush with the neighbouring tiles and the wall has stayed seated.",
+    "open": {
+        "4000041/L250": "The curved slope is bordered on both long sides. Finger purchase and support need review.",
+        "4000041/L385": "The printed tile has a neighbouring minifigure accessory in its clearance region.",
+        "4000041/L184": "The half pin passes into another part; approach and individual release are unreviewed.",
+        "4000041/L483": "The door requires hinge release and a separate return/swing check."
+    }
+}

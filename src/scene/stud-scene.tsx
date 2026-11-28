@@ -42,6 +42,8 @@ export function StudScene(props: Props) {
         scene.background = new Color(0xe6e6e6);
         const camera = new OrthographicCamera(-1, 1, 1, -1, 0.0001, 2);
         const controls = new OrbitControls(camera, renderer.domElement);
+        let viewChanged=true;
+        controls.addEventListener('change',()=>{viewChanged=true;});
         controls.minZoom = 0.4;
         controls.maxZoom = 12;
         controls.autoRotate = false;
@@ -84,7 +86,7 @@ export function StudScene(props: Props) {
         let hoverOutline:LineSegments<EdgesGeometry,LineBasicMaterial>|undefined;
         let selectedOutline:LineSegments<EdgesGeometry,LineBasicMaterial>|undefined;
         let selectedHatch:Mesh|undefined;
-        const componentOutlines:LineSegments<EdgesGeometry,LineBasicMaterial>[]=[];
+        const componentEdges=new Map<Mesh['geometry'],EdgesGeometry>();
         const componentOutlineMaterial=new LineBasicMaterial({color:0x172127});
         const selectedOutlineMaterial=new LineBasicMaterial({color:0xe3262e});
         const hatchMaterial=new ShaderMaterial({
@@ -171,13 +173,15 @@ void main() {
             }
             model.traverse(n => {
                 if (!(n instanceof Mesh)) return;
-                n.material.dispose();
+                const original=n.material;
                 const colour=latest.current.colors?.get(String(n.userData.instanceId));
                 const hex = resolveColor(colour);
-                n.material = n.geometry.hasAttribute('color') ? new MeshStandardMaterial({vertexColors:true,side:DoubleSide}) : hex !== null ? new MeshStandardMaterial({color:hex}) : neutral.clone();
-                const outline=new LineSegments(new EdgesGeometry(n.geometry,32),componentOutlineMaterial);
-                n.add(outline);
-                componentOutlines.push(outline);
+                const useAssetColor=props.assemblyName==='scanner' && original instanceof MeshStandardMaterial;
+                n.material = useAssetColor ? original.clone() : hex !== null ? new MeshStandardMaterial({color:hex}) : neutral.clone();
+                original.dispose();
+                let edges=componentEdges.get(n.geometry);
+                if(!edges) { edges=new EdgesGeometry(n.geometry,32); componentEdges.set(n.geometry,edges); }
+                n.add(new LineSegments(edges,componentOutlineMaterial));
                 const position = new Box3().setFromObject(n).getCenter(new Vector3());
                 meshPoses.set(n,{pose:n.position.clone(),center:position.clone(),neutral:n.material,explode:position.sub(assemblyCenter).multiplyScalar(0.7)});
             });
@@ -187,6 +191,7 @@ void main() {
             const w = el.clientWidth, h = el.clientHeight;
             if (!w || !h) return;
             renderer.setSize(w,h,false);
+            viewChanged=true;
             aspect = w/h;
             // Refit only the frustum: a resize keeps the operator's zoom, unlike frameCamera.
             applyFrustum();
@@ -219,8 +224,14 @@ void main() {
         renderer.setAnimationLoop((now: number) => {
             if (!model) return;
             const p = latest.current;
+            const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
             if (!userInteracting) controls.autoRotate = (p.idleAutoRotate ?? false)
-                && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                && !reduced;
+            controls.update();
+            // A stationary repair page can contain over a million triangles. Redraw
+            // when a control changes, a stroke/spin is active, or XR requests a frame.
+            const playing=!reduced && (p.replacementPreview || (p.focus && lastTime<began+1200));
+            if(previous===p && !viewChanged && !playing && !renderer.xr.isPresenting) return;
             if(previous?.target!==p.target || previous?.selectionActive!==p.selectionActive){
                 selectedOutline?.removeFromParent();
                 selectedOutline?.geometry.dispose();
@@ -229,6 +240,7 @@ void main() {
                 selectedHatch=undefined;
                 stud=[...meshPoses.keys()].find(m=>m.userData.instanceId===p.target);
                 if(!stud){setError(true);return;}
+                renderer.domElement.dataset.activeInstance=p.target;
                 installed.copy(meshPoses.get(stud)!.pose);center.copy(meshPoses.get(stud)!.center);
                 targetRadius=new Box3().setFromObject(stud).getSize(new Vector3()).length()/2;
                 if(p.selectionActive!==false){
@@ -267,7 +279,7 @@ void main() {
             if (previous?.colors !== p.colors) {
                 for (const [mesh] of meshPoses) {
                     const hex = resolveColor(p.colors?.get(String(mesh.userData.instanceId)));
-                    if (mesh.material instanceof MeshStandardMaterial && !mesh.material.vertexColors) {
+                    if (mesh.material instanceof MeshStandardMaterial && p.assemblyName!=='scanner') {
                         mesh.material.color.setHex(hex !== null ? hex : 0x838e94);
                     }
                 }
@@ -282,8 +294,8 @@ void main() {
             }
             previous = p;
             lastTime=now;
-            controls.update();
-            const t = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 1 : Math.min(1,(now-began)/1200);
+            viewChanged=false;
+            const t = reduced ? 1 : Math.min(1,(now-began)/1200);
             stud.position.copy(installed).add(displacement.lerpVectors(a,b,t)).addScaledVector(meshPoses.get(stud)!.explode,p.explode ?? 0);
             xr.current?.update();
             if(p.replacementPreview) inset.drawReplacement(renderer,el.clientWidth,el.clientHeight,now,stud);
@@ -304,7 +316,7 @@ void main() {
             controls.removeEventListener('end', resumeAfterInteraction);
             renderer.setAnimationLoop(null); controls.dispose(); inset.dispose(); if (model) dropModel(model);
             xr.current?.dispose();xr.current=null;ghostMaterial.dispose();meshPoses.forEach(v=>v.neutral.dispose());
-            componentOutlines.forEach(outline=>outline.geometry.dispose());
+            componentEdges.forEach(edges=>edges.dispose());
             selectedOutline?.geometry.dispose();
             componentOutlineMaterial.dispose();selectedOutlineMaterial.dispose();hatchMaterial.dispose();
             arrow.dispose(); neutral.dispose(); renderer.dispose(); renderer.domElement.remove();

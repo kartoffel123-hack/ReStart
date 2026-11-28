@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 test('exchange only NAUO56, return the rotor shaft and finish the fit check', async ({page}) => {
-    await page.goto('/');
+    await page.goto('/?dataset=30465');
     await page.getByText('Advanced Parameters').click();
     await page.getByRole('combobox', {name:'Occurrence'}).selectOption('30465/NAUO17/NAUO56');
     await page.getByRole('button', {name:/replace cross block/i}).click();

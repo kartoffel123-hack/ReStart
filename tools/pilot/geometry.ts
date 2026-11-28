@@ -32,8 +32,13 @@ async function decodeWorldMeshes(glb: Uint8Array) {
             translation: node.getWorldTranslation().map(n => n * 1000) as Vec3,
             rotation: node.getWorldRotation()
         };
-        const bound = (f: (...ns: number[]) => number) => [0,1,2].map(axis => f(...positions.filter((_,i) => i%3 === axis))) as Vec3;
-        return { id, frame, positions, bounds: { min: bound(Math.min), max: bound(Math.max) }, name: String(node.getExtras().partName), definitionId: String(node.getExtras().definitionId) };
+        const min: Vec3 = [Infinity, Infinity, Infinity], max: Vec3 = [-Infinity, -Infinity, -Infinity];
+        for (let i=0; i<positions.length; i++) {
+            const axis = i % 3 as 0 | 1 | 2;
+            min[axis] = Math.min(min[axis], positions[i]!);
+            max[axis] = Math.max(max[axis], positions[i]!);
+        }
+        return { id, frame, positions, bounds: { min, max }, name: String(node.getExtras().partName), definitionId: String(node.getExtras().definitionId) };
     });
 }
 

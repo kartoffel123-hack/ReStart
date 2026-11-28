@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 test('blocking one exit shows the remaining detour, blocking both reports no route, and neither changes the mechanic manual',async ({page})=>{
-    await page.goto('/#/review');
+    await page.goto('/?dataset=30465#/review');
     await page.getByLabel('Reason',{exact:true}).fill('The handle needs this connection released.');
     await page.getByRole('button',{name:'Add blocker'}).click();
     await expect(page.getByRole('status')).toContainText('Draft: 6 steps, 1 healthy');
@@ -25,7 +25,7 @@ test('blocking one exit shows the remaining detour, blocking both reports no rou
 });
 
 test('refresh asks about the kit before resuming a confirmed operation',async ({page})=>{
-    await page.goto('/');
+    await page.goto('/?dataset=30465');
     await page.getByText('Advanced Parameters').click();
     await page.getByRole('combobox',{name:'Occurrence'}).selectOption('30465/NAUO33/NAUO39');
     await page.getByRole('button',{name:/replace light stud/i}).click();
@@ -37,7 +37,7 @@ test('refresh asks about the kit before resuming a confirmed operation',async ({
 });
 
 test('previous step unconfirms the active repair step',async ({page})=>{
-    await page.goto('/');
+    await page.goto('/?dataset=30465');
     await page.getByText('Advanced Parameters').click();
     await page.getByRole('combobox',{name:'Occurrence'}).selectOption('30465/NAUO33/NAUO39');
     await page.getByRole('button',{name:/replace light stud/i}).click();

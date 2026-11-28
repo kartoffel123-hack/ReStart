@@ -17,18 +17,21 @@ export async function loadPackage(base:string,signal:AbortSignal) {
     if(!channelResponse.ok) throw new Error(`Channel HTTP ${channelResponse.status}`);
     const channel=z.discriminatedUnion('stage',[
         z.object({schemaVersion:z.literal(1),stage:z.literal('pilot'),path:z.literal('pilot/')}),
+        z.object({schemaVersion:z.literal(1),stage:z.literal('candidate'),path:z.string().regex(/^candidates\/[0-9a-f]{64}\/$/)}),
         z.object({schemaVersion:z.literal(1),stage:z.literal('release'),path:z.string().regex(/^releases\/[0-9a-f]{64}\/$/)})
     ]).parse(await channelResponse.json());
     base+=channel.path;
     const response=await fetch(`${base}index.json`,{signal,cache:'no-cache'});
     if(!response.ok) throw new Error(`Manifest HTTP ${response.status}`);
-    const index=indexSchema.parse(await response.json());
+    const indexBuffer=await response.arrayBuffer();
+    if(channel.stage==='candidate' && channel.path.split('/')[1]!==await digest(indexBuffer)) throw new Error('Candidate index hash mismatch');
+    const index=indexSchema.parse(JSON.parse(new TextDecoder().decode(indexBuffer)));
     if ((index.schema==='restart.pilot/1' ? '30465' : index.datasetId)!==expectedId) throw new Error('Wrong dataset index');
     const bytes=async(entry:z.infer<typeof file>)=>{
         const r=await fetch(base+entry.name,{signal});
         if(!r.ok) throw new Error(`${entry.name}: HTTP ${r.status}`);
         const b=await r.arrayBuffer();
-        const hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',b)),n=>n.toString(16).padStart(2,'0')).join('');
+        const hash=await digest(b);
         if(hash!==entry.sha256) throw new Error(`Asset hash mismatch: ${entry.name}`);
         return b;
     };
@@ -41,4 +44,8 @@ export async function loadPackage(base:string,signal:AbortSignal) {
         [pilot.repair,...pilot.alternatives,...(pilot.jointRepair?[pilot.jointRepair]:[])].some(r=>r.graphRevision!==model.graphRevision || r.datasetRevision!==model.source.datasetRevision)) throw new Error('Mixed package revision');
     const dof=index.dof ? decode(await bytes(index.dof)) : undefined;
     return {model,pilot,stage:channel.stage,candidates:decode(candidates),dof,geometry:new Blob([geometry],{type:'model/gltf-binary'})};
+}
+
+async function digest(buffer:ArrayBuffer) {
+    return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',buffer)),n=>n.toString(16).padStart(2,'0')).join('');
 }

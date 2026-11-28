@@ -36,7 +36,7 @@ export function Reviewer() {
     const [rehearsal,setRehearsal]=useState<{repair:Repair;session:ManualSession}>();
     const [motionReplay,replayMotion]=useState(0),[viewReset,resetView]=useState(0);
     const resolved=useMemo(()=>base && patch ? applyReview(base,patch).model : undefined,[base,patch]);
-    const key = (b:AssemblyModel) => `restart:draft:${b.source.datasetRevision}:${b.graphRevision}`;
+    const key = (b:AssemblyModel) => `restart:draft:${dataset.id}:${b.source.datasetRevision}:${b.graphRevision}`;
     useEffect(()=>{
         const abort = new AbortController();
         let url:string|undefined;
@@ -51,8 +51,9 @@ export function Reviewer() {
             let initial:ReviewPatch={schemaVersion:1,baseDatasetRevision:b.source.datasetRevision,baseGraphRevision:b.graphRevision,edits:[]};
             try {
                 last.current=localStorage.getItem(key(b));
-                if(last.current) {
-                    const loaded=reviewPatchSchema.parse(JSON.parse(last.current));
+                const text=last.current ?? (dataset.id==='30465' ? localStorage.getItem(`restart:draft:${b.source.datasetRevision}:${b.graphRevision}`) : null);
+                if(text) {
+                    const loaded=reviewPatchSchema.parse(JSON.parse(text));
                     if(!applyReview(b,loaded).model) throw new Error();
                     initial=loaded;
                 }
@@ -105,7 +106,7 @@ export function Reviewer() {
         const offsets=Object.fromEntries(rehearsal.repair.steps.slice(0,rehearsal.session.confirmedCount).flatMap(s=>pilot.paths[s.operationId] ? [[pilot.movers[s.operationId]!,pilot.paths[s.operationId]![1]]]:[]));
         const path=step && pilot.paths[step.operationId];
         return <main className="reviewer" data-route="review"><header className="draft-banner"><strong>Local rehearsal</strong> · Draft state replay only. <button onClick={()=>setRehearsal(undefined)}>Back to reviewer</button></header>
-            {step ? <ManualScreen step={toStepViewModel(step,rehearsal.session.total,{canConfirm:true})} scene={<StudScene url={geometry} target={pilot.movers[step.operationId] ?? rehearsal.repair.targetIds[0]!} start={path?.[0]??zero} end={path?.[1]??zero} offsets={offsets} focus={true} replay={motionReplay} reset={viewReset} onPick={()=>{}}/>}
+             {step ? <ManualScreen step={toStepViewModel(step,rehearsal.session.total,{canConfirm:true})} scene={<StudScene assemblyName={dataset.noun} url={geometry} target={pilot.movers[step.operationId] ?? rehearsal.repair.targetIds[0]!} start={path?.[0]??zero} end={path?.[1]??zero} offsets={offsets} focus={true} replay={motionReplay} reset={viewReset} onPick={()=>{}}/>}
                 actions={{confirmStep:id=>setRehearsal(s=>s && {...s,session:confirmStep(s.session,id)}),resetCamera:()=>resetView(n=>n+1),replayMotion:()=>replayMotion(n=>n+1),returnToCurrentStep:()=>resetView(n=>n+1),goBackOneStep:()=>{}}}/> : <h1>Rehearsal complete</h1>}</main>;
     }
     const tree=(parent:string):React.ReactNode=>model.occurrences.filter(o=>o.parent===parent).map(p=>p.kind==='piece'?<li key={p.id}><button onClick={()=>select(p.id)}>{p.commonName} — {p.id.split('/').at(-1)}</button></li>:

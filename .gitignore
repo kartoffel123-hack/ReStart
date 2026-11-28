@@ -18,6 +18,8 @@ dist-ssr/
 .tmp/
 .staging/
 public/models/30465/pilot/
+public/models/4000041/candidates/
+public/models/4000041/channel.json
 staging/
 .cache/
 .tools-cache/

@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 }]) {
     test(`the mechanic can select a piece from the helicopter at ${viewport.width}px`, async ({ page }) => {
         await page.setViewportSize(viewport);
-        await page.goto('/');
+        await page.goto('/?dataset=30465');
         const search = page.getByLabel('Search pieces');
         const assembly = page.getByRole('region', { name: 'Assembly view' });
         await expect(assembly).toBeInViewport();

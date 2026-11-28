@@ -6,9 +6,11 @@ import json
 
 import numpy as np
 from OCP.BRepGProp import BRepGProp
+from OCP.BRepMesh import BRepMesh_IncrementalMesh
 from OCP.GProp import GProp_GProps
 from OCP.IFSelect import IFSelect_RetDone
 from OCP.STEPCAFControl import STEPCAFControl_Reader
+from OCP.StlAPI import StlAPI_Writer
 from OCP.TCollection import TCollection_ExtendedString
 from OCP.TDataStd import TDataStd_Name
 from OCP.TDF import TDF_Label
@@ -26,7 +28,7 @@ def label_name(label):
     return attr.Get().ToExtString() if label.FindAttribute(TDataStd_Name.GetID_s(), attr) else ''
 
 
-def inspect(sample):
+def inspect(sample, export_meshes=False):
     path = STAGING / ('fusion-sample.step' if sample else 'fusion-4000041.step')
     pieces = [p for p in load_source()['pieces'] if not sample or p['line'] in (111, 112, 250, 251, 385)]
     doc = TDocStd_Document(TCollection_ExtendedString('MDTV-XCAF'))
@@ -37,6 +39,7 @@ def inspect(sample):
     roots = TDF_LabelSequence()
     shapes.GetFreeShapes(roots)
     records = {}
+    definitions = {}
     names = {p['ref'] for p in pieces}
     signs = np.diag([1, -1, -1])
 
@@ -71,16 +74,29 @@ def inspect(sample):
                     matches.append((p['id'], float(pos_error)))
             if len(matches) != 1 or matches[0][0] in records:
                 raise ValueError(f'Ambiguous/unmatched {locator} at {world[:3,3]}: {matches}')
-            solids = TopExp_Explorer(shapes.GetShape_s(definition), TopAbs_SOLID)
-            volumes = []
-            while solids.More():
-                mass = GProp_GProps()
-                BRepGProp.VolumeProperties_s(solids.Current(), mass)
-                volumes.append(mass.Mass())
-                solids.Next()
-            if not volumes or min(volumes) <= 0:
-                raise ValueError(f'Missing positive-volume B-rep at {locator}')
-            records[matches[0][0]] = dict(path=locator, positionErrorMm=matches[0][1], volumesMm3=volumes)
+            if name not in definitions:
+                shape = shapes.GetShape_s(definition)
+                solids = TopExp_Explorer(shape, TopAbs_SOLID)
+                volumes = []
+                while solids.More():
+                    mass = GProp_GProps()
+                    BRepGProp.VolumeProperties_s(solids.Current(), mass)
+                    volumes.append(mass.Mass())
+                    solids.Next()
+                if not volumes or min(volumes) <= 0:
+                    raise ValueError(f'Missing positive-volume B-rep at {locator}')
+                filename = f'definition-{len(definitions)}.stl'
+                if export_meshes:
+                    directory = STAGING / 'step-meshes'
+                    directory.mkdir(exist_ok=True)
+                    mesher = BRepMesh_IncrementalMesh(shape, .12, False, .4, True)
+                    writer = StlAPI_Writer()
+                    writer.ASCIIMode = False
+                    if not mesher.IsDone() or not writer.Write(shape, str(directory / filename)):
+                        raise ValueError(f'Cannot tessellate {name}')
+                definitions[name] = dict(volumesMm3=volumes, file=filename)
+            records[matches[0][0]] = dict(path=locator, ref=name, world=world.tolist(), positionErrorMm=matches[0][1],
+                                           volumesMm3=definitions[name]['volumesMm3'])
 
     if roots.Length() != 1:
         raise ValueError(f'Expected one assembly, got {roots.Length()}')
@@ -88,7 +104,8 @@ def inspect(sample):
     if set(records) != {p['id'] for p in pieces}:
         raise ValueError('STEP missing source placements')
     sha = hashlib.sha256(path.read_bytes()).hexdigest()
-    path.with_suffix('.crosswalk.json').write_text(json.dumps(dict(sha256=sha, records=records), indent=2)+'\n')
+    path.with_suffix('.crosswalk.json').write_text(json.dumps(dict(sha256=sha, records=records, definitions=definitions,
+                                                                   meshesExported=export_meshes), indent=2)+'\n')
     print(f'{len(records)}/{len(pieces)} source placements matched by definition and pose, '
           f'{sum(len(v["volumesMm3"]) for v in records.values())} positive-volume solids; STEP SHA-256 {sha}')
 
@@ -96,4 +113,6 @@ def inspect(sample):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--sample', action='store_true')
-    inspect(parser.parse_args().sample)
+    parser.add_argument('--export-meshes', action='store_true')
+    args = parser.parse_args()
+    inspect(args.sample, args.export_meshes)

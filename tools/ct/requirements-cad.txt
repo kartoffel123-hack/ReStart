@@ -1,3 +1,5 @@
 cadquery-ocp==8.0.1.1.0
 numpy==2.5.5
 trimesh==5.2.2
+meshlib==3.2.0.75
+scipy==1.18.1

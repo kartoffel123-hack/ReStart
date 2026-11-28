@@ -5,6 +5,7 @@ The caller reviews the new document before saving a version to the team's folder
 """
 
 import json
+import re
 from pathlib import Path
 
 import adsk.core
@@ -75,3 +76,43 @@ def assemble(staging_path, sample=True):
         raise ValueError('Fusion assembly STEP export failed')
     print(f'{len(pieces)} placed occurrences, {len(definitions)} reusable parts, {len(groups)} groups: {filename}')
     return str(filename)
+
+
+def finish_candidate(staging_path, library, destination_document):
+    """Apply occurrence colours after independent round-trip, then save the candidate beside CT."""
+    stage = Path(staging_path)
+    app = adsk.core.Application.get()
+    doc = app.activeDocument
+    design = adsk.fusion.Design.cast(app.activeProduct)
+    if doc.dataFile:
+        raise ValueError('Expected an unsaved staging assembly')
+    pieces = json.loads((stage / 'source.json').read_text())['pieces']
+    crosswalk = json.loads((stage / 'fusion-4000041.crosswalk.json').read_text())['records']
+    placed = {o.fullPathName:o for group in design.rootComponent.occurrences for o in group.childOccurrences}
+    if set(placed) != {'+'.join(r['path']) for r in crosswalk.values()} or set(crosswalk) != {p['id'] for p in pieces}:
+        raise ValueError('Active design does not match the round-trip crosswalk')
+    palette = {}
+    for line in (Path(library) / 'LDConfig.ldr').read_text(errors='replace').splitlines():
+        match = re.match(r'0 !COLOUR\s+(\S+)\s+CODE\s+(\d+)\s+VALUE\s+#([0-9A-Fa-f]{6})',line)
+        if match:
+            palette[match[2]] = (match[1], bytes.fromhex(match[3]))
+    template = app.materialLibraries.itemByName('Fusion Appearance Library').appearances.itemByName('Plastic - Matte (White)')
+    appearances = {}
+    for key in sorted({p['color'] for p in pieces}):
+        name, rgb = palette[key]
+        label = f'LDraw {key} {name}'
+        appearance = design.appearances.itemByName(label) or design.appearances.addByCopy(template, label)
+        appearance.appearanceProperties.itemById('opaque_albedo').value = adsk.core.Color.create(*rgb,255)
+        appearances[key] = appearance
+    for p in pieces:
+        o = placed['+'.join(crosswalk[p['id']]['path'])]
+        o.appearance = appearances[p['color']]
+        o.attributes.add('ReStart', 'instanceId', p['id'])
+        o.attributes.add('ReStart', 'sourceColor', p['color'])
+    folder = destination_document.dataFile.parentFolder
+    title = 'CT 4000041 - Studio assembly'
+    if any(f.name == title for f in folder.dataFiles):
+        raise ValueError('A saved staging assembly already exists')
+    if not doc.saveAs(title, folder, 'Conversion candidate; mechanical fidelity review pending.', ''):
+        raise ValueError('Fusion save failed')
+    print(f'{doc.name}: {len(placed)} occurrences with {len(appearances)} source colours; {doc.dataFile.id}')

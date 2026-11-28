@@ -15,13 +15,14 @@ from OCP.Bnd import Bnd_Box
 from OCP.BOPAlgo import BOPAlgo_MakerVolume
 from OCP.BRep import BRep_Builder
 from OCP.BRepBndLib import BRepBndLib
-from OCP.BRepBuilderAPI import BRepBuilderAPI_MakeFace, BRepBuilderAPI_MakePolygon
+from OCP.BRepBuilderAPI import BRepBuilderAPI_MakeFace, BRepBuilderAPI_MakePolygon, BRepBuilderAPI_MakeShapeOnMesh
 from OCP.BRepCheck import BRepCheck_Analyzer
 from OCP.BRepClass3d import BRepClass3d_SolidClassifier
 from OCP.BRepGProp import BRepGProp
 from OCP.GProp import GProp_GProps
 from OCP.gp import gp_Pnt
 from OCP.IFSelect import IFSelect_RetDone
+from OCP.RWStl import RWStl
 from OCP.ShapeUpgrade import ShapeUpgrade_UnifySameDomain
 from OCP.STEPControl import STEPControl_AsIs, STEPControl_Writer
 from OCP.TopAbs import TopAbs_IN, TopAbs_SOLID
@@ -69,6 +70,10 @@ def reconstruct(mesh):
         if not face.IsDone():
             raise ValueError('Source triangle is not a planar face')
         maker.AddArgument(face.Face())
+    return material_cells(maker, mesh)
+
+
+def material_cells(maker, mesh):
     maker.Perform()
     if maker.HasErrors():
         raise ValueError('Could not intersect source faces')
@@ -104,7 +109,43 @@ def reconstruct(mesh):
     return result, dict(volumesMm3=volumes, boundsErrorMm=deviation)
 
 
-def build(names):
+def reconstruct_open_surface(path, dest):
+    """Approximate a broken surface for CAD inspection. Never evidence for tool clearance."""
+    import meshlib.mrmeshpy as mr
+
+    rebuild = mr.RebuildMeshSettings()
+    rebuild.decimate = True
+    decimate = mr.DecimateSettings()
+    decimate.maxError = .06
+    decimate.packMesh = True
+    path_out = dest / path.name
+    original_surface = mr.loadMesh(path)
+    for voxel in (.12, .08):
+        rebuild.voxelSize = voxel
+        repaired = mr.rebuildMesh(original_surface, rebuild)
+        mr.decimateMesh(repaired, decimate)
+        mr.saveMesh(repaired, path_out)
+        mesh = trimesh.load_mesh(path_out)
+        if mesh.is_volume:
+            break
+    else:
+        raise ValueError('Rebuilt surface still has no closed, oriented volume')
+    triangulated = BRepBuilderAPI_MakeShapeOnMesh(RWStl.ReadFile_s(str(path_out)))
+    triangulated.Build()
+    maker = BOPAlgo_MakerVolume()
+    maker.AddArgument(triangulated.Shape())
+    maker.SetIntersect(False)
+    maker.SetAvoidInternalShapes(True)
+    solid, stats = material_cells(maker, mesh)
+    original = trimesh.load_mesh(path)
+    deviation = float(np.abs(bounds(solid)-original.bounds).max())
+    if deviation > .1:
+        raise ValueError(f'Rebuilt extents differ from source by {deviation:.4f} mm')
+    return solid, {**stats, 'boundsErrorMm': deviation, 'method': 'resampled', 'voxelMm': voxel,
+                   'decimationMm': .06, 'mechanicalReviewRequired': True}
+
+
+def build(names, repair_open=False):
     source = STAGING / 'surfaces'
     dest = STAGING / 'solids'
     dest.mkdir(parents=True, exist_ok=True)
@@ -114,7 +155,14 @@ def build(names):
         filename = manifest[name]['file']
         path = dest / Path(filename).with_suffix('.step')
         try:
-            solid, stats = reconstruct(trimesh.load_mesh(source / filename))
+            try:
+                solid, stats = reconstruct(trimesh.load_mesh(source / filename))
+                stats['method'] = 'planar-cells'
+            except ValueError as error:
+                if not repair_open:
+                    raise
+                solid, stats = reconstruct_open_surface(source / filename, dest)
+                stats['originalIssue'] = str(error)
             writer = STEPControl_Writer()
             if writer.Transfer(solid, STEPControl_AsIs) != IFSelect_RetDone or writer.Write(str(path)) != IFSelect_RetDone:
                 raise ValueError('STEP writer failed')
@@ -130,4 +178,6 @@ def build(names):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('names', nargs='*')
-    raise SystemExit(0 if build(parser.parse_args().names) else 1)
+    parser.add_argument('--repair-open', action='store_true', help='Try a labelled resampled candidate for incomplete solids')
+    args = parser.parse_args()
+    raise SystemExit(0 if build(args.names, args.repair_open) else 1)

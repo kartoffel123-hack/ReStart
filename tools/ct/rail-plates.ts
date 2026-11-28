@@ -25,7 +25,7 @@ export function traySequence(initial:TriangleSoup[], moves:TrayMove[]) {
 }
 
 async function survey() {
-    const {parked,scoped,kit,scopedDigest,generation}=await loadAccessScene();
+    const {parked,scoped,kit,scopedDigest,generation,caps}=await loadAccessScene();
     function move(name:string, lines:number[], trayZ:number):TrayMove {
         const members=lines.map(line=>{
             const member=scoped.find(m=>m.id===`4000041/L${line}`);
@@ -46,7 +46,7 @@ async function survey() {
         topped:run([move('L214 with top',[214,237],-160),move('L215 with top',[215,240],-160)]),
         topsFirst:run([move('L237',[237],-405),move('L240',[240],-405),first,second]),
     };
-    const result={generation,scopedDigest,kitOccurrences:parked.length,initial:'Crown sections parked; L110 and pins installed.',trials};
+    const result={generation,scopedDigest,kitOccurrences:parked.length,parkedCrownIds:[...caps],initial:'Crown sections parked; L110 and pins installed.',trials};
     await writeFile(join(demoStage,'rail-plates.json'),JSON.stringify(result,null,2)+'\n');
     for (const [name,trial] of Object.entries(trials)) {
         console.log(`${name}: ${trial.operations.map(op=>`${op.name} (${op.contacts.length})`).join(' → ')}; contact-free round trip: ${trial.contactFreeRoundTrip}`);

@@ -41,6 +41,8 @@ Values compare installed overlap to overlap at the tested offset. Both outbound 
 
 ### Turntable contacts with the fixtures in trays
 
+For trials that park `L214/L215` **before** the wall, see the [rail-plate sequence](rail-plate-sequence.md). The bare plates hit their overlying plates, and carrying those tops still leaves the wall blocked by `L127`.
+
 The two turntable halves keep their installed relative transform. The [original positive-Z bench path](turntable-access.md#path-tested-assembly-coordinates-mm) is rerun with every parked piece physically present in its separate negative-Z tray. Counts are distinct stationary **surface contacts**, not required disassembly counts. A result below a blocked parking step is conditional on reaching that tray by another means.
 
 | Proposed parked state (roof always parked) | Lift / transfer / lower | Raise / transfer / reseat |

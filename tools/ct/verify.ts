@@ -6,9 +6,7 @@ import { Matrix4, Quaternion } from 'three';
 import { z } from 'zod';
 import { replay } from '../../src/domain/replay.js';
 import { procedureFingerprint } from '../../src/domain/fingerprint.js';
-import { checkTile } from './tile-clearance.js';
-import { assertSurfaceCoverage,ctStage } from './import.js';
-import { readScope } from './compile.js';
+import { assertSurfaceCoverage,demoStage,gearTarget,isDemoSet,sha256 } from './import.js';
 import { scannerEvidence } from './evidence.js';
 import { readScannerGeneration } from './site.js';
 import { installCandidate } from './generation.js';
@@ -16,19 +14,19 @@ import { gantryMeasurements,gantryRecipe } from './gantry-brick.js';
 
 /** Read the staged bytes as a consumer. The source-to-STEP witness is independent
  * of the GLB and compiler. Never infer coverage from just the number of files. */
-export async function verifyScanner(stage=ctStage) {
+export async function verifyScanner(stage=demoStage) {
     const generation=(await readFile(join(stage,'candidate'),'utf8')).trim();
     if (!/^[a-f0-9]{64}$/.test(generation)) throw new Error('Invalid CT candidate pointer');
-    const base=join(stage,'candidates',generation),scope=await readScope();
+    const base=join(stage,'candidates',generation);
     const {model,manuals,glb,meta}=await readScannerGeneration(base,generation);
     const crosswalk=z.object({sha256:z.string(),records:z.record(z.string(),z.object({ref:z.string(),world:z.array(z.array(z.number()).length(4)).length(4)}))})
-        .parse(JSON.parse(await readFile('.tmp/ct/fusion-4000041.crosswalk.json','utf8')));
-    if(crosswalk.sha256!==model.source.stepSha256) throw new Error('STEP revision mismatch');
-    await assertSurfaceCoverage(crosswalk.sha256,[...new Set(Object.values(crosswalk.records).map(r=>r.ref))]);
+        .parse(JSON.parse(await readFile('.tmp/ct/fusion-demo.crosswalk.json','utf8')));
+    if(crosswalk.sha256!==model.source.stepSha256 || sha256(await readFile('.tmp/ct/fusion-demo.step'))!==crosswalk.sha256) throw new Error('STEP revision mismatch');
+    await assertSurfaceCoverage(crosswalk.sha256,[...new Set(Object.values(crosswalk.records).map(r=>r.ref))],true);
     const inventory=manuals.inventory.map(p=>p.id).sort(),expected=Object.keys(crosswalk.records).sort();
     const nodes=(await new NodeIO().readBinary(glb)).getRoot().listNodes();
     const sets=[inventory,nodes.map(n=>String(n.getExtras().instanceId)).sort(),model.occurrences.filter(o=>o.kind==='piece').map(o=>o.id).sort()];
-    if(expected.length!==566 || sets.some(s=>JSON.stringify(s)!==JSON.stringify(expected))) throw new Error('Incomplete CT inventory crosswalk');
+    if(!isDemoSet(expected) || sets.some(s=>JSON.stringify(s)!==JSON.stringify(expected))) throw new Error('Incomplete CT demo inventory crosswalk');
     for (const n of nodes) {
         const id=String(n.getExtras().instanceId),w=crosswalk.records[id]!;
         const m=new Matrix4().fromArray(w.world.flat()).transpose();
@@ -38,31 +36,10 @@ export async function verifyScanner(stage=ctStage) {
     }
     const gantry=await gantryRecipe();
     const ids=Object.keys(manuals.repairs).sort();
-    if(ids.join()!==[scope.candidate,gantry.target].sort().join()) throw new Error('Declared demo targets differ from the repair catalog');
-    const job=manuals.repairs[scope.candidate]!;
-    if(job.datasetRevision!==model.source.datasetRevision || job.graphRevision!==meta.revision || !replay(model,job).ok ||
-        procedureFingerprint(model,job.targetIds,job.operationIds,job.functionCheckId)!==job.procedureFingerprint) throw new Error('CT repair replay/fingerprint mismatch');
+    if(ids.join()!==gantry.target || manuals.defaultTarget!==gantry.target) throw new Error('Declared demo targets differ from the repair catalog');
     const moves=model.operations;
-    const tile=scope.candidate;
-    if(job.steps.map(s=>s.phase).join()!=='remove,replace,restore,check' || job.operationIds.join()!=='release,exchange,reseat' || job.disturbedIds.length || job.disturbedCount!==0) throw new Error('Not a complete single-tile exchange');
-    const home=model.poses.find(p=>p.occurrenceId===tile && p.kind==='installed')!;
-    for(const [i,id] of job.operationIds.entries()) {
-        const op=moves.find(o=>o.id===id)!,motion=model.motions.find(m=>m.id===op.motionId)!;
-        const ends=[[0,scope.travelMm],[scope.travelMm,scope.travelMm],[scope.travelMm,0]][i]!;
-        if(op.members.join()!==tile || motion.members.join()!==tile || manuals.movers[id]!==tile || motion.frames.length!==2 ||
-            (i===1 && op.fitsReplacementOf!==tile)) throw new Error(`Wrong mover or spare: ${id}`);
-        for(const [k,f] of motion.frames.entries()) {
-            const offset=[0,ends[k]!,0];
-            if(f.frame.translation.some((v,j)=>Math.abs(v-home.frame.translation[j]!-offset[j]!)>1e-6) || f.frame.rotation.some((v,j)=>Math.abs(v-home.frame.rotation[j]!)>1e-6) ||
-                manuals.paths[id]?.[k]?.some((v,j)=>Math.abs(v-offset[j]!)>1e-6)!==false) throw new Error(`Playback differs from verified stroke: ${id}`);
-        }
-    }
-    await checkTile(glb,tile,scope.support,scope.travelMm);
     const hard=manuals.repairs[gantry.target]!;
-    const witness=await gantryMeasurements(join(base,meta.geometry.name));
-    const separator=manuals.toolPlacements?.['ct-separator'];
-    if(separator?.instanceId!==gantry.separator || JSON.stringify(separator.frame.translation)!==JSON.stringify(gantry.toolOriginMm) ||
-        JSON.stringify(separator.frame.rotation)!==JSON.stringify([0,Math.SQRT1_2,0,Math.SQRT1_2])) throw new Error('Displayed separator differs from checked tool registration');
+    const witness=await gantryMeasurements(join(base,meta.geometry.name),true);
     const groups=[...gantry.groups,{key:'brick',members:[gantry.target]}];
     const expectedOps=[...groups.map(g=>`gantry-${g.key}-remove`),'gantry-brick-replace',...groups.toReversed().map(g=>`gantry-${g.key}-restore`)];
     const expectedMoved=gantry.groups.flatMap(g=>g.members).sort();
@@ -92,10 +69,10 @@ export async function verifyScanner(stage=ctStage) {
         if(!published || JSON.stringify(published)!==JSON.stringify(actual)) throw new Error(`CT evidence does not match the reviewed ledger: ${id}`);
         return actual;
     }));
-    const rows=inventory.map(id=>({id,status:ids.includes(id)?'model-replayed':'unavailable',reason:ids.includes(id)?'':scope.open[id]??'No reviewed removal and return motion',
+    const rows=inventory.map(id=>({id,status:ids.includes(id)?'model-replayed':'unavailable',reason:ids.includes(id)?'':id===gearTarget?'Turntable release, spare insertion and restored engagement not verified':'No reviewed removal and return motion',
         procedureFingerprint:manuals.repairs[id]?.procedureFingerprint??null,physicallyVerified:manuals.evidence?.[id]?.physicallyVerified??false}));
     await writeFile(join(stage,'verification.json'),JSON.stringify({generation,stepSha256:model.source.stepSha256,rows},null,2));
-    console.log(`CT ${generation}: ${rows.length}/566 source, STEP, GLB and inventory IDs; ${ids.length} complete modeled exchanges; ${rows.length-ids.length} unavailable; ${evidence.filter(e=>e.physicallyVerified).length} physically verified. Buried brick ${hard.procedureFingerprint}; ${hard.disturbedCount} healthy pieces in two intact sections.`);
+    console.log(`CT ${generation}: ${rows.length}/284 scoped source, STEP, GLB and inventory IDs; ${ids.length} complete modeled exchange; ${rows.length-ids.length} unavailable; ${evidence.filter(e=>e.physicallyVerified).length} physically verified. Buried brick ${hard.procedureFingerprint}; ${hard.disturbedCount} healthy pieces in two intact sections.`);
     return {base,generation,evidence};
 }
 

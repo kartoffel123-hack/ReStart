@@ -3,8 +3,9 @@ import { parseArgs } from 'node:util';
 const [action,...args]=process.argv.slice(2);
 const {values,positionals}=parseArgs({args,allowPositionals:true,options:{dataset:{type:'string',default:'30465'},profile:{type:'string'}}});
 if(values.dataset==='4000041') {
-    if(positionals.length || (values.profile!==undefined && (action!=='verify' || !['demo','bench'].includes(values.profile)))) throw new Error('Unsupported CT model arguments');
-    if(action==='import') await (await import('./ct/import.js')).importScanner();
+    const reference=action==='import' && values.profile==='reference';
+    if(positionals.length || (values.profile!==undefined && !reference && (action!=='verify' || !['demo','bench'].includes(values.profile)))) throw new Error('Unsupported CT model arguments');
+    if(action==='import') await (await import('./ct/import.js')).importScanner(!reference);
     else if(action==='compile') await (await import('./ct/compile.js')).compileScanner();
     else if(action==='verify' && values.profile) {
         const {evidence}=await (await import('./ct/verify.js')).verifyScanner();

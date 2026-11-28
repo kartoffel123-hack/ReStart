@@ -8,33 +8,45 @@ import { z } from 'zod';
 import { inspectAssemblyGlb } from '../lib/glb.js';
 
 export const ctStage = '.staging/4000041';
+export const demoStage = `${ctStage}/demo`;
 export const sha256 = (bytes: Uint8Array | string) => createHash('sha256').update(bytes).digest('hex');
 export const inventorySchema = z.object({sourceSha256:z.literal('b94332a64f28fe2bcd4dfead7ab195398885cedb85dca7b1f0c5997975a3aef2'),
     pieces:z.array(z.object({id:z.string(),ref:z.string(),group:z.string(),name:z.string(),colorName:z.string(),rgb:z.string().regex(/^#[0-9a-f]{6}$/i)})).length(566)});
 
-export async function assertSurfaceCoverage(stepSha256:string,references:string[]) {
+const scope = z.object({sourceSha256:z.string(), sortedIdsSha256:z.string(), groups:z.array(z.string()), excludedOccurrences:z.record(z.string(),z.string()), gearTarget:z.string()})
+    .parse(JSON.parse(await readFile('data/review/4000041/demo-assembly.json','utf8')));
+export const gearTarget = scope.gearTarget;
+export const isDemoSet = (ids:string[]) => sha256([...ids].sort().join('\n'))===scope.sortedIdsSha256;
+const included = (p:{group:string;id:string}) => scope.groups.includes(p.group) && !Object.hasOwn(scope.excludedOccurrences,p.id);
+export const demoInventorySchema = inventorySchema.extend({pieces:inventorySchema.shape.pieces.unwrap().array().length(284)})
+    .refine(i => i.sourceSha256===scope.sourceSha256 && i.pieces.every(included) && isDemoSet(i.pieces.map(p=>p.id)), 'Invalid MRI demo inventory');
+
+export async function assertSurfaceCoverage(stepSha256:string,references:string[],demo=false) {
     const fidelity=z.object({stepSha256:z.literal(stepSha256),definitions:z.record(z.string(),z.object({outsideSamples:z.number().int().nonnegative()}))})
-        .parse(JSON.parse(await readFile('.tmp/ct/surface-fidelity.json','utf8')));
+        .parse(JSON.parse(await readFile(`.tmp/ct/${demo?'demo-':''}surface-fidelity.json`,'utf8')));
     const bad=references.filter(ref=>fidelity.definitions[ref]?.outsideSamples!==0);
     if(bad.length) throw new Error(`Missing CT surface landmarks: ${bad.join(', ')}`);
 }
 
 /** Use the meshes independently reopened from Fusion, not the pre-conversion STL library. */
-export async function importScanner() {
+export async function importScanner(demo=true) {
     const root='.tmp/ct';
-    const inventory=inventorySchema.parse(JSON.parse(await readFile(`${root}/source.json`,'utf8')));
+    const stage=demo?demoStage:ctStage;
+    const stem=demo?'fusion-demo':'fusion-4000041';
+    const full=inventorySchema.parse(JSON.parse(await readFile(`${root}/source.json`,'utf8')));
+    const inventory=demo?demoInventorySchema.parse({...full,pieces:full.pieces.filter(included)}):full;
     const crosswalk=z.object({sha256:z.string(),meshesExported:z.literal(true),
         records:z.record(z.string(),z.object({ref:z.string(),world:z.array(z.array(z.number()).length(4)).length(4)})),
         definitions:z.record(z.string(),z.object({file:z.string().regex(/^definition-\d+\.stl$/),meshSha256:z.string().regex(/^[a-f0-9]{64}$/).optional()}))
-    }).parse(JSON.parse(await readFile(`${root}/fusion-4000041.crosswalk.json`,'utf8')));
-    if(sha256(await readFile(`${root}/fusion-4000041.step`))!==crosswalk.sha256) throw new Error('Reopen the changed Fusion export before importing');
-    await assertSurfaceCoverage(crosswalk.sha256,Object.keys(crosswalk.definitions));
+    }).parse(JSON.parse(await readFile(`${root}/${stem}.crosswalk.json`,'utf8')));
+    if(sha256(await readFile(`${root}/${stem}.step`))!==crosswalk.sha256) throw new Error('Reopen the changed Fusion export before importing');
+    await assertSurfaceCoverage(crosswalk.sha256,Object.keys(crosswalk.definitions),demo);
     const patterns=z.record(z.string(),z.object({file:z.string().regex(/^pattern-\d+\.png$/),bounds:z.tuple([z.number(),z.number(),z.number(),z.number()])}))
         .parse(JSON.parse(await readFile(`${root}/patterns/index.json`,'utf8')));
     const doc=new Document(); const buffer=doc.createBuffer(); const scene=doc.createScene('4000041');
     const definitions=new Map<string,ReturnType<Document['createPrimitive']>>();
     for (const [ref,entry] of Object.entries(crosswalk.definitions)) {
-        const bytes=await readFile(`${root}/step-meshes/${entry.file}`);
+        const bytes=await readFile(`${root}/${demo?'demo-':''}step-meshes/${entry.file}`);
         if(entry.meshSha256 && sha256(bytes)!==entry.meshSha256) throw new Error(`Tessellation hash mismatch: ${ref}`);
         const soup=new STLLoader().parse(bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.length));
         const pattern=Object.entries(patterns).find(([key])=>key.startsWith(`${ref}:`))?.[1];
@@ -90,9 +102,9 @@ export async function importScanner() {
     const glb=await new NodeIO().writeBinary(doc);
     const report=await inspectAssemblyGlb(glb);
     if(report.problems.length || report.instances.length!==seen.size || report.instances.some(p=>!seen.has(p.instanceId))) throw new Error(`GLB identity check failed: ${report.problems.join('; ')}`);
-    await mkdir(ctStage,{recursive:true});
+    await mkdir(stage,{recursive:true});
     const geometry=`geometry-${sha256(glb)}.glb`;
-    await writeFile(`${ctStage}/${geometry}`,glb);
-    await writeFile(`${ctStage}/import.json`,JSON.stringify({inventory,stepSha256:crosswalk.sha256,geometry,triangles:report.instances.reduce((n,p)=>n+p.triangleCount,0)}));
+    await writeFile(`${stage}/${geometry}`,glb);
+    await writeFile(`${stage}/import.json`,JSON.stringify({inventory,stepSha256:crosswalk.sha256,geometry,triangles:report.instances.reduce((n,p)=>n+p.triangleCount,0)}));
     console.log(`CT import: ${seen.size}/${inventory.pieces.length} pickable STEP placements; ${definitions.size} reusable definitions; ${glb.length} GLB bytes; ${geometry}`);
 }

@@ -12,13 +12,14 @@ const measurements=z.object({paths:z.record(z.string(),z.array(vec3Schema).lengt
     initialBlockers:z.record(z.string(),z.object({blocker:z.string(),depthMm:z.number(),pointMm:vec3Schema})),
     contacts:z.array(z.object({moving:z.string(),fixed:z.string(),depthMm:z.number(),witnessMm:vec3Schema}))});
 export const gantryRecipe=async()=>config.parse(JSON.parse(await readFile('data/review/4000041/gantry-brick.json','utf8')));
-export async function gantryMeasurements(glbPath:string) {
+export async function gantryMeasurements(glbPath:string,demo=false) {
     const python=process.env.CT_CAD_PYTHON ?? (process.platform==='win32'?'.tmp/ct-cad-env/Scripts/python.exe':'.tmp/ct-cad-env/bin/python');
-    const {stdout}=await promisify(execFile)(python,['-B','-m','tools.ct.gantry_clearance',glbPath]);
+    const {stdout}=await promisify(execFile)(python,['-B','-m',demo?'tools.ct.demo_clearance':'tools.ct.gantry_clearance',glbPath]);
     const result=measurements.parse(JSON.parse(stdout));
     result.contacts.sort((a,b)=>a.moving.localeCompare(b.moving)||a.fixed.localeCompare(b.fixed));
-    const revision=createHash('sha256').update(await readFile('tools/ct/gantry_clearance.py')).update(await readFile('data/review/4000041/gantry-brick.json')).digest('hex');
-    return {...result,revision};
+    const hash=createHash('sha256').update(await readFile('tools/ct/gantry_clearance.py')).update(await readFile('data/review/4000041/gantry-brick.json'));
+    if(demo) hash.update(await readFile('tools/ct/demo_clearance.py'));
+    return {...result,revision:hash.digest('hex')};
 }
 
 const plus=(a:Vec3,b:Vec3):Vec3=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]];

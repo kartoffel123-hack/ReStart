@@ -33,3 +33,7 @@ class ScannerInventory(unittest.TestCase):
         pieces = [p for p in self.source['pieces'] if p['studioId'] == '1104']
         self.assertEqual({p['ref'] for p in pieces}, {'3062b.dat', '3022.dat'})
         self.assertEqual(len({p['id'] for p in pieces}), 2)
+
+    def test_keeps_three_placements_absent_from_the_alternate_xml(self):
+        missing = [p['ref'] for p in self.source['pieces'] if p['xmlBrick'] is None]
+        self.assertEqual(missing, ['88738_raw.dat', '3068bp71.dat', '96874.dat'])

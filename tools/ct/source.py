@@ -81,6 +81,25 @@ def load_source(archive=ARCHIVE):
             group.clear()
     if witnesses or len(pieces) != info['total_parts']:
         raise ValueError('Studio archive count or second placement witness disagrees')
+    # Revision-bound sequence reconciliation, not identity keys. The LXFML
+    # has aliases for some designs and omits exactly three LDraw placements.
+    absent = {112:'88738_raw.dat', 485:'3068bp71.dat', 550:'96874.dat'}
+    xml_bricks = iter(xml.findall('.//Brick'))
+    for p in pieces:
+        if p['line'] in absent:
+            if absent[p['line']] != p['ref']:
+                raise ValueError('Changed XML omission witness')
+            p['xmlBrick'] = None
+            continue
+        brick = next(xml_bricks)
+        numeric = re.search(r'\d+', p['ref'])[0]
+        aliases = {'76384':{'14226'}, '2429':{'1927'}, '54200':{'35278','50746'},
+                   '35700':{'2821'}, '3815':{'73200'}, '973':{'76382'}}
+        if brick.get('designID') not in {numeric, *aliases.get(numeric, set())}:
+            raise ValueError(f'Unreconciled XML design for {p["id"]}: {brick.get("designID")}')
+        p['xmlBrick'] = brick.get('refID')
+    if next(xml_bricks, None) is not None:
+        raise ValueError('Unmatched XML brick')
     return dict(dataset='4000041', sourceSha256=digest, version=info['version'],
                 millimetresPerUnit=.4, xmlPartCounts=dict(Counter(len(b.findall('Part')) for b in xml.findall('.//Brick'))),
                 pieces=pieces)

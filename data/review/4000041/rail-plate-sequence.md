@@ -1,5 +1,7 @@
 # L214 and L215 before the side wall
 
+Follow-up: [can the curved facings be parked before the wall?](facing-access.md) tests the two facing bricks without assuming the plates have been removed.
+
 **Neither bare 1×2 plate has a clear vertical exit.** After 2 mm upwards, `L214` intersects the overlying `L237` by 220.627228 mm³ and `L215` intersects `L240` by 220.643074 mm³ (installed overlaps 0.000002 and 0 mm³). Reversing the plate order gives the same result. Carrying each top with its plate is a closer fit, but does not release the side wall.
 
 Test state: 284 scoped pieces plus 282 full-kit obstacles; both roof sections in their verified trays. `L110`, the turntable halves and all pins start installed. Each move lifts to 10 mm above the kit, translates along Z and lowers to bench height. The plate trays use −160 mm Z offsets, preserving their installed 40 mm separation. Tops removed separately use −405 mm; the `L248/L230` wall uses −285 mm and the `L331/L149/L332` bridge uses −210 mm. No piece is hidden. Surface contact rejects the strict geometric test; later operations then describe hypothetical endpoints only.

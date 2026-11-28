@@ -1,5 +1,7 @@
 # Turntable access study: moving the two halves together
 
+Follow-up: [parking and restoring the black tile and round brick](turntable-blocker-trials.md), including intact-turntable reruns with the proposed tray positions.
+
 **Result: blocked on the tested route.** The working manual can park the two five-piece crown sections. From that state, lifting the black toothed top (`4000041/L112`) and grey bottom (`4000041/L192`) together does not clear the gantry. The same geometry prevents reseating on the reverse path. There is no verified bench-access procedure for the intact turntable yet. Its individual gear exchange remains unavailable.
 
 ## Path tested (assembly coordinates, mm)

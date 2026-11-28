@@ -8,7 +8,7 @@ import json
 import math
 import struct
 
-from tools.ct.source import Definitions, LIBRARY, STAGING, load_source, placement
+from tools.ct.source import LIBRARY, STAGING, checked_definitions, load_source, placement
 
 
 def transform(point, basis, origin):
@@ -60,10 +60,21 @@ class Surfaces:
         return mesh
 
 
+def write_stl(mesh, path):
+    colors = []
+    with path.open('wb') as out:
+        out.write(bytes(80) + struct.pack('<I', len(mesh)))
+        for color, pts in mesh:
+            # LDraw Y points down. Rotate 180 degrees about X to retain handedness.
+            coords = [c for x,y,z in pts for c in (.4*x, -.4*y, -.4*z)]
+            out.write(struct.pack('<12fH', 0, 0, 0, *coords, 0))
+            colors.append(color)
+    return colors
+
+
 def export(library=LIBRARY):
     inventory = load_source()
-    defs = Definitions(library)
-    defs.dependencies(inventory['pieces'])  # cycle and reference check before recursion
+    defs = checked_definitions(library,inventory['pieces'])
     meshes = Surfaces(defs)
     directory = STAGING / 'surfaces'
     directory.mkdir(parents=True, exist_ok=True)
@@ -73,14 +84,7 @@ def export(library=LIBRARY):
         if not triangles:
             raise ValueError(f'Empty part: {name}')
         filename = f'part-{i:03}.stl'
-        with (directory / filename).open('wb') as out:
-            out.write(bytes(80) + struct.pack('<I', len(triangles)))
-            colors = []
-            for color, pts in triangles:
-                # LDraw Y points down. Rotate 180 degrees about X to retain handedness.
-                coords = [c for x,y,z in pts for c in (.4*x, -.4*y, -.4*z)]
-                out.write(struct.pack('<12fH', 0, 0, 0, *coords, 0))
-                colors.append(color)
+        colors = write_stl(triangles,directory / filename)
         manifest[name] = dict(file=filename, triangles=len(triangles), colors=colors)
     (directory / 'index.json').write_text(json.dumps(manifest, separators=(',', ':')))
     print(f'{len(manifest)} local-frame surfaces, {sum(m["triangles"] for m in manifest.values())} definition triangles in {directory}')

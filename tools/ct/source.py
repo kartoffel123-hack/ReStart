@@ -161,6 +161,15 @@ class Definitions:
         return self.records
 
 
+def checked_definitions(library, pieces):
+    definitions = Definitions(library)
+    resolved = definitions.dependencies(pieces)
+    recorded = json.loads((STAGING/'source.json').read_text())
+    if recorded['sourceSha256'] != DIGEST or recorded['definitions'] != resolved:
+        raise ValueError('LDraw definitions differ from the recorded source generation')
+    return definitions
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--library', type=Path, default=LIBRARY)

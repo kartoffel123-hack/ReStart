@@ -5,6 +5,7 @@ The caller reviews the new document before saving a version to the team's folder
 """
 
 import json
+import hashlib
 import re
 from pathlib import Path
 
@@ -33,7 +34,10 @@ def installed_matrix(piece):
 def assemble(staging_path, sample=True):
     stage = Path(staging_path)
     catalog = json.loads((stage / 'source.json').read_text())
-    report = json.loads((stage / 'solids' / ('sample.json' if sample else 'index.json')).read_text())
+    report_path = stage/'solids/index.json'
+    if sample and not report_path.is_file():
+        report_path = stage/'solids/sample.json'
+    report = json.loads(report_path.read_text())
     pieces = [p for p in catalog['pieces'] if not sample or p['line'] in (111, 112, 250, 251, 385)]
     missing = {p['ref'] for p in pieces if 'file' not in report.get(p['ref'], {})}
     if missing:
@@ -74,8 +78,26 @@ def assemble(staging_path, sample=True):
     opts = design.exportManager.createSTEPExportOptions(str(filename), root)
     if not design.exportManager.execute(opts):
         raise ValueError('Fusion assembly STEP export failed')
+    record_body_witness(root,filename)
     print(f'{len(pieces)} placed occurrences, {len(definitions)} reusable parts, {len(groups)} groups: {filename}')
     return str(filename)
+
+
+def record_body_witness(root,filename):
+    """Independent native body counts/volumes for identifying STEP reader fragments."""
+    definitions = {}
+    for group in root.occurrences:
+        for placed in group.childOccurrences:
+            name = placed.component.name
+            if name in definitions:
+                continue
+            bodies = [b for part in [placed,*placed.component.allOccurrences] for b in part.bRepBodies]
+            if not bodies or any(not b.isSolid or b.volume<=0 for b in bodies):
+                raise ValueError(f'Native Fusion body is not a solid: {name}')
+            definitions[name] = sorted(b.volume*1000 for b in bodies)
+    with filename.open('rb') as data:
+        digest = hashlib.file_digest(data,'sha256').hexdigest()
+    filename.with_suffix('.volumes.json').write_text(json.dumps({'sha256':digest,'definitions':definitions}))
 
 
 def finish_candidate(staging_path, library, destination_document):
@@ -87,7 +109,12 @@ def finish_candidate(staging_path, library, destination_document):
     if doc.dataFile:
         raise ValueError('Expected an unsaved staging assembly')
     pieces = json.loads((stage / 'source.json').read_text())['pieces']
-    crosswalk = json.loads((stage / 'fusion-4000041.crosswalk.json').read_text())['records']
+    verified = json.loads((stage / 'fusion-4000041.crosswalk.json').read_text())
+    fidelity = json.loads((stage / 'surface-fidelity.json').read_text())
+    if (fidelity['stepSha256'] != verified['sha256'] or set(fidelity['definitions']) != set(verified['definitions'])
+            or any(r['outsideSamples'] for r in fidelity['definitions'].values())):
+        raise ValueError('The reopened STEP has missing surface landmarks')
+    crosswalk = verified['records']
     placed = {o.fullPathName:o for group in design.rootComponent.occurrences for o in group.childOccurrences}
     if set(placed) != {'+'.join(r['path']) for r in crosswalk.values()} or set(crosswalk) != {p['id'] for p in pieces}:
         raise ValueError('Active design does not match the round-trip crosswalk')
@@ -110,7 +137,7 @@ def finish_candidate(staging_path, library, destination_document):
         o.attributes.add('ReStart', 'instanceId', p['id'])
         o.attributes.add('ReStart', 'sourceColor', p['color'])
     folder = destination_document.dataFile.parentFolder
-    title = 'CT 4000041 - Studio assembly'
+    title = 'CT 4000041 - ' + verified['sha256'][:12]
     if any(f.name == title for f in folder.dataFiles):
         raise ValueError('A saved staging assembly already exists')
     if not doc.saveAs(title, folder, 'Conversion candidate; mechanical fidelity review pending.', ''):

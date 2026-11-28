@@ -8,6 +8,8 @@ import argparse
 import json
 import math
 from pathlib import Path
+import subprocess
+import sys
 
 import numpy as np
 import trimesh
@@ -15,21 +17,25 @@ from OCP.Bnd import Bnd_Box
 from OCP.BOPAlgo import BOPAlgo_MakerVolume
 from OCP.BRep import BRep_Builder
 from OCP.BRepBndLib import BRepBndLib
-from OCP.BRepBuilderAPI import BRepBuilderAPI_MakeFace, BRepBuilderAPI_MakePolygon, BRepBuilderAPI_MakeShapeOnMesh
+from OCP.BRepBuilderAPI import BRepBuilderAPI_MakeFace, BRepBuilderAPI_MakePolygon, BRepBuilderAPI_MakeShapeOnMesh, BRepBuilderAPI_Transform
 from OCP.BRepCheck import BRepCheck_Analyzer
 from OCP.BRepClass3d import BRepClass3d_SolidClassifier
 from OCP.BRepGProp import BRepGProp
+from OCP.BRepMesh import BRepMesh_IncrementalMesh
 from OCP.GProp import GProp_GProps
-from OCP.gp import gp_Pnt
+from OCP.gp import gp_Pnt, gp_Trsf
 from OCP.IFSelect import IFSelect_RetDone
 from OCP.RWStl import RWStl
 from OCP.ShapeUpgrade import ShapeUpgrade_UnifySameDomain
 from OCP.STEPControl import STEPControl_AsIs, STEPControl_Writer
+from OCP.StlAPI import StlAPI_Writer
 from OCP.TopAbs import TopAbs_IN, TopAbs_SOLID
 from OCP.TopExp import TopExp_Explorer
 from OCP.TopoDS import TopoDS_Compound
 
-from tools.ct.source import STAGING
+from tools.ct.source import STAGING, LIBRARY, Definitions, placement
+from tools.ct.surfaces import Surfaces, write_stl
+from tools.ct.fidelity import uncovered
 
 
 def bounds(shape):
@@ -111,25 +117,16 @@ def material_cells(maker, mesh):
 
 def reconstruct_open_surface(path, dest):
     """Approximate a broken surface for CAD inspection. Never evidence for tool clearance."""
-    import meshlib.mrmeshpy as mr
-
-    rebuild = mr.RebuildMeshSettings()
-    rebuild.decimate = True
-    decimate = mr.DecimateSettings()
-    decimate.maxError = .06
-    decimate.packMesh = True
     path_out = dest / path.name
-    original_surface = mr.loadMesh(path)
-    for voxel in (.12, .08):
-        rebuild.voxelSize = voxel
-        repaired = mr.rebuildMesh(original_surface, rebuild)
-        mr.decimateMesh(repaired, decimate)
-        mr.saveMesh(repaired, path_out)
+    for voxel in (.12, .08, .06, .04):
+        max_error = min(.06, voxel*.42)
+        subprocess.run([sys.executable, '-B', '-m', 'tools.ct.resample', str(path), str(path_out),
+                        str(voxel), str(max_error)], check=True)
         mesh = trimesh.load_mesh(path_out)
-        if mesh.is_volume:
+        if mesh.is_volume and uncovered(path,path_out)['maxUncoveredMm'] <= .1:
             break
     else:
-        raise ValueError('Rebuilt surface still has no closed, oriented volume')
+        raise ValueError('Could not retain all measured surface landmarks in a closed, oriented volume')
     triangulated = BRepBuilderAPI_MakeShapeOnMesh(RWStl.ReadFile_s(str(path_out)))
     triangulated.Build()
     maker = BOPAlgo_MakerVolume()
@@ -142,26 +139,82 @@ def reconstruct_open_surface(path, dest):
     if deviation > .1:
         raise ValueError(f'Rebuilt extents differ from source by {deviation:.4f} mm')
     return solid, {**stats, 'boundsErrorMm': deviation, 'method': 'resampled', 'voxelMm': voxel,
-                   'decimationMm': .06, 'mechanicalReviewRequired': True}
+                   'decimationMm': max_error, 'mechanicalReviewRequired': True}
 
 
-def build(names, repair_open=False):
+def posed_bodies(name, dest, library):
+    """Keep independently posed minifigure limbs as bodies of one selectable article."""
+    definitions = Definitions(library)
+    surfaces = Surfaces(definitions)
+    cache = {}
+    result = TopoDS_Compound()
+    builder = BRep_Builder()
+    builder.MakeCompound(result)
+    bodies = []
+    for line in definitions.get(name):
+        if not line.startswith('1 '):
+            continue
+        ref, _, matrix = placement(line)
+        if ref not in cache:
+            directory = dest / 'limbs'
+            directory.mkdir(exist_ok=True)
+            source = directory / (ref+'.stl')
+            write_stl(surfaces.mesh(ref),source)
+            shape, stats = reconstruct_open_surface(source,dest)
+            cache[ref] = shape, stats
+        shape, stats = cache[ref]
+        t = gp_Trsf()
+        signs = np.diag([1,-1,-1])
+        transform = np.column_stack((signs @ np.array(matrix[3:]).reshape(3,3) @ signs, signs @ matrix[:3] * .4))
+        t.SetValues(*transform.flatten())
+        builder.Add(result,BRepBuilderAPI_Transform(shape,t,True).Shape())
+        bodies.append({'ref':ref,**stats})
+    return result, dict(method='posed-bodies',bodies=bodies,mechanicalReviewRequired=True,
+                        volumesMm3=[v for b in bodies for v in b['volumesMm3']])
+
+
+def build(names, repair_open=False, repair_export=False, library=LIBRARY):
     source = STAGING / 'surfaces'
     dest = STAGING / 'solids'
     dest.mkdir(parents=True, exist_ok=True)
     manifest = json.loads((source / 'index.json').read_text())
     report = {}
-    for name in names or sorted(manifest):
+    if repair_export:
+        if names:
+            raise ValueError('Use either a sample list or the full exported worklist')
+        fidelity = json.loads((STAGING / 'surface-fidelity.json').read_text())
+        crosswalk = json.loads((STAGING / 'fusion-4000041.crosswalk.json').read_text())
+        if fidelity['stepSha256'] != crosswalk['sha256'] or set(fidelity['definitions']) != set(manifest):
+            raise ValueError('Stale or incomplete fidelity report')
+        report = json.loads((dest / 'index.json').read_text())
+        work = [n for n, r in fidelity['definitions'].items() if r['outsideSamples']]
+    else:
+        work = names or sorted(manifest)
+    for name in work:
         filename = manifest[name]['file']
         path = dest / Path(filename).with_suffix('.step')
         try:
             try:
                 solid, stats = reconstruct(trimesh.load_mesh(source / filename))
+                # The rope can lose its entire middle and still pass bounds and
+                # positive volume. Test the actual CAD surface before accepting.
+                preview = dest / 'cad-check.stl'
+                BRepMesh_IncrementalMesh(solid, .12, False, .4, True)
+                writer = StlAPI_Writer()
+                writer.ASCIIMode = False
+                if not writer.Write(solid, str(preview)):
+                    raise ValueError('Cannot tessellate the reconstructed solid')
+                check = uncovered(source / filename, preview)
+                if check['outsideSamples']:
+                    raise ValueError(f'Source surface missing by {check["maxUncoveredMm"]:.3f} mm')
                 stats['method'] = 'planar-cells'
             except ValueError as error:
                 if not repair_open:
                     raise
-                solid, stats = reconstruct_open_surface(source / filename, dest)
+                if name in ('3815c01.dat copy','bl_973pb4354c01.dat copy'):
+                    solid, stats = posed_bodies(name,dest,library)
+                else:
+                    solid, stats = reconstruct_open_surface(source / filename, dest)
                 stats['originalIssue'] = str(error)
             writer = STEPControl_Writer()
             if writer.Transfer(solid, STEPControl_AsIs) != IFSelect_RetDone or writer.Write(str(path)) != IFSelect_RetDone:
@@ -179,5 +232,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('names', nargs='*')
     parser.add_argument('--repair-open', action='store_true', help='Try a labelled resampled candidate for incomplete solids')
+    parser.add_argument('--repair-export', action='store_true', help='Correct definitions rejected by the independent Fusion surface check')
+    parser.add_argument('--library', type=Path, default=LIBRARY)
     args = parser.parse_args()
-    raise SystemExit(0 if build(args.names, args.repair_open) else 1)
+    raise SystemExit(0 if build(args.names, args.repair_open, args.repair_export, args.library) else 1)

@@ -1,5 +1,7 @@
 # CT scanner · operator and release handoff
 
+The table below describes the **previous, still-staged 566-piece build**. For the new 284-piece compiler and gear fit result, see [MRI + Mid section working candidate](#mri--mid-section-working-candidate).
+
 | Demo | Spare and headline result |
 |---|---|
 | Direct: `4000041/L388` | White 1 × 4 **grooved tile** where the long back-room wall meets the perpendicular end tile. The model predicts a 12 mm lift, wall `L423` in place, zero healthy pieces disturbed. `L389` is the neighbouring tile. |
@@ -11,17 +13,10 @@ The [source-backed hard-route recipe](gantry-brick.json) is separate from the [o
 
 ## Open the software candidate
 
-On the CAD workstation, after the [Fusion export and independent reimport](cad-round-trip.md), run on the pinned Node 24 toolchain:
+To serve the still-staged CT candidate on the pinned Node 24 toolchain:
 
 ```sh
-npm run model:import -- --dataset 4000041
-npm run model:compile -- --dataset 4000041
-npm run model:verify -- --dataset 4000041 --profile demo
-npm run test:ct-data
-npm run model:ct-stage
 npm run build
-npm run test:e2e:ct
-python3 -B -m tools.ct.pack_site
 npm run preview
 ```
 
@@ -42,3 +37,13 @@ Open either demo link on the preview origin. The specific piece should already b
 ## Default and rollback
 
 The shared selector is `src/app/default-dataset.json`. Leave `30465` selected while a gate is open. Before selecting `4000041`, test the exact candidate over HTTPS on Windows Edge and macOS Safari; complete the repair and exercise the reviewer, exports, hard refresh and rollback on that build. Record the accepted generation, browser/OS versions and URL in `data/review/4000041/web-acceptance.json` as checked by `tools/verify/site-run.ts`. No such pass is assumed. The production prebuild refuses a CT default without matching review, physical and browser evidence. Reverting the selector/build retains both dataset-specific URLs and the previous generation.
+
+## MRI + Mid section working candidate
+
+The scoped build lives in `.staging/4000041/demo/`, separate from the previous public candidate channel. Its 284 placements are the two requested groups without `4000041/L111` (string). The fallback manual exchanges `4000041/L201`; the separator is a bench tool, not a selectable Decoration piece. The scoped candidate has no back-room tile manual.
+
+The intended hard target is the **black toothed turntable top** (`L112`, `88738_raw.dat`), not the light-grey bottom (`L192`, `18939.dat`). With the mating bottom fixed, the scoped meshes reject a straight pull along either axial direction. At −2 mm X, a point on the top moves from a 0.475 mm gap to 0.247 mm inside the bottom. At +2 mm X a different point moves from a 0.283 mm gap to 0.718 mm inside. Reproduce both points with `.tmp/ct-cad-env/bin/python -B -m tools.ct.turntable_fit`. These are rigid-motion counterexamples, not a force measurement or proof that all physical releases are impossible.
+
+**Mechanics review needed before authoring a gear manual:** establish on a spare turntable whether the toothed half is individually serviceable, what yields or disengages, and how the replacement is reseated and checked for normal rotation. Record the observed interface, tool, support and stop for review. Moving both halves together does not exchange the top. A complete replacement turntable is a different target; do not use it as evidence for `L112`.
+
+To rebuild: run the scoped Fusion export and independent STEP check in [plan 02](../../../docs/plans/0.2.0/02-software-design-implementation-plan.md), then `npm run model:import -- --dataset 4000041`. Clearance also needs the pinned full-kit obstacle GLB; rebuild it from the historical full CAD export with `npm run model:import -- --dataset 4000041 --profile reference` if absent. Run `npm run model:compile -- --dataset 4000041` and `npm run model:verify -- --dataset 4000041 --profile demo`. These commands write private build outputs only. The older two-manual package remains the staged demo.

@@ -198,6 +198,7 @@ void main() {
                 const position = new Box3().setFromObject(n).getCenter(new Vector3());
                 meshPoses.set(n,{pose:n.position.clone(),center:position.clone(),neutral:n.material,explode:position.sub(assemblyCenter).multiplyScalar(0.7)});
             });
+            renderer.domElement.dataset.instanceCount = String(new Set([...meshPoses.keys()].map(mesh=>mesh.userData.instanceId)).size);
             inset.frame(model);
         }, undefined, () => { if (!disposed) setError(true); });
         const resize = new ResizeObserver(() => {

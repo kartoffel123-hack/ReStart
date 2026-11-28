@@ -148,13 +148,6 @@ async function capture(
         }
         await page.getByRole('button',{name:'Show starting pose'}).click();
     }
-    if(scenario.setup==='ct-tile') {
-        await page.evaluate(()=>sessionStorage.clear());
-        await page.reload();
-        await page.getByText('Advanced Parameters').click();
-        await page.getByRole('combobox',{name:'Occurrence'}).selectOption('4000041/L388');
-        await page.getByRole('button',{name:/replace grooved 1 × 4 tile/i}).click();
-    }
     if (scenario.setup === 'cross-block') {
         await page.evaluate(() => sessionStorage.clear());
         await page.reload();

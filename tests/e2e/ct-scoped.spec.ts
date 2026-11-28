@@ -1,21 +1,10 @@
 import { expect, test } from '@playwright/test';
-import { readFile } from 'node:fs/promises';
-import { join } from 'node:path';
 
 test('inspect the turntable without offering a gear repair, then complete the scoped fallback', async ({page}) => {
     test.setTimeout(120000);
-    const root = '.staging/4000041/demo';
-    const generation = (await readFile(join(root,'candidate'),'utf8')).trim();
-    expect(generation).toMatch(/^[a-f0-9]{64}$/);
-    // Load the real compiled package through the production loader without
-    // changing the channel used by the existing CT demo or any other browser.
-    await page.route('**/models/4000041/channel.json', route => route.fulfill({json:{schemaVersion:1,stage:'candidate',path:`candidates/${generation}/`}}));
-    await page.route(`**/models/4000041/candidates/${generation}/*`, route => {
-        const name = new URL(route.request().url()).pathname.split('/').pop()!;
-        return route.fulfill({path:join(root,'candidates',generation,name)});
-    });
     await page.emulateMedia({reducedMotion:'reduce'});
     await page.goto('/?dataset=4000041#/?piece=4000041%2FL112');
+    await expect(page.locator('canvas[data-instance-count="284"]')).toBeVisible({timeout:30000});
     await expect(page.locator('.stud-picker__selection code')).toHaveText('4000041/L112');
     await expect(page.getByRole('alert')).toContainText('No repair procedure');
     await page.locator('summary').filter({hasText:'Advanced Parameters'}).click();

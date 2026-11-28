@@ -1,9 +1,9 @@
 import { expect,test } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 
-const target='4000041/L388';
+const target='4000041/L201';
 for(const viewport of [{width:1280,height:800},{width:390,height:844}]) {
-    test(`replace the particular back-room tile in the CT manual at ${viewport.width}px`,async({page})=>{
+    test(`replace the buried gantry support in the CT manual at ${viewport.width}px`,async({page})=>{
         test.setTimeout(90000);
         await page.setViewportSize(viewport);
         await page.emulateMedia({reducedMotion:'reduce'});
@@ -16,19 +16,20 @@ for(const viewport of [{width:1280,height:800},{width:390,height:844}]) {
         const [u,v]=(await canvas.getAttribute('data-target-point'))!.split(',').map(Number);
         const bounds=(await canvas.boundingBox())!;
         await canvas.click({position:{x:u!*bounds.width,y:v!*bounds.height}});
-        await expect(page.locator('.stud-picker__selection code')).toHaveText(target);
+        // The support is buried; a real pick selects the visible outer occurrence.
+        await expect(page.locator('.stud-picker__selection code')).toHaveText(/^4000041\/L\d+$/);
         const advanced=page.getByText('Advanced Parameters');await advanced.click();
         const selector=page.getByRole('combobox',{name:'Occurrence'});
-        await selector.selectOption('4000041/L389');
+        await selector.selectOption('4000041/L112');
         await expect(page.getByRole('alert')).toContainText('No repair procedure');
         await expect(page.getByRole('button',{name:/^replace /i})).toHaveCount(0);
         await selector.selectOption(target);
         await advanced.click();
-        await page.getByRole('button',{name:/replace grooved 1 × 4 tile/i}).click();
+        await page.getByRole('button',{name:/replace buried gantry support/i}).click();
         const screen=page.locator('[data-screen="manual"]'), confirm=page.getByRole('button',{name:'Confirm this step'});
-        for(const phase of ['remove','replace','restore','check']) {
+        for(const phase of ['remove','remove','remove','replace','restore','restore','restore','check']) {
             await expect(screen).toHaveAttribute('data-phase',phase);
-            await expect(page.getByLabel('Assembly view').locator('canvas')).toHaveAttribute('data-active-instance',target,{timeout:30000});
+            await expect(page.getByLabel('Assembly view').locator('canvas')).toHaveAttribute('data-active-instance',phase==='replace'?target:/^4000041\/L\d+$/,{timeout:30000});
             await expect(page.getByLabel('Assembly view').locator('canvas')).toHaveAttribute('data-active-visible','true');
             await expect(screen.locator('.rs-manual__instruction')).toBeVisible();
             if(viewport.width===390) {
@@ -51,13 +52,13 @@ for(const viewport of [{width:1280,height:800},{width:390,height:844}]) {
             await confirm.click();
         }
         await expect(page.getByRole('heading',{name:'Repair complete'})).toBeVisible();
-        await expect(page.getByText('0 healthy pieces disturbed in the modeled route.')).toBeVisible();
+        await expect(page.getByText('10 healthy pieces disturbed in the modeled route.')).toBeVisible();
         await expect(page.getByText(target,{exact:true})).toBeVisible();
         const downloaded=page.waitForEvent('download');
         await page.getByRole('button',{name:'Export repair report'}).click();
         const report=JSON.parse(await readFile((await (await downloaded).path())!,'utf8'));
         expect(report.targetIds).toEqual([target]);
-        expect(report.repair.disturbedIds).toEqual([]);
+        expect(report.repair.disturbedIds).toHaveLength(10);
         expect(report.repair.procedureFingerprint).toMatch(/^[a-f0-9]{64}$/);
         expect(report.check).toBe('operator-confirmed');
         expect(foreign).toEqual([]);
@@ -82,8 +83,8 @@ test('CT reviewer and graph stay on the selected scanner piece',async({page})=>{
     await page.goto('/?dataset=4000041#/dof');
     await expect(page.getByText('No reviewed connection and timing catalog for this dataset.')).toBeVisible();
     const row=page.getByRole('row').filter({has:page.getByRole('link',{name:target})});
-    await expect(row).toContainText('12 mm');
-    await expect(row).toContainText('Unknown');
+    await expect(row.first()).toContainText('mm');
+    await expect(row.first()).toContainText('Unknown');
 });
 
 test('a failed scanner fetch can retry, and a helicopter visit cannot consume its checkpoint',async({page})=>{
@@ -95,8 +96,8 @@ test('a failed scanner fetch can retry, and a helicopter visit cannot consume it
     await page.getByRole('button',{name:'Retry loading repair'}).click();
     await page.getByText('Advanced Parameters').click();
     await page.getByRole('combobox',{name:'Occurrence'}).selectOption(target);
-    await page.getByRole('button',{name:/replace grooved 1 × 4 tile/i}).click();
-    await page.getByRole('button',{name:'Confirm this step'}).click();
+    await page.getByRole('button',{name:/replace buried gantry support/i}).click();
+    for(let i=0;i<3;i++) await page.getByRole('button',{name:'Confirm this step'}).click();
     await expect(page.locator('[data-screen="manual"]')).toHaveAttribute('data-phase','replace');
     await page.goto('/?dataset=30465#/');
     await expect(page.getByText('LEGO Technic helicopter 30465',{exact:true})).toBeVisible();

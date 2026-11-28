@@ -13,7 +13,7 @@ Disassembly Analysis for MedTech"* by Siemens Healthineers
 
 ## The idea
 
-**CT scanner candidate (4000041):** `/?dataset=4000041#/` opens the scanner when its local candidate is staged. All 566 Studio placements have individual IDs. Choose the back-room tile (`4000041/L388`) for a direct exchange, or the **buried gantry support brick** (`4000041/L201`) for the hard demo: move two intact crown sections to reach the brick with the separator. Both use the Mechanic Manual. `/?dataset=30465#/` pins the helicopter. The helicopter remains the default until the CT has an independent spare-replacement trial and hosted browser sign-off. See the [CT build and operator handoff](data/review/4000041/operator-handoff.md).
+**CT scanner candidate (4000041):** `/?dataset=4000041#/` opens the staged **MRI and Mid section**: 284 pieces, without the string or room scenery. Select the **buried gantry support brick** (`4000041/L201`) to exchange it in the Mechanic Manual, or inspect the black toothed turntable top (`4000041/L112`, no verified exchange). `/?dataset=30465#/` pins the helicopter. The helicopter remains the default until the CT has an independent spare-replacement trial and hosted browser sign-off. See the [CT build and operator handoff](data/review/4000041/operator-handoff.md).
 
 **Runnable pilot:** `npm ci && npm run dev` on Node 24.22.3. At `#/`, search or pick one of
 70 real pieces. **12 single-target procedures** currently replay against the model. Try

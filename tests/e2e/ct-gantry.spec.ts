@@ -18,13 +18,13 @@ test('exchange the buried gantry brick while keeping the two five-piece crown se
         await expect(screen).toHaveAttribute('data-phase',phase);
         await expect.poll(async()=> (await canvas.getAttribute('data-moving-members'))?.split(',').length,{timeout:30000}).toBe(count);
         if(i===0) {
-            await expect(screen.locator('.rs-manual__instruction')).toContainText('nearer the control room');
+            await expect(screen.locator('.rs-manual__instruction')).toContainText('directly above the replacement site');
             await expect(canvas).toHaveAttribute('data-motion-offset-mm','0.00,-92.80,150.00');
         }
         if(i===2) {
             await expect(screen.locator('.rs-manual__instruction')).toContainText('middle two studs');
             await expect(canvas).toHaveAttribute('data-active-instance',target);
-            await expect(canvas).toHaveAttribute('data-tool-instance','4000041/L550');
+            await expect(canvas).toHaveAttribute('data-tool-instance','');
             await page.getByRole('button',{name:'Show starting pose'}).click();
             await expect(canvas).toHaveAttribute('data-motion-offset-mm','0.00,0.00,0.00');
         }

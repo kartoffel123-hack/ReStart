@@ -30,7 +30,8 @@ export async function checkScannerSite(root:string) {
     const channel=z.object({schemaVersion:z.literal(1),stage:z.literal('candidate'),path:z.string().regex(/^candidates\/[0-9a-f]{64}\/$/)}).parse(JSON.parse(await readFile(join(root,'channel.json'),'utf8')));
     const {model,manuals,glb}=await readScannerGeneration(join(root,channel.path),channel.path.split('/')[1]!);
     const report=await inspectAssemblyGlb(glb),ids=report.instances.map(p=>p.instanceId).sort();
-    if(report.problems.length || (ids.length!==566 && !isDemoSet(ids)) || JSON.stringify(ids)!==JSON.stringify(manuals.inventory.map(p=>p.id).sort()) ||
+    if(!isDemoSet(ids)) throw new Error('The active CT geometry must contain exactly MRI and Mid section without the string. Run npm run model:ct-stage.');
+    if(report.problems.length || JSON.stringify(ids)!==JSON.stringify(manuals.inventory.map(p=>p.id).sort()) ||
         JSON.stringify(ids)!==JSON.stringify(model.occurrences.filter(o=>o.kind==='piece').map(o=>o.id).sort())) throw new Error('CT inventory mismatch');
     for(const job of Object.values(manuals.repairs)) {
         if(job.graphRevision!==model.graphRevision || job.datasetRevision!==model.source.datasetRevision || !replay(model,job).ok ||

@@ -213,7 +213,7 @@ export function StudPilot() {
                      {(replaceWarning || (!job && dataset.id==='4000041')) && <p role="alert">No repair procedure is available for this piece.</p>}
                 </div> : <div className="stud-picker__selection stud-picker__selection--empty"><p>[Please select a piece in the 3D view]</p></div>}
                 {stage==='candidate' && !target && <>
-                    <p>{jobs.length} modeled repairs · {data.inventory.length} pieces to inspect</p>
+                     <p>{jobs.length} modeled {jobs.length===1?'repair':'repairs'} · {data.inventory.length} pieces to inspect</p>
                     {jobs.map(r=><button key={r.procedureFingerprint} className="stud-picker__primary" onClick={()=>select(r.targetIds[0]!)}>
                         {data.inventory.find(p=>p.id===r.targetIds[0])?.name} · {r.disturbedCount===0?'Direct exchange':`${r.disturbedCount} healthy pieces moved`}
                     </button>)}

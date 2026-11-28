@@ -21,12 +21,13 @@ export function sweepPair(members:TriangleSoup[], scene:TriangleSoup[], start:Po
     const hits:Contact[] = [];
     const moving = new Set(members.map(p=>p.id));
     const reverse = new Vector3(start[0]-end[0],start[1]-end[1],start[2]-end[2]);
+    const fromHome = start.every(x=>x===0);
     for (const member of members) {
         const indexed = buildObstacle(member,{translation:[0,0,0],rotation:[0,0,0,1]});
         try {
             for (const fixed of scene) {
                 if (moving.has(fixed.id)) continue;
-                const relative = start.every(x=>x===0) ? fixed.positions : fixed.positions.map((x,i)=>x-start[i%3]!);
+                const relative = fromHome ? fixed.positions : fixed.positions.map((x,i)=>x-start[i%3]!);
                 const hit = translationWitness(relative,reverse,indexed);
                 if (hit) hits.push({mover:member.id,fixed:fixed.id,fromMm:hit.fromMm,toMm:hit.toMm});
             }
@@ -66,7 +67,8 @@ async function survey() {
     const bench:Vec3=[0,kit.min.y-unit.min.y,across[2]];
     const recipe=await gantryRecipe();
     const caps=new Set(recipe.groups.flatMap(g=>g.members));
-    const directions:Record<string,Point>={up,positiveX:[kit.max.x-unit.min.x+10,0,0],negativeX:[kit.min.x-unit.max.x-10,0,0]};
+    const directions:Record<string,Point>={up,positiveX:[kit.max.x-unit.min.x+10,0,0],negativeX:[kit.min.x-unit.max.x-10,0,0],
+        positiveZ:[0,0,kit.max.z-unit.min.z+10],negativeZ:[0,0,kit.min.z-unit.max.z-10]};
     const installed:Record<string,Contact[]>={};
     for(const [name,end] of Object.entries(directions)) installed[name]=sweepPair(members,scene,home,end);
 
@@ -83,17 +85,26 @@ async function survey() {
         return {...p,positions:p.positions.map((x,i)=>x+offset[i%3]!)};
     });
     const points=[home,up,across,bench];
-    const legs=(path:Point[],obstacles:TriangleSoup[])=>path.slice(1).map((end,i)=>sweepPair(members,obstacles,path[i]!,end));
-    const outward=legs(points,parked),back=legs([...points].reverse(),parked);
+    const legs=(moving:TriangleSoup[],path:Point[])=>path.slice(1).map((end,i)=>sweepPair(moving,parked,path[i]!,end));
+    const returnPoints=[...points].reverse();
+    const outward=legs(members,points),back=legs(members,returnPoints);
+    // Test the alternative that the twelve fitted pins travel with the pair.
+    // This is a geometric grouping hypothesis, not a grip or retention claim.
+    const pins=scoped.filter(p=>p.definitionId==='4274.dat' && p.id.match(/^4000041\/L(18[0-9]|19[01])$/));
+    if(pins.length!==12) throw new Error('Turntable half-pin membership changed');
+    const carrier=[...members,...pins];
+    const carrierOut=legs(carrier,points),carrierBack=legs(carrier,returnPoints);
     const ids=(hits:Contact[])=>[...new Set(hits.map(h=>h.fixed))].sort();
     const remaining=ids([...outward.flat(),...back.flat()]);
     const result={scopedDigest,fullDigest,generation,members:members.map(p=>p.id),directions,installed,
         parkedCrownIds:[...caps],benchPathOffsetsMm:points,outward,back,remaining,excluded:remaining.filter(id=>!scopedIds.has(id)),
+        carrierStudy:{members:carrier.map(p=>p.id),outward:carrierOut,back:carrierBack},
         status:remaining.length?'blocked after both crown sections parked':'no surface contact on tested translations'};
     await writeFile(join(demoStage,'turntable-access.json'),JSON.stringify(result,null,2)+'\n');
     for(const [direction,hits] of Object.entries(installed)) console.log(`${direction}: ${ids(hits).length} installed obstacles`);
     console.log(`With both caps parked: outward ${outward.map(h=>ids(h).length)}, return ${back.map(h=>ids(h).length)}. ${result.status}.`);
     console.log(`Remaining IDs: ${remaining.join(', ')}. Outside demo: ${result.excluded.join(', ')||'none'}.`);
+    console.log(`Carrying the twelve half pins: outward ${carrierOut.map(h=>ids(h).length)}, return ${carrierBack.map(h=>ids(h).length)}.`);
 }
 
 if(process.argv[1] && import.meta.url===pathToFileURL(process.argv[1]).href) await survey();

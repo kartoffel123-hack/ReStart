@@ -40,6 +40,8 @@ The shared selector is `src/app/default-dataset.json`. Leave `30465` selected wh
 
 ## MRI + Mid section working candidate
 
+For getting the **intact** turntable out and back, see the [measured access path and blocker IDs](turntable-access.md). The existing roof moves alone do not release it.
+
 The scoped build lives in `.staging/4000041/demo/`, separate from the previous public candidate channel. Its 284 placements are the two requested groups without `4000041/L111` (string). The fallback manual exchanges `4000041/L201`; the separator is a bench tool, not a selectable Decoration piece. The scoped candidate has no back-room tile manual.
 
 The intended hard target is the **black toothed turntable top** (`L112`, `88738_raw.dat`), not the light-grey bottom (`L192`, `18939.dat`). With the mating bottom fixed, the scoped meshes reject a straight pull along either axial direction. At −2 mm X, a point on the top moves from a 0.475 mm gap to 0.247 mm inside the bottom. At +2 mm X a different point moves from a 0.283 mm gap to 0.718 mm inside. Reproduce both points with `.tmp/ct-cad-env/bin/python -B -m tools.ct.turntable_fit`. These are rigid-motion counterexamples, not a force measurement or proof that all physical releases are impossible.

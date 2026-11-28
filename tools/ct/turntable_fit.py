@@ -8,25 +8,27 @@ import numpy as np
 import trimesh
 
 
-def measure(directory):
-    scope = json.loads(Path('data/review/4000041/demo-assembly.json').read_text())
+def load_scoped_scene(directory):
     imported = json.loads((directory / 'import.json').read_text())
     path = directory / imported['geometry']
     digest = hashlib.sha256(path.read_bytes()).hexdigest()
     if path.name != f'geometry-{digest}.glb':
         raise ValueError('Scoped geometry digest mismatch')
-    scene = trimesh.load_scene(path, process=False)
+    return trimesh.load_scene(path, process=False), digest
 
-    def installed(locator):
-        frame, key = scene.graph[locator]
-        mesh = scene.geometry[key].copy()
-        mesh.apply_transform(frame)
-        mesh.apply_scale(1000)
-        mesh.merge_vertices()
-        return mesh
+def installed(scene, locator):
+    frame, key = scene.graph[locator]
+    mesh = scene.geometry[key].copy()
+    mesh.apply_transform(frame)
+    mesh.apply_scale(1000)
+    mesh.merge_vertices()
+    return mesh
 
-    top = installed(scope['gearTarget'])
-    bottom = installed(scope['turntableBottom'])
+def measure(directory):
+    scope = json.loads(Path('data/review/4000041/demo-assembly.json').read_text())
+    scene, digest = load_scoped_scene(directory)
+    top = installed(scene, scope['gearTarget'])
+    bottom = installed(scene, scope['turntableBottom'])
     if not bottom.is_volume:
         raise ValueError('The mating bottom is not a closed oriented volume')
     results = []

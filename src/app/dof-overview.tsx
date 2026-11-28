@@ -18,7 +18,8 @@ import type { AssemblyModel, ConnectionKind } from '../domain/schema.js';
 import nauo9AccessPlanRaw from '../../data/review/nauo9-access-plan.json';
 import { exportJson } from './export-json.js';
 import { loadPackage } from './package-loader.js';
-import { pilotBase, type PilotData } from './pilot-data.js';
+import type { PilotData } from './pilot-data.js';
+import { useDataset } from './dataset.js';
 import '../presentation/dof-overview.css';
 
 const reviewedDependencyPlanSchema = z.object({
@@ -64,6 +65,7 @@ function formatSeconds(sec: number): string {
 }
 
 export function DofOverviewScreen() {
+    const dataset = useDataset();
     const [model, setModel] = useState<AssemblyModel>();
     const [pilot, setPilot] = useState<PilotData>();
     const [candidates, setCandidates] = useState<MotionCandidateSummary[]>([]);
@@ -78,26 +80,21 @@ export function DofOverviewScreen() {
 
     useEffect(() => {
         const abort = new AbortController();
-        Promise.all([
-            loadPackage(pilotBase, abort.signal),
-            fetch(`${pilotBase}pilot/connection-dof.json`, { signal: abort.signal }).then((res) => {
-                if (!res.ok) throw new Error(`connection-dof.json HTTP ${res.status}`);
-                return res.json();
-            })
-        ])
-            .then(([bundle, rawDof]) => {
+        loadPackage(dataset.base, abort.signal)
+            .then(bundle => {
                 if (abort.signal.aborted) return;
+                if (!bundle.dof) { setError('No reviewed connection and timing catalog for this dataset.'); return; }
                 setModel(bundle.model);
                 setPilot(bundle.pilot);
                 setCandidates(candidateSchema.parse(bundle.candidates));
-                setDofCatalog(connectionDofCatalogSchema.parse(rawDof));
+                setDofCatalog(connectionDofCatalogSchema.parse(bundle.dof));
             })
             .catch((err) => {
                 if (!abort.signal.aborted) setError(String(err));
             });
 
         return () => abort.abort();
-    }, []);
+    }, [dataset.base]);
 
     const timingSummary = useMemo(
         () =>
@@ -119,7 +116,7 @@ export function DofOverviewScreen() {
 
         return dofCatalog.pieces.map((piece) => {
             const occ = occById.get(piece.pieceId);
-            const parentName = occ?.parent ? occById.get(occ.parent)?.commonName ?? occ.parent : '30465';
+            const parentName = occ?.parent ? occById.get(occ.parent)?.commonName ?? occ.parent : dataset.id;
             const pieceConns = piece.connectionIds
                 .map((id) => connById.get(id))
                 .filter((c): c is NonNullable<typeof c> => c !== undefined);
@@ -133,7 +130,7 @@ export function DofOverviewScreen() {
                 repair: repairByTarget.get(piece.pieceId),
                 candidates,
                 dofCatalog,
-                reviewedPlan: nauo9AccessPlan
+                reviewedPlan: dataset.id === '30465' ? nauo9AccessPlan : undefined
             });
 
             const planReleaseSeconds = Number(
@@ -193,7 +190,7 @@ export function DofOverviewScreen() {
             <main className="rs-dof-page" data-route="dof">
                 <header className="rs-dof-header">
                     <div>
-                        <h1>Freiheitsgrade &amp; Verbindungszeiten · 30465</h1>
+                        <h1>Freiheitsgrade &amp; Verbindungszeiten · {dataset.id}</h1>
                     </div>
                     <nav className="rs-dof-nav">
                         <a href="#/">Mechanic manual</a>
@@ -227,7 +224,7 @@ export function DofOverviewScreen() {
         <main className="rs-dof-page" data-route="dof">
             <header className="rs-dof-header">
                 <div>
-                    <h1>Freiheitsgrade &amp; Verbindungszeiten · 30465</h1>
+                    <h1>Freiheitsgrade &amp; Verbindungszeiten · {dataset.id}</h1>
                     <div className="rs-dof-header__sub">
                         Alle 70 Bauteile, 84 STEP-Verbindungen, Freiheitsgrade (DOF) und MTM-Zeiten pro Verbindungstyp
                     </div>

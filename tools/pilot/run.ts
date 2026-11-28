@@ -20,5 +20,6 @@ await writeFile(`${directory}/light-stud.json`,JSON.stringify({...pilot,inventor
 })))}));
 console.log(`Pilot: ${model.connections.length} generated connections; ${pilot.repair.procedureFingerprint}`);
 const entry=async(name:string)=>({name,sha256:createHash('sha256').update(await readFile(`${directory}/${name}`)).digest('hex')});
-await writeFile(`${directory}/index.tmp`,JSON.stringify({schema:'restart.pilot/1',revision:model.graphRevision,geometry:await entry(pilot.geometry),graph:await entry('graph.json'),candidates:await entry('motion-candidates.json'),manuals:await entry('light-stud.json')}));
+await writeFile(`${directory}/connection-dof.json`,await readFile('data/review/connection-dof.json'));
+await writeFile(`${directory}/index.tmp`,JSON.stringify({schema:'restart.pilot/1',revision:model.graphRevision,dof:await entry('connection-dof.json'),geometry:await entry(pilot.geometry),graph:await entry('graph.json'),candidates:await entry('motion-candidates.json'),manuals:await entry('light-stud.json')}));
 await rename(`${directory}/index.tmp`,`${directory}/index.json`);

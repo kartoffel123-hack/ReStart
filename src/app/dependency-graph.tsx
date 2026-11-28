@@ -20,7 +20,8 @@ import { StudScene } from '../scene/stud-scene.js';
 import { exportJson } from './export-json.js';
 import { crossBlockOverview } from './cross-block-overview.js';
 import { loadPackage } from './package-loader.js';
-import { pilotBase, type PilotData } from './pilot-data.js';
+import type { PilotData } from './pilot-data.js';
+import { useDataset } from './dataset.js';
 import '../presentation/dependency-graph.css';
 
 const ZERO: Vec3 = [0, 0, 0];
@@ -65,6 +66,7 @@ function readRequestedPiece(): string | null {
 }
 
 export function DependencyGraphScreen() {
+    const dataset = useDataset();
     const [model, setModel] = useState<AssemblyModel>();
     const [pilot, setPilot] = useState<PilotData>();
     const [geometryUrl, setGeometryUrl] = useState('');
@@ -92,13 +94,9 @@ export function DependencyGraphScreen() {
     useEffect(() => {
         const abort = new AbortController();
         let url: string | undefined;
-        Promise.all([
-            loadPackage(pilotBase, abort.signal),
-            fetch(`${pilotBase}pilot/connection-dof.json`, { signal: abort.signal })
-                .then((res) => (res.ok ? res.json() : null))
-                .catch(() => null)
-        ])
-            .then(([bundle, rawDof]) => {
+        loadPackage(dataset.base, abort.signal)
+            .then(bundle => {
+                const rawDof = bundle.dof;
                 if (abort.signal.aborted) return;
                 const parsedCandidates = candidateSchema.parse(bundle.candidates);
                 const parsedDof = rawDof ? connectionDofCatalogSchema.parse(rawDof) : undefined;
@@ -125,7 +123,7 @@ export function DependencyGraphScreen() {
             abort.abort();
             if (url) URL.revokeObjectURL(url);
         };
-    }, []);
+    }, [dataset.base]);
 
     const repairsByTarget = useMemo(() => {
         const map = new Map<string, Repair>();
@@ -171,7 +169,7 @@ export function DependencyGraphScreen() {
             repair: activeRepair,
             candidates,
             dofCatalog,
-            reviewedPlan: nauo9AccessPlan
+            reviewedPlan: dataset.id === '30465' ? nauo9AccessPlan : undefined
         });
     }, [
         model,
@@ -255,7 +253,7 @@ export function DependencyGraphScreen() {
         <main className="rs-graph-page" data-route="graph">
             <header className="rs-graph-header">
                 <div className="rs-graph-header__title">
-                    <h1>Dependency Graph · 30465</h1>
+                    <h1>Dependency Graph · {dataset.id}</h1>
                     <span className="rs-graph-header__sub">
                         Zielteil: {tree.nodes.find((node) => node.id === rootId)?.commonName}{' '}
                         <code>{rootId.split('/').at(-1)}</code>
@@ -537,6 +535,7 @@ export function DependencyGraphScreen() {
                             </div>
                             <div className="rs-graph-visual__scene">
                                 <StudScene
+                                    assemblyName={dataset.noun}
                                     url={geometryUrl}
                                     target={rootId}
                                     start={ZERO}

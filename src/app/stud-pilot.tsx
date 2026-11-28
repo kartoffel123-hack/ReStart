@@ -4,7 +4,8 @@ import { PiecePickerScreen } from '../presentation/piece-picker-screen.js';
 import { toStepViewModel } from '../presentation/manual-contract.js';
 import { StudScene } from '../scene/stud-scene.js';
 import { confirmStep, createManualSession, unconfirmLastStep, type ManualSession } from './manual-session.js';
-import { pilotBase, type PilotData } from './pilot-data.js';
+import type { PilotData } from './pilot-data.js';
+import { useDataset } from './dataset.js';
 import { loadPackage } from './package-loader.js';
 import type { AssemblyModel, Vec3 } from '../domain/schema.js';
 import { buildDependencyTree, type MotionCandidateSummary } from '../domain/dependency-tree.js';
@@ -18,6 +19,7 @@ import { removedInstances } from './manual-scene-state.js';
 
 const zero: Vec3 = [0,0,0];
 export function StudPilot() {
+    const dataset = useDataset();
     const [data, setData] = useState<PilotData>();
     const [model, setModel] = useState<AssemblyModel>();
     const [candidates, setCandidates] = useState<MotionCandidateSummary[]>([]);
@@ -27,7 +29,7 @@ export function StudPilot() {
     const [error, setError] = useState(false), [attempt, retry] = useState(0);
     const [replay, play] = useState(0), [reset, resetCamera] = useState(0);
     const [checkFailed, failCheck] = useState(false);
-    const [checkpoint,setCheckpoint]=useState(loadCheckpoint);
+    const [checkpoint,setCheckpoint]=useState(()=>loadCheckpoint(dataset.id));
     const [history,setHistory]=useState<number|null>(null);
     const [joint,setJoint]=useState(false);
     const [replaceWarning,setReplaceWarning]=useState(false);
@@ -47,7 +49,7 @@ export function StudPilot() {
         let url:string | undefined;
         setError(false);
         (async () => {
-            const bundle=await loadPackage(pilotBase,abort.signal);
+            const bundle=await loadPackage(dataset.base,abort.signal);
             if (!abort.signal.aborted) {
                 url=URL.createObjectURL(bundle.geometry);
                 setGeometryUrl(url);
@@ -58,7 +60,7 @@ export function StudPilot() {
             }
         })().catch(() => { if (!abort.signal.aborted) setError(true); });
         return () => {abort.abort();if(url) URL.revokeObjectURL(url);};
-    }, [attempt]);
+    }, [attempt,dataset.base]);
     const jobs=data ? [data.repair,...data.alternatives] : [];
     const target=pick;
     const sceneTarget=target || data?.target;
@@ -81,7 +83,7 @@ export function StudPilot() {
         [model, target, job, candidates]
     );
     useEffect(()=>{
-        if(job && session) storeCheckpoint(session.current ? { target:job.targetIds.join('+'),fingerprint:job.procedureFingerprint,confirmed:session.confirmedCount,failed:checkFailed } : null);
+        if(job && session) storeCheckpoint(dataset.id,session.current ? { target:job.targetIds.join('+'),fingerprint:job.procedureFingerprint,confirmed:session.confirmedCount,failed:checkFailed } : null);
     },[job,session,checkFailed]);
     const step = history!==null ? session?.steps[history] : session?.current;
     const path = step && data?.paths[step.operationId];
@@ -92,17 +94,17 @@ export function StudPilot() {
         if(member && to) offsets[member]=to;
     }
     const removed = session ? removedInstances(session.steps, session.confirmedCount, data?.movers ?? {}) : new Set<string>();
-    const scene = data && sceneTarget && <StudScene url={geometryUrl} target={(step && data.movers[step.operationId]) || sceneTarget} selectionActive={!!target} replacementPreview={step?.phase==='replace'} removed={removed} offsets={offsets} colors={colors} isolate={false} explode={0} idleAutoRotate={!session && history===null} highlight={hovered}
+    const scene = data && sceneTarget && <StudScene assemblyName={dataset.noun} url={geometryUrl} target={(step && data.movers[step.operationId]) || sceneTarget} selectionActive={!!target} replacementPreview={step?.phase==='replace'} removed={removed} offsets={offsets} colors={colors} isolate={false} explode={0} idleAutoRotate={!session && history===null} highlight={hovered}
         xrStep={step ? {id:step.stepId,text:`${step.ordinal}. ${step.instruction}`,replay:()=>play(n=>n+1),confirm:()=>{if(history===null && !checkFailed)setSession(s=>s && confirmStep(s,step.stepId));}} : undefined}
         start={path?.[0] ?? zero} end={path?.[1] ?? zero} focus={!!step}
         replay={replay} reset={reset} onPick={id => { if (!session && !checkpoint) {setJoint(false);select(id);} }} />;
     if (checkpoint && data && !session) {
-        const saved=[...jobs,data.jointRepair].find(r=>r.targetIds.join('+')===checkpoint.target);
+        const saved=[...jobs,...(data.jointRepair?[data.jointRepair]:[])].find(r=>r.targetIds.join('+')===checkpoint.target);
         const resumed=saved && restoreSession(saved,checkpoint);
         return <main className="stud-summary"><h1>Check the assembly before continuing</h1>
             {resumed ? <><p>{checkpoint.confirmed} confirmed step(s). Next: {resumed.current?.instruction}</p>
                 <button onClick={()=>{setJoint(saved!.targetIds.length>1);select(saved!.targetIds[0]!);setSession(resumed);failCheck(checkpoint.failed);setCheckpoint(null);}}>Kit matches — resume</button></> :
-                <p>The procedure changed. Return the helicopter to its installed state first.</p>}
+                <p>The procedure changed. Return the {dataset.noun} to its installed state first.</p>}
             <button onClick={()=>begin(saved?.targetIds[0] ?? data.target,(saved?.targetIds.length ?? 0)>1)}>Kit is fully assembled — restart</button></main>;
     }
     if (session && !step && data && job) return <main className="stud-picker stud-complete">
@@ -113,10 +115,10 @@ export function StudPilot() {
                     {Array.from({length:12},(_,index)=><span key={index}/>)}
                 </div>
             </div>
-            <p>Re-Start / Mechanic Manual · LEGO Technic helicopter 30465</p>
+            <p>Re-Start / Mechanic Manual · {dataset.label}</p>
         </div></header>
-        <section className="stud-picker__drawing" aria-label="Restored helicopter">
-            <StudScene url={geometryUrl} target={target} colors={colors} start={zero} end={zero}
+        <section className="stud-picker__drawing" aria-label={`Restored ${dataset.noun}`}>
+            <StudScene assemblyName={dataset.noun} url={geometryUrl} target={target} colors={colors} start={zero} end={zero}
                 focus={false} replay={0} reset={0} idleAutoRotate onPick={()=>{}}/>
         </section>
         <section className="stud-complete__record" aria-label="Repair record">
@@ -177,7 +179,7 @@ export function StudPilot() {
             <DependencyTreeDiagram tree={manualTree} direction="TB" activeStepPieceId={data?.movers[step.operationId] ?? target!} compact={true} />
         </details>}
     </>;
-    return <PiecePickerScreen scene={scene}>
+    return <PiecePickerScreen scene={scene} assemblyLabel={dataset.label}>
             {data ? <><details className="stud-picker__advanced"><summary>Advanced Parameters</summary>
                 <label>Search pieces <input value={query} onChange={e=>search(e.target.value)} placeholder="Name, element ID, design or usage ID"/></label>
                 <label>Occurrence <select value={target} onChange={e=>select(e.target.value)}>
@@ -191,14 +193,14 @@ export function StudPilot() {
                         onClick={()=>select(p.id)}>{p.name} — {p.id}</button>)}</section>)}</div>
                 </details>
                 <DescriptionPicker data={data} select={select} hover={setHovered}/>
-                {(target===data.pin || target===data.target) && <button onClick={()=>begin(data.pin,true)}>Replace pin and light stud together</button>}
+                {data.pin && data.jointRepair && (target===data.pin || target===data.target) && <button onClick={()=>begin(data.pin!,true)}>Replace pin and light stud together</button>}
                 <p className="stud-picker__coverage">{stage==='pilot'?'Generated model routes':'Reviewed model routes'} · {jobs.length} of {data.inventory.length} targets available.</p>
             </details>
                 <h3 className="stud-picker__selection-title">Selected piece</h3>
                 {target ? <div className="stud-picker__selection">
                     <strong>{label}</strong><code>{target}</code>
-                    <button className="stud-picker__primary" onClick={()=>job ? begin(target) : setReplaceWarning(true)}>Replace {label}</button>
-                    {replaceWarning && <p role="alert">No repair procedure is available for this piece.</p>}
+                     {(job || dataset.id==='30465') && <button className="stud-picker__primary" onClick={()=>job ? begin(target) : setReplaceWarning(true)}>Replace {label}</button>}
+                     {(replaceWarning || (!job && dataset.id==='4000041')) && <p role="alert">No repair procedure is available for this piece.</p>}
                 </div> : <div className="stud-picker__selection stud-picker__selection--empty"><p>[Please select a piece in the 3D view]</p></div>}
                 </> :
                 error ? <><p role="status">The repair inventory could not be loaded.</p><button onClick={() => retry(n => n+1)}>Retry loading repair</button></> : <p role="status">Loading repair…</p>}

@@ -1,13 +1,18 @@
 import { z } from 'zod';
 import { assemblyModelSchema } from '../domain/schema.js';
-import { pilotSchema } from './pilot-data.js';
+import { datasetManualSchema, pilotSchema, type PilotData } from './pilot-data.js';
 
 const file=z.object({name:z.string().regex(/^[a-z0-9-]+\.(json|glb)$/),sha256:z.string().regex(/^[a-f0-9]{64}$/)});
-const indexSchema=z.object({schema:z.literal('restart.pilot/1'),revision:z.string(),graph:file,manuals:file,candidates:file,geometry:file});
+const entries=z.object({revision:z.string(),graph:file,manuals:file,candidates:file,geometry:file,dof:file.optional()});
+const indexSchema=z.discriminatedUnion('schema',[
+    entries.extend({schema:z.literal('restart.pilot/1')}),
+    entries.extend({schema:z.literal('restart.dataset/2'),datasetId:z.string()})
+]);
 
 /** Verify exactly the generation selected by the small revalidated index. Do
  * not fetch a second copy of the GLB after verifying the first one's digest. */
 export async function loadPackage(base:string,signal:AbortSignal) {
+    const expectedId=base.split('/').filter(Boolean).at(-1);
     const channelResponse=await fetch(`${base}channel.json`,{signal,cache:'no-cache'});
     if(!channelResponse.ok) throw new Error(`Channel HTTP ${channelResponse.status}`);
     const channel=z.discriminatedUnion('stage',[
@@ -18,6 +23,7 @@ export async function loadPackage(base:string,signal:AbortSignal) {
     const response=await fetch(`${base}index.json`,{signal,cache:'no-cache'});
     if(!response.ok) throw new Error(`Manifest HTTP ${response.status}`);
     const index=indexSchema.parse(await response.json());
+    if ((index.schema==='restart.pilot/1' ? '30465' : index.datasetId)!==expectedId) throw new Error('Wrong dataset index');
     const bytes=async(entry:z.infer<typeof file>)=>{
         const r=await fetch(base+entry.name,{signal});
         if(!r.ok) throw new Error(`${entry.name}: HTTP ${r.status}`);
@@ -28,8 +34,11 @@ export async function loadPackage(base:string,signal:AbortSignal) {
     };
     const [graph,manuals,candidates,geometry]=await Promise.all([bytes(index.graph),bytes(index.manuals),bytes(index.candidates),bytes(index.geometry)]);
     const decode=(b:ArrayBuffer):unknown=>JSON.parse(new TextDecoder().decode(b));
-    const model=assemblyModelSchema.parse(decode(graph)),pilot=pilotSchema.parse(decode(manuals));
+    const model=assemblyModelSchema.parse(decode(graph));
+    const pilot:PilotData=(index.schema==='restart.pilot/1' ? pilotSchema : datasetManualSchema).parse(decode(manuals));
+    if(!model.occurrences.some(o=>o.parent===null && o.id===expectedId)) throw new Error('Wrong dataset graph');
     if(model.graphRevision!==index.revision || pilot.geometry!==index.geometry.name || model.source.datasetRevision!==index.geometry.sha256 ||
-        [pilot.repair,...pilot.alternatives,pilot.jointRepair].some(r=>r.graphRevision!==model.graphRevision || r.datasetRevision!==model.source.datasetRevision)) throw new Error('Mixed package revision');
-    return {model,pilot,stage:channel.stage,candidates:decode(candidates),geometry:new Blob([geometry],{type:'model/gltf-binary'})};
+        [pilot.repair,...pilot.alternatives,...(pilot.jointRepair?[pilot.jointRepair]:[])].some(r=>r.graphRevision!==model.graphRevision || r.datasetRevision!==model.source.datasetRevision)) throw new Error('Mixed package revision');
+    const dof=index.dof ? decode(await bytes(index.dof)) : undefined;
+    return {model,pilot,stage:channel.stage,candidates:decode(candidates),dof,geometry:new Blob([geometry],{type:'model/gltf-binary'})};
 }

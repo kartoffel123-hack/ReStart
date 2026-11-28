@@ -3,7 +3,8 @@ import { assemblyModelSchema, reviewPatchSchema, type AssemblyModel, type Review
 import { applyReview } from '../domain/review.js';
 import type { PlanOutcome } from '../domain/planner.js';
 import { AssemblyDiagram } from '../graph-view/assembly-diagram.js';
-import { pilotBase, pilotSchema, type PilotData } from './pilot-data.js';
+import type { PilotData } from './pilot-data.js';
+import { useDataset } from './dataset.js';
 import { exportJson } from './export-json.js';
 import { StudScene } from '../scene/stud-scene.js';
 import '../presentation/reviewer.css';
@@ -20,6 +21,7 @@ const candidatesSchema=z.array(z.object({id:z.string(),piece:z.string(),axis:z.a
 
 const zero: [number,number,number] = [0,0,0];
 export function Reviewer() {
+    const dataset = useDataset();
     const [base,setBase] = useState<AssemblyModel>();
     const [geometry,setGeometry]=useState('');
     const [candidates,setCandidates]=useState<z.infer<typeof candidatesSchema>>([]);
@@ -38,12 +40,13 @@ export function Reviewer() {
     useEffect(()=>{
         const abort = new AbortController();
         let url:string|undefined;
-        loadPackage(pilotBase,abort.signal).then(bundle=>{
+        loadPackage(dataset.base,abort.signal).then(bundle=>{
             if(abort.signal.aborted) return;
             const {model:b,pilot:d,candidates:c}=bundle;
             url=URL.createObjectURL(bundle.geometry);setGeometry(url);
             const requested=new URLSearchParams(window.location.hash.split('?')[1]).get('piece');
             setBase(b); setPilot(d); select(b.occurrences.some(o=>o.id===requested)?requested!:d.target);
+            setOption(b.operations[0]?.id ?? '');
             setCandidates(candidatesSchema.parse(c));
             let initial:ReviewPatch={schemaVersion:1,baseDatasetRevision:b.source.datasetRevision,baseGraphRevision:b.graphRevision,edits:[]};
             try {
@@ -57,7 +60,7 @@ export function Reviewer() {
             setPatch(initial);
         }).catch(e=>{if(!abort.signal.aborted) setMessage(String(e));});
         return ()=>{abort.abort();if(url) URL.revokeObjectURL(url);};
-    },[]);
+    },[dataset.base]);
     useEffect(()=>{
         if(!base || !patch || !pilot) return;
         const worker=new Worker(new URL('./preview-worker.ts',import.meta.url),{type:'module'});
@@ -76,7 +79,7 @@ export function Reviewer() {
     const model=resolved!;
     const op=model.operations.find(o=>o.id===option)!;
     const connections=model.connections.filter(c=>c.a===selected || c.b===selected);
-    const obstacleId=obstacle || model.connections[0]!.id;
+    const obstacleId=obstacle || model.connections[0]?.id || '';
     const movable=model.occurrences.filter(p=>p.kind==='piece' && model.poses.some(s=>s.occurrenceId===p.id && s.kind!=='installed'));
     const selectedObstacle=subjectKind==='connection'?obstacleId:(obstacle || movable[0]!.id);
     const clearPoses=model.poses.filter(p=>p.occurrenceId===selectedObstacle && p.kind!=='installed');
@@ -124,7 +127,7 @@ export function Reviewer() {
                 <h2>Assembly relationships</h2>
                 <label>Occurrence <select value={selected} onChange={e=>select(e.target.value)}>
                     {model.occurrences.map(p=><option key={p.id} value={p.id}>{p.commonName} — {p.id}</option>)}</select></label>
-                <details><summary>Browse assembly hierarchy</summary><ul>{tree('30465')}</ul></details>
+                <details><summary>Browse assembly hierarchy</summary><ul>{tree(dataset.id)}</ul></details>
                 <details><summary>{connections.length} generated contacts</summary><ul>{connections.map(c=><li key={c.id}>{c.kind}: {c.a} ↔ {c.b}</li>)}</ul></details>
                 <details><summary>{candidates.filter(c=>c.piece===selected).length} proposed exit directions</summary>
                     {candidates.filter(c=>c.piece===selected).map(c=><details key={c.id}><summary>{c.proposedStrokeMm.toFixed(2)} mm along [{c.axis.map(v=>Number(v.toFixed(2))).join(', ')}]</summary>
@@ -173,7 +176,7 @@ export function Reviewer() {
             </section>
             {model.occurrences.some(p=>p.id===selected && p.kind==='piece') && <section className="reviewer__panel">
                 <h2>Selected piece</h2>
-                <div className="review-scene"><StudScene url={geometry}
+                <div className="review-scene"><StudScene assemblyName={dataset.noun} url={geometry}
                     target={selected} start={zero} end={zero} focus={true} replay={0} reset={0} onPick={()=>{}}/></div>
             </section>}
         </div>

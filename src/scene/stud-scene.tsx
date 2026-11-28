@@ -7,6 +7,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import type { Vec3 } from '../domain/schema.js';
 
 type Props = {
+    assemblyName?: string;
     url: string; target: string; start: Vec3; end: Vec3; focus: boolean;
     replay: number; reset: number; onPick: (id:string) => void;
     colors?:ReadonlyMap<string,string>; explode?:number; isolate?:boolean;
@@ -128,6 +129,8 @@ void main() {
         // axis, so the assembly is never foreshortened by depth. The frustum is the fit
         // quantity now — there is no FOV, and camera distance only has to clear clipping.
         let aspect = 1, fitRadius = 0.08;
+        const assemblyCenter = new Vector3(0,0.012,0);
+        let assemblyRadius = 0.08;
         const applyFrustum = () => {
             const halfHeight = fitRadius / Math.min(1, aspect);
             camera.left = -halfHeight * aspect;
@@ -141,7 +144,7 @@ void main() {
             const p=latest.current;
             const pivot = focused
                 ? center.clone().addScaledVector(new Vector3(...p.start).add(new Vector3(...p.end)),0.0005)
-                : new Vector3(0,0.012,0);
+                : assemblyCenter.clone();
             // Shift the assembly left on screen, leaving clear space for the overlaid
             // instruction card on the right. This is a view-space offset, not a model move.
             if (focused) pivot.add(new Vector3(-1,0,0.6).normalize().multiplyScalar(0.025));
@@ -149,7 +152,7 @@ void main() {
             const halfStroke=new Vector3(...p.start).distanceTo(new Vector3(...p.end))*0.0005;
             // 0.125 m half-height reproduces the picker framing of the old 0.36 m @ 38° view;
             // 0.014 m is the floor that a 40 mm minimum camera distance used to give a small part.
-            fitRadius = focused ? Math.max(0.014,1.45*(targetRadius+halfStroke)) : 0.08;
+            fitRadius = focused ? Math.max(0.014,1.45*(targetRadius+halfStroke)) : assemblyRadius;
             camera.zoom = 1;
             applyFrustum();
             // Keep the canopy-facing three-quarter view: a lower angle than the
@@ -161,17 +164,22 @@ void main() {
             if (disposed) { dropModel(gltf.scene); return; }
             model = gltf.scene;
             display.add(model);
+            if (props.assemblyName && props.assemblyName !== 'helicopter') {
+                const bounds = new Box3().setFromObject(model);
+                bounds.getCenter(assemblyCenter);
+                assemblyRadius = bounds.getSize(new Vector3()).length() / 2;
+            }
             model.traverse(n => {
                 if (!(n instanceof Mesh)) return;
                 n.material.dispose();
                 const colour=latest.current.colors?.get(String(n.userData.instanceId));
                 const hex = resolveColor(colour);
-                n.material = hex !== null ? new MeshStandardMaterial({color:hex}) : neutral.clone();
+                n.material = n.geometry.hasAttribute('color') ? new MeshStandardMaterial({vertexColors:true,side:DoubleSide}) : hex !== null ? new MeshStandardMaterial({color:hex}) : neutral.clone();
                 const outline=new LineSegments(new EdgesGeometry(n.geometry,32),componentOutlineMaterial);
                 n.add(outline);
                 componentOutlines.push(outline);
                 const position = new Box3().setFromObject(n).getCenter(new Vector3());
-                meshPoses.set(n,{pose:n.position.clone(),center:position.clone(),neutral:n.material,explode:position.sub(new Vector3(0,0.012,0)).multiplyScalar(0.7)});
+                meshPoses.set(n,{pose:n.position.clone(),center:position.clone(),neutral:n.material,explode:position.sub(assemblyCenter).multiplyScalar(0.7)});
             });
             inset.frame(model);
         }, undefined, () => { if (!disposed) setError(true); });
@@ -259,7 +267,7 @@ void main() {
             if (previous?.colors !== p.colors) {
                 for (const [mesh] of meshPoses) {
                     const hex = resolveColor(p.colors?.get(String(mesh.userData.instanceId)));
-                    if (mesh.material instanceof MeshStandardMaterial) {
+                    if (mesh.material instanceof MeshStandardMaterial && !mesh.material.vertexColors) {
                         mesh.material.color.setHex(hex !== null ? hex : 0x838e94);
                     }
                 }
@@ -303,9 +311,9 @@ void main() {
             hoverOutline?.geometry.dispose();hoverOutline?.material.dispose();
         };
     }, [props.url,retry]);
-    return <div className="stud-scene" ref={host} aria-label="Helicopter with selected piece highlighted">
+    return <div className="stud-scene" ref={host} aria-label={`${props.assemblyName ?? 'Helicopter'} with selected piece highlighted`}>
         {error && <p role="status">3D view unavailable. Follow the written direction and stop landmark. <button onClick={()=>setRetry(n=>n+1)}>Retry 3D view</button></p>}
-        {props.focus && !props.replacementPreview && !error && <div className="scene-viewfinder" role="img" aria-label="Full helicopter overview" />}
+        {props.focus && !props.replacementPreview && !error && <div className="scene-viewfinder" role="img" aria-label={`Full ${props.assemblyName ?? 'helicopter'} overview`} />}
         {props.focus && !error && <div className="scene-tools">
             {props.xrStep && modes.map(mode=><button key={mode} onClick={()=>{xr.current?.enter(mode).catch(()=>setXrError('Headset session unavailable. Continue on this screen.'));}}>Open {mode==='immersive-ar'?'AR':'VR'} twin</button>)}{xrError}</div>}
     </div>;

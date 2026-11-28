@@ -10,6 +10,7 @@ import type { ReactNode } from 'react';
 import { PlaceholderScreen, type PlaceholderRoute } from '../presentation/placeholder-screen.js';
 import { ConceptGallery } from '../concept/gallery.js';
 import { StudPilot } from './stud-pilot.js';
+import { DatasetContext, selectDataset } from './dataset.js';
 
 export type RouteId = PlaceholderRoute | 'graph' | 'dof';
 
@@ -31,14 +32,21 @@ const DofOverview = lazy(async () => ({
 }));
 
 export function App(): ReactNode {
-    const [route, setRoute] = useState<RouteId>(() => readRoute(window.location.hash));
+    const [hash, setHash] = useState(() => window.location.hash);
 
     useEffect(() => {
-        const onHashChange = (): void => setRoute(readRoute(window.location.hash));
+        const onHashChange = (): void => setHash(window.location.hash);
         window.addEventListener('hashchange', onHashChange);
         return () => window.removeEventListener('hashchange', onHashChange);
     }, []);
 
+    let dataset;
+    try { dataset = selectDataset(window.location.search, hash); }
+    catch (error) { return <main role="alert">{String(error)} <a href="./">Open the default manual</a></main>; }
+    return <DatasetContext.Provider key={dataset.id} value={dataset}><Screen route={readRoute(hash)}/></DatasetContext.Provider>;
+}
+
+function Screen({route}: {route: RouteId}): ReactNode {
     if (route === 'manual') return <div data-route="manual"><StudPilot /></div>;
     if (route === 'dof') return <Suspense fallback={<p>Loading DOF &amp; timing table…</p>}><DofOverview /></Suspense>;
     if (route === 'graph') return <Suspense fallback={<p>Loading dependency graph…</p>}><DependencyGraph /></Suspense>;

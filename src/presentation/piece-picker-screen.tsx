@@ -2,18 +2,19 @@ import type { ReactNode } from 'react';
 import './stud-pilot.css';
 
 type PiecePickerProps = {
+    assemblyLabel?: string;
     scene: ReactNode;
     children: ReactNode;
 };
 
-export function PiecePickerScreen({ scene, children }: PiecePickerProps) {
+export function PiecePickerScreen({ scene, children, assemblyLabel = 'LEGO Technic helicopter 30465' }: PiecePickerProps) {
     return (
         <main className="stud-picker">
             <header className="stud-picker__header">
                 <div>
                     <h1>Re-Start</h1>
                     <h2>Mechanic Manual</h2>
-                    <p>LEGO Technic helicopter 30465</p>
+                    <p>{assemblyLabel}</p>
                 </div>
             </header>
             {scene && (

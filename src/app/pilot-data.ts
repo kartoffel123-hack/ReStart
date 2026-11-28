@@ -9,5 +9,18 @@ export const pilotSchema = z.object({
     repair: repairSchema
     ,alternatives:repairSchema.array(), jointRepair:repairSchema, movers:z.record(z.string(),z.string())
 });
-export type PilotData = z.infer<typeof pilotSchema>;
-export const pilotBase = `${import.meta.env.BASE_URL}models/30465/`;
+/** v1 remains strict. In v2 a repair belongs to its target; there is no
+ * mandatory second pin or joint procedure. Normalize once for the UI. */
+export const datasetManualSchema = pilotSchema.pick({geometry:true,inventory:true,paths:true,movers:true,evidence:true}).extend({
+    defaultTarget: z.string(), repairs: z.record(z.string(),repairSchema)
+}).transform((data, ctx) => {
+    const repair = data.repairs[data.defaultTarget];
+    if (!repair || Object.entries(data.repairs).some(([id,r]) => r.targetIds.length !== 1 || r.targetIds[0] !== id)) {
+        ctx.addIssue({code:'custom',message:'Manual target does not identify its repair'});
+        return z.NEVER;
+    }
+    return {...data,target:data.defaultTarget,repair,alternatives:Object.values(data.repairs).filter(r=>r!==repair)};
+});
+
+type HelicopterPilot = z.infer<typeof pilotSchema>;
+export type PilotData = Omit<HelicopterPilot,'pin'|'jointRepair'> & Partial<Pick<HelicopterPilot,'pin'|'jointRepair'>>;

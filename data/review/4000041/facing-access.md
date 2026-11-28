@@ -1,5 +1,7 @@
 # L127 and L129 before the side wall
 
+Follow-up: the [Studio versus STEP comparison](facing-origin.md) establishes that L129 and L300 already cross in the pinned source drawing. This does not resolve how the two pieces fit on the physical kit.
+
 **Neither curved facing has a demonstrated parking and restoration path on the tested strokes.** This study starts with only the two roof sections in their model-verified trays. All other pieces, including L214/L215, start installed. After an unsuccessful trial the facing stays installed. The wall and bridge are therefore tested against a reachable assembly state, rather than one obtained by hiding the facings.
 
 The full 566-piece geometry was tested in assembly millimetres. Each facing was pulled outwards along −X to 10 mm beyond the kit, transferred in Z, and lowered to bench height. The first strokes were 74.0081 mm for L127 and 74.0133 mm for L129; separate transfers used −360 and −420 mm Z offsets. The survey also tried the opposite piece order, moving both facings together, and lifting each along +Y instead. Every leg was swept in both directions. The limiting contacts were confined to departure from home and reseating; clear transfer and lowering legs did not qualify the endpoints as reachable.

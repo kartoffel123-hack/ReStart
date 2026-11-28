@@ -8,11 +8,25 @@ from tempfile import TemporaryDirectory
 import manifold3d as md
 import numpy as np
 import trimesh
+from scipy.spatial.transform import Rotation
 
-from tools.ct.check_step import (BRepMesh_IncrementalMesh, IFSelect_RetDone, STEPCAFControl_Reader,
-                                 StlAPI_Writer, TCollection_ExtendedString, TDF_Label, TDF_LabelSequence,
-                                 TDocStd_Document, XCAFDoc_DocumentTool, label_name)
-from tools.ct.source import LIBRARY, STAGING, checked_definitions, load_source
+from OCP.BRepAlgoAPI import BRepAlgoAPI_Common
+from OCP.BRepGProp import BRepGProp
+from OCP.BRepMesh import BRepMesh_IncrementalMesh
+from OCP.GProp import GProp_GProps
+from OCP.gp import gp_Trsf
+from OCP.IFSelect import IFSelect_RetDone
+from OCP.STEPCAFControl import STEPCAFControl_Reader
+from OCP.StlAPI import StlAPI_Writer
+from OCP.TCollection import TCollection_ExtendedString
+from OCP.TDF import TDF_Label
+from OCP.collections import Sequence_TDF_Label as TDF_LabelSequence
+from OCP.TDocStd import TDocStd_Document
+from OCP.TopLoc import TopLoc_Location
+from OCP.XCAFDoc import XCAFDoc_DocumentTool
+
+from tools.ct.check_step import label_name
+from tools.ct.source import Definitions, LIBRARY, STAGING, load_source
 from tools.ct.surfaces import Surfaces
 from tools.ct.blocker_fit import checked
 
@@ -67,7 +81,7 @@ def section_volume(a, b, axis, pitch):
     return result
 
 
-def directional_vote(a, b, pitch):
+def directional_vote(a, b, pitch, witness=False):
     """Six independent outside-to-point parity tests per cell and occurrence.
 
     A missing wall makes the votes from opposite ends of a column disagree;
@@ -75,6 +89,9 @@ def directional_vote(a, b, pitch):
     """
     low = np.maximum(a.min(axis=(0,1)), b.min(axis=(0,1)))
     high = np.minimum(a.max(axis=(0,1)), b.max(axis=(0,1)))
+    result = dict(pitchMm=pitch, unanimousMm3=0., majorityMm3=0., tiesMm3=0.)
+    if np.any(high <= low):
+        return result
     count = np.ceil((high-low)/pitch).astype(int)
     spacing = (high-low)/count
     votes = []
@@ -92,8 +109,48 @@ def directional_vote(a, b, pitch):
         votes.append(inside)
     common = np.minimum(*votes)
     volume = spacing.prod()
-    return dict(pitchMm=pitch, unanimousMm3=np.sum(common==6)*volume,
-                majorityMm3=np.sum(common>=4)*volume, tiesMm3=np.sum(common==3)*volume)
+    result.update(unanimousMm3=np.sum(common==6)*volume, majorityMm3=np.sum(common>=4)*volume,
+                  tiesMm3=np.sum(common==3)*volume)
+    if witness:
+        cells = np.argwhere(common == 6)
+        pts = low+(cells[::max(1,len(cells)//200)]+.5)*spacing
+        if not len(pts):
+            raise ValueError('No common six-direction source interior witness')
+        distances = [triangle_mesh(t).nearest.on_surface(pts)[1] for t in (a,b)]
+        best = np.argmax(np.minimum(*distances))
+        result['witness'] = dict(pointMm=pts[best].tolist(), sourceDistancesMm=[d[best] for d in distances])
+    return result
+
+
+def triangle_mesh(faces):
+    return trimesh.Trimesh(faces.reshape(-1,3), np.arange(faces.size//3).reshape(-1,3))
+
+
+def crossing_witness(facing, slope):
+    """Find a slope edge passing through the interior of a raw facing triangle."""
+    normals = np.cross(facing[:,1]-facing[:,0],facing[:,2]-facing[:,0])
+    lengths = np.linalg.norm(normals,axis=1)
+    best = None
+    for j,tri in enumerate(slope):
+        for edge,start in enumerate(tri):
+            end = tri[(edge+1)%3]
+            side_a = np.sum((start-facing[:,0])*normals,axis=1)
+            side_b = np.sum((end-facing[:,0])*normals,axis=1)
+            for i in np.flatnonzero(side_a*side_b < 0):
+                point = start+(end-start)*(side_a[i]/(side_a[i]-side_b[i]))
+                n = normals[i]/lengths[i]
+                boundary = facing[i]
+                edges = np.roll(boundary,-1,axis=0)-boundary
+                # Positive distances to all three edge lines mean strictly
+                # inside the triangle; also require endpoints on distinct sides.
+                margins = np.cross(edges,point-boundary) @ n / np.linalg.norm(edges,axis=1)
+                clearance = min(margins.min(), min(abs(side_a[i]),abs(side_b[i]))/lengths[i])
+                if clearance > 0 and (best is None or clearance > best['marginMm']):
+                    best = dict(facingTriangle=int(i), slopeTriangle=j, slopeEdge=edge,
+                                pointMm=point.tolist(), marginMm=clearance)
+    if best is None:
+        raise ValueError('No transverse source face crossing found')
+    return best
 
 
 def reopen_step(path, targets, directory):
@@ -132,7 +189,9 @@ def reopen_step(path, targets, directory):
                 writer.ASCIIMode = False
                 if not mesher.IsDone() or not writer.Write(shape, str(mesh_file)):
                     raise ValueError(f'Failed to tessellate {loc}')
-                found[locator] = (world,trimesh.load_mesh(mesh_file))
+                placement = gp_Trsf()
+                placement.SetValues(*world[:3].flatten())
+                found[locator] = (world,trimesh.load_mesh(mesh_file),shape.Moved(TopLoc_Location(placement)))
             elif shapes.IsAssembly_s(definition):
                 walk(definition,loc,world)
 
@@ -144,10 +203,16 @@ def reopen_step(path, targets, directory):
 
 def measure():
     source = load_source()
-    defs = checked_definitions(LIBRARY, source['pieces'])
-    surfaces = Surfaces(defs)
     targets = {('MRI:1','24599.dat:8'):('4000041/L129','24599.dat'),
                ('MRI:1','28192.dat:7'):('4000041/L300','28192.dat')}
+    ids = {locator for locator,_ in targets.values()}
+    defs = Definitions(LIBRARY)
+    records = defs.dependencies([p for p in source['pieces'] if p['id'] in ids])
+    files = {name:[r['origin'],r['sha256']] for name,r in records.items()}
+    library_digest = hashlib.sha256(json.dumps(files,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+    if library_digest != 'd2f17eefb49c98671c9f9ca869e876e18975a55c29a3a676b5425e5e1abd50ac':
+        raise ValueError('Studio part or primitive dependency changed')
+    surfaces = Surfaces(defs)
     path = STAGING/'fusion-demo.step'
     digest = hashlib.sha256(path.read_bytes()).hexdigest()
     if digest != '33be022914d8b8d0aeed30eb2810f4c429eb19c8d517933449f653fb14056f39':
@@ -155,7 +220,7 @@ def measure():
     with TemporaryDirectory() as temp:
         step = reopen_step(path, targets, Path(temp))
     signs = np.diag([1.,-1.,-1.])
-    source_faces, step_solids, occurrences = [], [], {}
+    source_faces, step_meshes, step_solids, step_in_source_pose, occurrences = [], [], [], [], {}
     for loc, (locator, ref) in targets.items():
         p, = [p for p in source['pieces'] if p['id']==locator and p['ref']==ref]
         frame = np.eye(4)
@@ -163,26 +228,44 @@ def measure():
         frame[:3,3] = .4*signs @ p['origin']
         raw = np.array([points for _,points in surfaces.mesh(ref)])
         local = .4*raw @ signs
-        source_faces.append(local @ frame[:3,:3].T + frame[:3,3])
-        world, mesh = step[locator]
+        source_faces.append((raw @ np.array(p['basis']).reshape(3,3).T+p['origin']) @ signs * .4)
+        world, mesh, _ = step[locator]
         # Compare actual local surface landmarks in both directions. Bound memory
         # by querying batches against the smaller, independent source soup.
-        raw_mesh = trimesh.Trimesh(local.reshape(-1,3), np.arange(local.size//3).reshape(-1,3))
+        raw_mesh = triangle_mesh(local)
         def distance_samples(a,b):
             pts = np.vstack([a.vertices, a.triangles_center])
             distances = np.concatenate([b.nearest.on_surface(pts[i:i+1000])[1] for i in range(0,len(pts),1000)])
             return dict(maxMm=distances.max(),p95Mm=np.quantile(distances,.95))
-        occurrences[locator] = dict(path=loc, ref=ref, sourceFrame=frame.tolist(), stepFrame=world.tolist(),
+        occurrences[locator] = dict(path=loc, ref=ref, definitionSha256=defs.records[ref]['sha256'],
+            sourceTriangles=len(raw), stepTriangles=len(mesh.faces), sourceWatertight=raw_mesh.is_watertight,
+            sourceFrame=frame.tolist(), stepFrame=world.tolist(),
             maxPoseDisplacementMm=np.linalg.norm(local.reshape(-1,3) @ (frame-world)[:3,:3].T + (frame-world)[:3,3], axis=1).max(),
             sourceToStep=distance_samples(raw_mesh,mesh), stepToSource=distance_samples(mesh,raw_mesh))
         mesh.apply_transform(world)
         if not mesh.is_volume:
             raise ValueError(f'Expected closed STEP mesh for {locator}')
         step_solids.append(checked(md.Manifold(md.Mesh64(np.array(mesh.vertices), np.asarray(mesh.faces,dtype=np.uint64)))))
-    return dict(sourceSha256=source['sourceSha256'],stepSha256=digest,occurrences=occurrences,
+        step_meshes.append(mesh)
+        step_in_source_pose.append(step_solids[-1].transform((frame @ np.linalg.inv(world))[:3]))
+    votes = [directional_vote(*source_faces,pitch,witness=(pitch==.1)) for pitch in (.1,.05,.025)]
+    witness = votes[0]['witness']
+    witness['stepInsideMm'] = [trimesh.proximity.signed_distance(m,[witness['pointMm']])[0] for m in step_meshes]
+    if min(witness['stepInsideMm']) <= 0:
+        raise ValueError('Unanimous source witness does not lie in both STEP solids')
+    oblique = Rotation.from_euler('xyz',[17,31,53],degrees=True).as_matrix()
+    native = BRepAlgoAPI_Common(step['4000041/L129'][2],step['4000041/L300'][2])
+    if not native.IsDone():
+        raise ValueError('Native STEP solid intersection failed')
+    mass = GProp_GProps()
+    BRepGProp.VolumeProperties_s(native.Shape(),mass)
+    return dict(sourceSha256=source['sourceSha256'],dependencySha256=library_digest,stepSha256=digest,occurrences=occurrences,
+                rawFaceCrossing=crossing_witness(*source_faces),
                 sourceSections={pitch:[section_volume(*source_faces,axis,pitch) for axis in range(3)] for pitch in (.1,.05,.025)},
-                sourceVotes=[directional_vote(*source_faces,pitch) for pitch in (.1,.05)],
-                stepOverlapMm3=checked(step_solids[0]^step_solids[1]).volume())
+                sourceVotes=votes, sourceOblique=directional_vote(*(t @ oblique.T for t in source_faces),.1),
+                stepVoteControl=directional_vote(*(m.triangles for m in step_meshes),.05),
+                stepOverlapAtSourcePosesMm3=checked(step_in_source_pose[0]^step_in_source_pose[1]).volume(),
+                stepOverlapMm3=checked(step_solids[0]^step_solids[1]).volume(), stepBrepOverlapMm3=mass.Mass())
 
 
 if __name__ == '__main__':

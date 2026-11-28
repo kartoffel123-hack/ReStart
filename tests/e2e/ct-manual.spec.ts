@@ -28,6 +28,12 @@ for(const viewport of [{width:1280,height:800},{width:390,height:844}]) {
         for(const phase of ['remove','replace','restore','check']) {
             await expect(screen).toHaveAttribute('data-phase',phase);
             await expect(page.getByLabel('Assembly view').locator('canvas')).toHaveAttribute('data-active-instance',target,{timeout:30000});
+            await expect(screen.locator('.rs-manual__instruction')).toBeVisible();
+            if(viewport.width===390) {
+                const field=(await page.getByLabel('Assembly view').boundingBox())!;
+                const card=(await page.getByRole('region',{name:'This step'}).boundingBox())!;
+                expect(field.y+field.height).toBeLessThanOrEqual(card.y+1);
+            }
             if(phase==='replace') {
                 await page.reload();
                 await page.getByRole('button',{name:'Kit matches — resume'}).click();

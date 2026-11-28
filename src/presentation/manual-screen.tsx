@@ -13,9 +13,9 @@ import type { ReactNode } from 'react';
 import type { ManualScreenProps } from './manual-contract.js';
 import './manual-screen.css';
 
-export function ManualScreen({ step, actions, scene, partInset }: ManualScreenProps): ReactNode {
+export function ManualScreen({ step, actions, scene, partInset, benchLayout }: ManualScreenProps): ReactNode {
     return (
-        <main className="rs-manual" data-screen="manual" data-phase={step.phase}>
+        <main className={benchLayout?'rs-manual rs-manual--bench':'rs-manual'} data-screen="manual" data-phase={step.phase}>
             <section className="rs-manual__field" aria-label="Assembly view">
                 {scene}
                 {partInset === undefined || partInset === null ? null : (
@@ -46,9 +46,10 @@ export function ManualScreen({ step, actions, scene, partInset }: ManualScreenPr
                         <span className="rs-manual__quantity">{step.quantityLabel}</span>
                         <span className="rs-manual__location">{step.locationLabel}</span>
                     </p>
+                    {benchLayout && <p className="rs-manual__instruction">{step.instruction}</p>}
                     <details className="rs-manual__description">
                         <summary>Details</summary>
-                        <p className="rs-manual__instruction">{step.instruction}</p>
+                        {!benchLayout && <p className="rs-manual__instruction">{step.instruction}</p>}
                         <dl className="rs-manual__facts">
                             <div className="rs-manual__fact">
                                 <dt>Which way</dt>

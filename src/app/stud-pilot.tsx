@@ -149,7 +149,7 @@ export function StudPilot() {
         </section>
     </main>;
     if (step && session) return <>
-        <ManualScreen step={toStepViewModel(step,session.total,{ canConfirm: !checkFailed && history===null,
+        <ManualScreen benchLayout={dataset.id==='4000041'} step={toStepViewModel(step,session.total,{ canConfirm: !checkFailed && history===null,
             blockedReason: history!==null ? 'Viewing a confirmed step. Return to the current step to continue.' : 'Fit check failed. Inspect the seating before checking again.',
             isHistorical: history!==null, canGoBack: history===null && session.confirmedCount>0 })}
             scene={scene} actions={{

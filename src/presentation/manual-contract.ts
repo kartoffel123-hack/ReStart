@@ -49,6 +49,8 @@ export type ManualActions = Readonly<{
 }>;
 
 export type ManualScreenProps = Readonly<{
+    /** Keep the instruction in view and stack the drawing above it on a narrow bench screen. */
+    benchLayout?: boolean;
     step: StepViewModel;
     actions: ManualActions;
     /** The drawing field: the assembly view, supplied by the scene adapter. */

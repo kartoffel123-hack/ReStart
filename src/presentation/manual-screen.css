@@ -335,3 +335,19 @@
         gap: 2px;
     }
 }
+
+@media (max-width: 40rem) {
+    .rs-manual--bench {
+        display: grid;
+        grid-template-rows: 40% minmax(0, 1fr);
+    }
+    .rs-manual--bench .rs-manual__field,
+    .rs-manual--bench .rs-manual__strip {
+        position: relative;
+        inset: auto;
+    }
+    .rs-manual--bench .rs-manual__strip {
+        max-height: none;
+        gap: var(--rs-space-1);
+    }
+}

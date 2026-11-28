@@ -149,7 +149,7 @@ void main() {
                 : assemblyCenter.clone();
             // Shift the assembly left on screen, leaving clear space for the overlaid
             // instruction card on the right. This is a view-space offset, not a model move.
-            if (focused) pivot.add(new Vector3(-1,0,0.6).normalize().multiplyScalar(0.025));
+            if (focused && !(p.assemblyName==='scanner' && el.clientWidth<=640)) pivot.add(new Vector3(-1,0,0.6).normalize().multiplyScalar(0.025));
             controls.target.copy(pivot);
             const halfStroke=new Vector3(...p.start).distanceTo(new Vector3(...p.end))*0.0005;
             // 0.125 m half-height reproduces the picker framing of the old 0.36 m @ 38° view;

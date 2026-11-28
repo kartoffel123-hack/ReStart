@@ -28,6 +28,8 @@ Open either demo link on the preview origin. The specific piece should already b
 
 ## Record an actual replacement
 
+**Frozen L201 attempt:** Use the [observer sheet](l201-trial-sheet.md) and [exact build and procedure pins](l201-trial-freeze.json). The private frozen archive on the CAD workstation is `.staging/4000041/frozen/b1db600444284e3ac44b3aa2001e390a2abc1df43bb4852c9ccabe2a0f2b3070/site.zip`. Serve the adjacent `site/` folder on loopback port 4218 for the sheet's manual link. The operator reads only the manual; the observer records actual events separately. No physical outcome has been submitted.
+
 1. Use the complete LEGO scanner, the matching spare in the table above, and the tools named by the page. A different teammate from the route author operates it without coaching. The observer notes the starting condition and whether the correct occurrence was identified.
 2. Read the procedure and dataset fingerprints from the **exported repair report** for this build. A browser confirmation means the user reported finishing a step. It is not a bench verification.
 3. Record the selected ID, any other pieces moved, grip/tool used, disassembly, exchange and restoration seconds separately, final seating and fit check, and any deviation or help. Keep role identifiers pseudonymous. If the tile cannot be gripped or needs a separator, stop and record the step; do not improvise and report a pass. A same-piece stand-in is a rehearsal.
@@ -35,6 +37,8 @@ Open either demo link on the preview origin. The specific piece should already b
 5. Recompile, independently verify, and run `npm run model:verify -- --dataset 4000041 --profile bench`. This fails until an approved matching job has an uncoached, successful trial using a real spare with the expected disturbed pieces. A changed procedure requires fresh evidence.
 
 ## Default and rollback
+
+**CT-V09 local rehearsal (2026-11-28): passed in Chromium 159.0.8154.6.** `node --import tsx tools/ct/rehearse-rollback.ts <frozen-site.zip>` checked the pinned archive SHA-256, extracted a fresh copy, and checked both served index digests. On one origin, enabling a temporary CT landing redirect selected the scanner; withdrawing it exposed the frozen bundle's real helicopter default. A pinned CT tab reloaded at the exchange checkpoint. Reopening `/` in that tab displayed the helicopter without consuming the CT checkpoint. A clean browser context completed `30465/NAUO33/NAUO39`, exported the matching fingerprint and opened helicopter review. Restoring the redirect resumed L201 at exchange, completed restoration and check, and exported the pinned CT fingerprint. This exercises rollback of the landing URL on the same bytes. It does not record an actual production deployment reversal, a hosted Edge/Safari pass, or a kit trial.
 
 The shared selector is `src/app/default-dataset.json`. Leave `30465` selected while a gate is open. Before selecting `4000041`, test the exact candidate over HTTPS on Windows Edge and macOS Safari; complete the repair and exercise the reviewer, exports, hard refresh and rollback on that build. Record the accepted generation, browser/OS versions and URL in `data/review/4000041/web-acceptance.json` as checked by `tools/verify/site-run.ts`. No such pass is assumed. The production prebuild refuses a CT default without matching review, physical and browser evidence. Reverting the selector/build retains both dataset-specific URLs and the previous generation.
 

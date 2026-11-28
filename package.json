@@ -23,7 +23,7 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test --project=helicopter",
     "test:e2e:ct": "playwright test --project=ct --workers=1",
-    "test:ct-data": "node --import tsx --test tests/ct/clearance.check.ts",
+    "test:ct-data": "node --import tsx --test tests/ct/*.check.ts",
     "model:import": "tsx tools/model.ts import",
     "model:dof": "tsx tools/dof/run.ts",
     "model:compile": "tsx tools/model.ts compile",

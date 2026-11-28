@@ -136,6 +136,18 @@ async function capture(
 ): Promise<{ layout: string; stub: boolean }> {
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
     await page.goto(`${origin}/${scenario.route}`, { waitUntil: 'networkidle' });
+    if(scenario.setup==='ct-gantry-locator') {
+        await page.evaluate(()=>sessionStorage.clear()); await page.reload();
+        await page.getByRole('button',{name:'Reveal buried piece'}).click();
+    }
+    if(scenario.setup==='ct-crown' || scenario.setup==='ct-gantry-brick') {
+        await page.evaluate(()=>sessionStorage.clear()); await page.reload();
+        await page.getByRole('button',{name:/Replace buried gantry support/i}).click();
+        if(scenario.setup==='ct-gantry-brick') {
+            for(let i=0;i<2;i++) await page.getByRole('button',{name:'Confirm this step'}).click();
+        }
+        await page.getByRole('button',{name:'Show starting pose'}).click();
+    }
     if(scenario.setup==='ct-tile') {
         await page.evaluate(()=>sessionStorage.clear());
         await page.reload();

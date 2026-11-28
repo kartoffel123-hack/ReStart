@@ -8,6 +8,7 @@ import { ctStage, inventorySchema, sha256 } from './import.js';
 import { checkTile } from './tile-clearance.js';
 import { scannerEvidence } from './evidence.js';
 import { installCandidate } from './generation.js';
+import { addGantryJob,gantryMeasurements,gantryRecipe } from './gantry-brick.js';
 
 export const demoScopeSchema=z.object({candidate:z.string(),support:z.string(),travelMm:z.number().positive(),tool:z.string(),remove:z.string(),exchange:z.string(),restore:z.string(),check:z.string(),open:z.record(z.string(),z.string())});
 export const readScope=async()=>demoScopeSchema.parse(JSON.parse(await readFile('data/review/4000041/demo-targets.json','utf8')));
@@ -28,7 +29,7 @@ export async function compileScanner() {
     const occurrence=(id:string,name:string,ref:string,parent:string|null,piece:boolean,location:string)=>({id,definitionId:ref,definitionName:ref,parent,
         path:parent===null?[id]:parent===assemblyId?[assemblyId,id]:[assemblyId,parent,id],kind:piece?'piece':'assembly',installedPoseId:`${id}/installed`,meshId:piece?id:null,typeKey:ref,commonName:name,locationLabel:location});
     const occurrences=[occurrence(assemblyId,'CT scanner','4000041',null,false,'Assembly'),...groups.map(g=>occurrence(`${assemblyId}/${g}`,g,g,assemblyId,false,g)),
-        ...source.inventory.pieces.map(p=>occurrence(p.id,p.name,p.ref,`${assemblyId}/${p.group}`,true,p.group))];
+        ...source.inventory.pieces.map(p=>occurrence(p.id,p.name,p.ref,`${assemblyId}/${p.group}`,true,p.group==='MRI'?'Scanner gantry':p.group))];
     const raised:RigidFrame={rotation:tile.frame.rotation,translation:[tile.frame.translation[0],tile.frame.translation[1]+scope.travelMm,tile.frame.translation[2]]};
     const moves=[{id:'release',phase:'remove',text:scope.remove,start:installed,end:free,stop:'The four wall studs are visible and the tile is free.'},
         {id:'exchange',phase:'replace',text:scope.exchange,start:free,end:free,stop:'The original is set aside and the spare faces smooth side up.'},
@@ -43,11 +44,17 @@ export async function compileScanner() {
             direction:[0,m.phase==='restore'?-1:m.phase==='remove'?1:0,0],directionLabel:m.text,stopLandmark:m.stop,strokeMm:m.start===m.end?0:scope.travelMm,
             ...(m.phase==='remove'?{returnOperationId:'reseat',releasesConnectionIds:[joint]}:{}),...(m.phase==='restore'?{isReturn:true,establishesConnectionIds:[joint]}:{}),...(m.phase==='replace'?{fitsReplacementOf:target}:{})})),
         functionChecks:[{id:'tile-fit',instruction:scope.check,expectedBehaviour:'Both ends are flush; the wall and neighbouring tiles stay seated.'}]});
+    const gantry=await gantryRecipe();
+    const measurements=await gantryMeasurements(join(ctStage,source.geometry));
+    const hard=addGantryJob(model,new Map(pieces.map(p=>[p.id,p.bounds])),gantry,measurements);
     model.graphRevision=sha256(JSON.stringify(model));
     const repair=planRepair(model,[target],{maxExpandedStates:1000,allowIncumbent:false},{functionCheckId:'tile-fit'}).repair;
     if(!repair?.replay.ok || repair.disturbedCount!==0 || repair.operationIds.join()!=='release,exchange,reseat') throw new Error('CT tile exchange did not replay');
-    const manuals={defaultTarget:target,geometry:source.geometry,repairs:{[target]:repair},evidence:{[target]:await scannerEvidence(repair,true)},inventory:source.inventory.pieces.map(p=>({id:p.id,name:p.id===target?'Grooved 1 × 4 tile':p.name,designNo:p.ref.replace(/\.dat$/,''),elementId:'',color:p.colorName})),
-        paths:Object.fromEntries(moves.map(m=>[m.id,[m.start,m.end].map(id=>[0,id===installed?0:scope.travelMm,0] as Vec3)])),movers:Object.fromEntries(moves.map(m=>[m.id,target]))};
+    const gantryRepair=planRepair(model,[gantry.target],{maxExpandedStates:1000,allowIncumbent:true},{functionCheckId:gantry.check,incumbentRoute:hard.route}).repair;
+    if(!gantryRepair?.replay.ok || gantryRepair.disturbedCount!==10 || gantryRepair.operationIds.join()!==hard.route.join()) throw new Error('Buried gantry repair failed');
+    const manuals={defaultTarget:target,geometry:source.geometry,repairs:{[target]:repair,[gantry.target]:gantryRepair},evidence:{[target]:await scannerEvidence(repair,true),[gantry.target]:await scannerEvidence(gantryRepair,true)},inventory:source.inventory.pieces.map(p=>({id:p.id,name:p.id===target?'Grooved 1 × 4 tile':p.id===gantry.target?'Buried gantry support brick (1 × 4)':p.name,designNo:p.ref.replace(/\.dat$/,''),elementId:'',color:p.colorName})),
+        toolPlacements:{'ct-separator':{instanceId:gantry.separator,frame:{translation:gantry.toolOriginMm,rotation:[0,Math.SQRT1_2,0,Math.SQRT1_2]}}},
+        paths:{...hard.paths,...Object.fromEntries(moves.map(m=>[m.id,[m.start,m.end].map(id=>[0,id===installed?0:scope.travelMm,0] as Vec3)]))},movers:Object.fromEntries(model.operations.map(op=>[op.id,op.members[0]!]))};
     const files=new Map<string,Buffer>();
     const entry=(name:string,bytes:Buffer)=>{files.set(name,bytes);return {name,sha256:sha256(bytes)};};
     const credits=z.object({definitions:z.record(z.string(),z.object({origin:z.string(),sha256:z.string(),credits:z.string().array()}))}).parse(JSON.parse(await readFile('.tmp/ct/source.json','utf8')));
@@ -62,5 +69,5 @@ export async function compileScanner() {
         await writeFile(join(dir,'index.json'),indexBytes);
     });
     const temp=join(ctStage,`candidate-${randomUUID()}.tmp`); await writeFile(temp,generation);await rename(temp,join(ctStage,'candidate'));
-    console.log(`CT candidate ${generation}: ${target} releases, exchanges, reseats and checks; ${repair.disturbedCount} healthy pieces disturbed. Not approved for physical demonstration.`);
+    console.log(`CT candidate ${generation}: ${target} direct exchange; ${gantry.target} moves ${gantryRepair.disturbedCount} healthy pieces in two intact crown sections. Physical trials pending.`);
 }

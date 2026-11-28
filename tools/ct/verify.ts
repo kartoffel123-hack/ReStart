@@ -12,6 +12,7 @@ import { readScope } from './compile.js';
 import { scannerEvidence } from './evidence.js';
 import { readScannerGeneration } from './site.js';
 import { installCandidate } from './generation.js';
+import { gantryMeasurements,gantryRecipe } from './gantry-brick.js';
 
 /** Read the staged bytes as a consumer. The source-to-STEP witness is independent
  * of the GLB and compiler. Never infer coverage from just the number of files. */
@@ -35,8 +36,9 @@ export async function verifyScanner(stage=ctStage) {
         if(!n.getMesh() || n.getExtras().definitionId!==w.ref || n.getWorldTranslation().some((v,i)=>Math.abs(v*1000-w.world[i]![3]!)>.1) ||
             q.angleTo(new Quaternion(...n.getWorldRotation()))>Math.PI/360) throw new Error(`Wrong geometry or placement: ${id}`);
     }
-    const ids=Object.keys(manuals.repairs);
-    if(ids.length!==1 || ids[0]!==scope.candidate) throw new Error('Declared demo targets differ from the repair catalog');
+    const gantry=await gantryRecipe();
+    const ids=Object.keys(manuals.repairs).sort();
+    if(ids.join()!==[scope.candidate,gantry.target].sort().join()) throw new Error('Declared demo targets differ from the repair catalog');
     const job=manuals.repairs[scope.candidate]!;
     if(job.datasetRevision!==model.source.datasetRevision || job.graphRevision!==meta.revision || !replay(model,job).ok ||
         procedureFingerprint(model,job.targetIds,job.operationIds,job.functionCheckId)!==job.procedureFingerprint) throw new Error('CT repair replay/fingerprint mismatch');
@@ -56,13 +58,44 @@ export async function verifyScanner(stage=ctStage) {
         }
     }
     await checkTile(glb,tile,scope.support,scope.travelMm);
-    const evidence=await scannerEvidence(job,true);
-    const published=manuals.evidence?.[tile];
-    if(!published || published.physicallyVerified!==evidence.physicallyVerified || published.benchRecordId!==evidence.benchRecordId || published.reviewed!==evidence.reviewed || published.minimumUnderReviewedModel!==evidence.minimumUnderReviewedModel) throw new Error('CT evidence does not match the reviewed ledger');
-    const rows=inventory.map(id=>({id,status:id===tile?'model-replayed':'unavailable',reason:id===tile?'':scope.open[id]??'No reviewed removal and return motion',
-        procedureFingerprint:id===tile?job.procedureFingerprint:null,physicallyVerified:id===tile && evidence.physicallyVerified}));
+    const hard=manuals.repairs[gantry.target]!;
+    const witness=await gantryMeasurements(join(base,meta.geometry.name));
+    const separator=manuals.toolPlacements?.['ct-separator'];
+    if(separator?.instanceId!==gantry.separator || JSON.stringify(separator.frame.translation)!==JSON.stringify(gantry.toolOriginMm) ||
+        JSON.stringify(separator.frame.rotation)!==JSON.stringify([0,Math.SQRT1_2,0,Math.SQRT1_2])) throw new Error('Displayed separator differs from checked tool registration');
+    const groups=[...gantry.groups,{key:'brick',members:[gantry.target]}];
+    const expectedOps=[...groups.map(g=>`gantry-${g.key}-remove`),'gantry-brick-replace',...groups.toReversed().map(g=>`gantry-${g.key}-restore`)];
+    const expectedMoved=gantry.groups.flatMap(g=>g.members).sort();
+    if(hard.operationIds.join()!==expectedOps.join() || hard.steps.at(-1)?.phase!=='check' || hard.functionCheckId!==gantry.check ||
+        hard.disturbedCount!==10 || [...hard.disturbedIds].sort().join()!==expectedMoved.join() || hard.preservedUnits.filter(u=>u.outcome==='preserved-intact').length!==2) throw new Error('Incomplete gantry exchange or incorrect disturbance');
+    for (const g of groups) for(const phase of (g.key==='brick'?['remove','replace','restore']:['remove','restore'])) {
+        const id=`gantry-${g.key}-${phase}`,op=model.operations.find(o=>o.id===id)!;
+        const motion=model.motions.find(m=>m.id===op.motionId)!,out=witness.paths[g.key]!,end=out.at(-1)!;
+        const points=phase==='remove'?out:phase==='restore'?out.toReversed():[end,end];
+        const lead=model.poses.find(p=>p.occurrenceId===g.members[0] && p.kind==='installed')!;
+        if(!motion.evidence.note?.includes(witness.revision) || op.members.join()!==g.members.join() || motion.members.join()!==g.members.join() || manuals.movers[id]!==g.members[0] ||
+            motion.frames.length!==points.length || JSON.stringify(manuals.paths[id])!==JSON.stringify(points)) throw new Error(`Incorrect group or trajectory at ${id}`);
+        for(const [k,f] of motion.frames.entries()) if(f.frame.translation.some((v,j)=>Math.abs(v-lead.frame.translation[j]!-points[k]![j]!)>1e-6) ||
+            f.frame.rotation.some((v,j)=>Math.abs(v-lead.frame.rotation[j]!)>1e-6)) throw new Error(`Motion differs from the checked bench path at ${id}`);
+        for(const member of g.members) {
+            const installed=model.poses.find(p=>p.id===`${member}/installed`)!,park=model.poses.find(p=>p.id===`${member}/crown-park`)!;
+            if(!park || park.frame.translation.some((v,j)=>Math.abs(v-installed.frame.translation[j]!-end[j]!)>1e-6) ||
+                park.frame.rotation.some((v,j)=>Math.abs(v-installed.frame.rotation[j]!)>1e-6)) throw new Error(`Member drift: ${member}`);
+        }
+    }
+    await writeFile(join(stage,'gantry-access.json'),JSON.stringify({generation,...witness},null,2));
+    const evidence=await Promise.all(ids.map(async id=>{
+        const r=manuals.repairs[id]!;
+        if(r.datasetRevision!==model.source.datasetRevision || r.graphRevision!==meta.revision || !replay(model,r).ok ||
+            procedureFingerprint(model,r.targetIds,r.operationIds,r.functionCheckId)!==r.procedureFingerprint) throw new Error(`Invalid CT repair: ${id}`);
+        const actual=await scannerEvidence(r,true),published=manuals.evidence?.[id];
+        if(!published || JSON.stringify(published)!==JSON.stringify(actual)) throw new Error(`CT evidence does not match the reviewed ledger: ${id}`);
+        return actual;
+    }));
+    const rows=inventory.map(id=>({id,status:ids.includes(id)?'model-replayed':'unavailable',reason:ids.includes(id)?'':scope.open[id]??'No reviewed removal and return motion',
+        procedureFingerprint:manuals.repairs[id]?.procedureFingerprint??null,physicallyVerified:manuals.evidence?.[id]?.physicallyVerified??false}));
     await writeFile(join(stage,'verification.json'),JSON.stringify({generation,stepSha256:model.source.stepSha256,rows},null,2));
-    console.log(`CT ${generation}: ${rows.length}/566 source, STEP, GLB and inventory IDs; 1 complete modeled exchange; 565 unavailable; ${Number(evidence.physicallyVerified)} physically verified. ${job.procedureFingerprint}`);
+    console.log(`CT ${generation}: ${rows.length}/566 source, STEP, GLB and inventory IDs; ${ids.length} complete modeled exchanges; ${rows.length-ids.length} unavailable; ${evidence.filter(e=>e.physicallyVerified).length} physically verified. Buried brick ${hard.procedureFingerprint}; ${hard.disturbedCount} healthy pieces in two intact sections.`);
     return {base,generation,evidence};
 }
 

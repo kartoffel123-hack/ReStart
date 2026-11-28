@@ -25,13 +25,16 @@ export type Scenario = Readonly<{
     highlights: string;
     /** Selector that must exist before capturing; keeps captures deterministic. */
     waitFor?: string;
-    setup?: 'blocked-preview' | 'buried-pin' | 'cross-block' | 'expand-nauo56-sequence' | 'replacement-preview' | 'selected-picker' | 'repair-complete' | 'ct-tile';
+    setup?: 'blocked-preview' | 'buried-pin' | 'cross-block' | 'expand-nauo56-sequence' | 'replacement-preview' | 'selected-picker' | 'repair-complete' | 'ct-tile' | 'ct-crown' | 'ct-gantry-brick' | 'ct-gantry-locator';
     requiresCtCandidate?: boolean;
     viewports?: readonly Viewport[];
     fullPage?: boolean;
 }>;
 
 export const SCENARIOS: readonly Scenario[] = [
+    {id:'ct-gantry-locator',label:'Locate the buried support brick',route:'?dataset=4000041#/?piece=4000041%2FL201',setup:'ct-gantry-locator',requiresCtCandidate:true,highlights:'The selector ghosts the two crown sections to identify the exact brick without beginning a repair.',waitFor:'canvas[data-active-instance="4000041/L201"]'},
+    {id:'ct-crown',label:'Lift one intact crown section',route:'?dataset=4000041#/?piece=4000041%2FL201',setup:'ct-crown',requiresCtCandidate:true,highlights:'All five pieces of the first roof section are highlighted together before lifting.',waitFor:'canvas[data-motion-offset-mm="0.00,0.00,0.00"]'},
+    {id:'ct-gantry-brick',label:'Reach the buried white support brick',route:'?dataset=4000041#/?piece=4000041%2FL201',setup:'ct-gantry-brick',requiresCtCandidate:true,highlights:'With both roof sections parked, the turquoise separator reaches the middle two studs on the white gantry brick.',waitFor:'canvas[data-tool-instance="4000041/L550"][data-motion-offset-mm="0.00,0.00,0.00"]'},
     {id:'ct-picker',label:'CT scanner selection',route:'?dataset=4000041#/',highlights:'The full scanner and all 566 selectable source placements.',waitFor:'canvas[data-target-point]',requiresCtCandidate:true},
     {id:'ct-tile',label:'CT back-room tile removal',route:'?dataset=4000041#/',setup:'ct-tile',highlights:'Remove one specific white grooved tile at the end of the long wall.',waitFor:'[data-phase="remove"] canvas[data-active-instance="4000041/L388"]',requiresCtCandidate:true},
     {

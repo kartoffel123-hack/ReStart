@@ -14,6 +14,7 @@ import { ManualScreen } from '../presentation/manual-screen.js';
 import { toStepViewModel } from '../presentation/manual-contract.js';
 import { createManualSession,confirmStep,type ManualSession } from './manual-session.js';
 import type { Repair } from '../domain/schema.js';
+import { confirmedOffsets } from './manual-scene-state.js';
 
 const candidatesSchema=z.array(z.object({id:z.string(),piece:z.string(),axis:z.array(z.number()),proposedStrokeMm:z.number(),
     transverseJoints:z.string().array(),exitAssessment:z.string().array().nullable().optional(),
@@ -45,8 +46,10 @@ export function Reviewer() {
             const {model:b,pilot:d,candidates:c}=bundle;
             url=URL.createObjectURL(bundle.geometry);setGeometry(url);
             const requested=new URLSearchParams(window.location.hash.split('?')[1]).get('piece');
-            setBase(b); setPilot(d); select(b.occurrences.some(o=>o.id===requested)?requested!:d.target);
-            setOption(b.operations[0]?.id ?? '');
+            const initialPiece=b.occurrences.some(o=>o.id===requested)?requested!:d.target;
+            const job=[d.repair,...d.alternatives].find(r=>r.targetIds[0]===initialPiece)??d.repair;
+            setBase(b); setPilot(d); select(initialPiece); setPreviewId(job.targetIds[0]!);
+            setOption(job.operationIds[0] ?? b.operations[0]?.id ?? '');
             setCandidates(candidatesSchema.parse(c));
             let initial:ReviewPatch={schemaVersion:1,baseDatasetRevision:b.source.datasetRevision,baseGraphRevision:b.graphRevision,edits:[]};
             try {
@@ -103,10 +106,10 @@ export function Reviewer() {
     };
     if(rehearsal) {
         const step=rehearsal.session.current;
-        const offsets=Object.fromEntries(rehearsal.repair.steps.slice(0,rehearsal.session.confirmedCount).flatMap(s=>pilot.paths[s.operationId] ? [[pilot.movers[s.operationId]!,pilot.paths[s.operationId]![1]]]:[]));
+        const offsets=confirmedOffsets(model,rehearsal.repair.steps,rehearsal.session.confirmedCount,pilot.paths);
         const path=step && pilot.paths[step.operationId];
         return <main className="reviewer" data-route="review"><header className="draft-banner"><strong>Local rehearsal</strong> · Draft state replay only. <button onClick={()=>setRehearsal(undefined)}>Back to reviewer</button></header>
-             {step ? <ManualScreen step={toStepViewModel(step,rehearsal.session.total,{canConfirm:true})} scene={<StudScene assemblyName={dataset.noun} url={geometry} target={pilot.movers[step.operationId] ?? rehearsal.repair.targetIds[0]!} start={path?.[0]??zero} end={path?.[1]??zero} offsets={offsets} focus={true} replay={motionReplay} reset={viewReset} onPick={()=>{}}/>}
+             {step ? <ManualScreen benchLayout={dataset.id==='4000041'} step={toStepViewModel(step,rehearsal.session.total,{canConfirm:true})} scene={<StudScene assemblyName={dataset.noun} url={geometry} target={pilot.movers[step.operationId] ?? rehearsal.repair.targetIds[0]!} movingMembers={model.operations.find(o=>o.id===step.operationId)?.members} waypoints={path} start={path?.[0]??zero} end={path?.at(-1)??zero} offsets={offsets} focus={true} replay={motionReplay} reset={viewReset} onPick={()=>{}}/>}
                 actions={{confirmStep:id=>setRehearsal(s=>s && {...s,session:confirmStep(s.session,id)}),resetCamera:()=>resetView(n=>n+1),replayMotion:()=>replayMotion(n=>n+1),returnToCurrentStep:()=>resetView(n=>n+1),goBackOneStep:()=>{}}}/> : <h1>Rehearsal complete</h1>}</main>;
     }
     const tree=(parent:string):React.ReactNode=>model.occurrences.filter(o=>o.parent===parent).map(p=>p.kind==='piece'?<li key={p.id}><button onClick={()=>select(p.id)}>{p.commonName} — {p.id.split('/').at(-1)}</button></li>:

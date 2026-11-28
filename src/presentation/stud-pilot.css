@@ -195,6 +195,7 @@
 .stud-scene canvas { position:absolute; inset:0; width:100%; height:100%; }
 .scene-tools { position:absolute; z-index:1; top:8px; right:8px; }
 .scene-tools button { min-height:44px; }
+.rs-manual--bench .scene-tools { left:12px; right:auto; }
 .stud-scene p { position:relative; z-index:1; }
 @media (max-width: 48rem) {
     .stud-picker {

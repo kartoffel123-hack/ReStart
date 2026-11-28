@@ -36,6 +36,19 @@ export async function checkScannerSite(root:string) {
         if(job.graphRevision!==model.graphRevision || job.datasetRevision!==model.source.datasetRevision || !replay(model,job).ok ||
             procedureFingerprint(model,job.targetIds,job.operationIds,job.functionCheckId)!==job.procedureFingerprint) throw new Error(`Invalid CT job: ${job.targetIds}`);
     }
+    const poses=new Map(model.poses.map(p=>[p.id,p]));
+    for (const op of model.operations) {
+        const motion=model.motions.find(m=>m.id===op.motionId),lead=op.members[0]!;
+        const home=poses.get(`${lead}/installed`)!,path=manuals.paths[op.id];
+        if(!motion || motion.members.join()!==op.members.join() || manuals.movers[op.id]!==lead || !path || path.length!==motion.frames.length) throw new Error(`Wrong CT animation members: ${op.id}`);
+        for(const [i,f] of motion.frames.entries()) if(f.frame.translation.some((v,j)=>Math.abs(v-home.frame.translation[j]!-path[i]![j]!)>1e-6) ||
+            f.frame.rotation.some((v,j)=>Math.abs(v-home.frame.rotation[j]!)>1e-6)) throw new Error(`Wrong CT animation frame: ${op.id}`);
+        for(const [assignments,offset] of [[op.from,path[0]!],[op.to,path.at(-1)!]] as const) for(const a of assignments) {
+            const pose=poses.get(a.poseId)!,installed=poses.get(`${a.occurrenceId}/installed`)!;
+            if(pose.frame.translation.some((v,j)=>Math.abs(v-installed.frame.translation[j]!-offset[j]!)>1e-6) ||
+                pose.frame.rotation.some((v,j)=>Math.abs(v-installed.frame.rotation[j]!)>1e-6)) throw new Error(`Incorrect member endpoint: ${op.id}/${a.occurrenceId}`);
+        }
+    }
     console.log(`Static CT candidate intact: ${ids.length} pieces; ${Object.keys(manuals.repairs).length} modeled manuals.`);
     return {generation:channel.path.split('/')[1]!,repairs:Object.values(manuals.repairs)};
 }

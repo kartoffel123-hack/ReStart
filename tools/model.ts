@@ -8,7 +8,7 @@ if(values.dataset==='4000041') {
     else if(action==='compile') await (await import('./ct/compile.js')).compileScanner();
     else if(action==='verify' && values.profile) {
         const {evidence}=await (await import('./ct/verify.js')).verifyScanner();
-        if(values.profile==='bench' && !evidence.physicallyVerified) throw new Error('Cutover withheld: reviewed, uncoached CT trial with a matching spare required');
+        if(values.profile==='bench' && !evidence.some(e=>e.physicallyVerified)) throw new Error('Cutover withheld: reviewed, uncoached CT trial with a matching spare required');
     }
     else if(action==='stage') await (await import('./ct/verify.js')).serveScannerCandidate();
     else throw new Error('CT has a demo verifier only; use --profile demo');

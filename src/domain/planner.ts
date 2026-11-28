@@ -219,7 +219,7 @@ function stepsFor(model: AssemblyModel, route: readonly string[], checkId: strin
             toolLabel: tool?.name ?? operation.toolId,
             stopLandmark: operation.stopLandmark,
             directionLabel: operation.directionLabel,
-            partLabel: firstMember?.commonName ?? (operation.members[0] ?? operation.label),
+            partLabel: model.units.find(u=>u.id===operation.unitId)?.name ?? firstMember?.commonName ?? (operation.members[0] ?? operation.label),
             locationLabel: firstMember?.locationLabel ?? '',
             ...(operation.cameraNote === undefined ? {} : { cameraNote: operation.cameraNote })
         };

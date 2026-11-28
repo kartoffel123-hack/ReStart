@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { evidenceStatusSchema, repairSchema, vec3Schema } from '../domain/schema.js';
+import { evidenceStatusSchema, repairSchema, rigidFrameSchema, vec3Schema, type Vec3 } from '../domain/schema.js';
 
 export const pilotSchema = z.object({
     geometry: z.string().regex(/^geometry-[0-9a-f]{64}\.glb$/),
@@ -11,7 +11,10 @@ export const pilotSchema = z.object({
 });
 /** v1 remains strict. In v2 a repair belongs to its target; there is no
  * mandatory second pin or joint procedure. Normalize once for the UI. */
+const toolPlacement=z.object({instanceId:z.string(),frame:rigidFrameSchema});
 export const datasetManualSchema = pilotSchema.pick({geometry:true,inventory:true,paths:true,movers:true,evidence:true}).extend({
+    paths:z.record(z.string(),z.array(vec3Schema).min(2)),
+    toolPlacements:z.record(z.string(),toolPlacement).optional(),
     defaultTarget: z.string(), repairs: z.record(z.string(),repairSchema)
 }).transform((data, ctx) => {
     const repair = data.repairs[data.defaultTarget];
@@ -23,4 +26,4 @@ export const datasetManualSchema = pilotSchema.pick({geometry:true,inventory:tru
 });
 
 type HelicopterPilot = z.infer<typeof pilotSchema>;
-export type PilotData = Omit<HelicopterPilot,'pin'|'jointRepair'> & Partial<Pick<HelicopterPilot,'pin'|'jointRepair'>>;
+export type PilotData = Omit<HelicopterPilot,'pin'|'jointRepair'|'paths'> & {paths:Record<string,Vec3[]>;toolPlacements?:Record<string,z.infer<typeof toolPlacement>>|undefined} & Partial<Pick<HelicopterPilot,'pin'|'jointRepair'>>;

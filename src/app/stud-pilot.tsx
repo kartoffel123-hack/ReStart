@@ -15,7 +15,7 @@ import '../presentation/dependency-graph.css';
 import { loadCheckpoint, restoreSession, storeCheckpoint } from './checkpoint.js';
 import { exportJson } from './export-json.js';
 import { DescriptionPicker } from './description-picker.js';
-import { removedInstances } from './manual-scene-state.js';
+import { confirmedOffsets,removedInstances } from './manual-scene-state.js';
 
 const zero: Vec3 = [0,0,0];
 export function StudPilot() {
@@ -36,6 +36,7 @@ export function StudPilot() {
     const [replaceWarning,setReplaceWarning]=useState(false);
     const [pick,select]=useState(''), [query,search]=useState('');
     const [hovered,setHovered]=useState('');
+    const [revealed,reveal]=useState(false);
     const colors=useMemo(()=>new Map(data?.inventory.map(p=>[p.id,p.color])),[data]);
     const groups=useMemo(()=>{
         const result=new Map<string,NonNullable<typeof data>['inventory']>();
@@ -70,7 +71,8 @@ export function StudPilot() {
     const sceneTarget=target || data?.target;
     const job=joint && data ? data.jointRepair : jobs.find(r=>r.targetIds[0]===target);
     const label=data?.inventory.find(p=>p.id===target)?.name.split(' - ')[0] ?? 'piece';
-    useEffect(()=>setReplaceWarning(false),[target]);
+    useEffect(()=>{setReplaceWarning(false);reveal(false);},[target]);
+    const ghosted=useMemo(()=>!session && revealed && job ? new Set(job.disturbedIds) : undefined,[session,revealed,job]);
     const manualTree = useMemo(
         () =>
             model && target
@@ -92,18 +94,17 @@ export function StudPilot() {
     const step = history!==null ? session?.steps[history] : session?.current;
     const path = step && data?.paths[step.operationId];
     const begin = (id:string,combined=false) => { const r=combined ? data?.jointRepair : jobs.find(j=>j.targetIds[0]===id);if(r) {setJoint(combined);select(id);setCheckpoint(null);setHistory(null);failCheck(false);setSession(createManualSession(r));} };
-    const offsets:Record<string,Vec3>={};
-    for(const s of (session?.steps ?? []).slice(0,history ?? session?.confirmedCount ?? 0)) {
-        const member=data?.movers[s.operationId], to=data?.paths[s.operationId]?.[1];
-        if(member && to) offsets[member]=to;
-    }
-    const removed = session ? new Set(removedInstances(session.steps, history ?? session.confirmedCount, data?.movers ?? {})) : new Set<string>();
+    const offsets=model && data && session ? confirmedOffsets(model,session.steps,history??session.confirmedCount,data.paths) : {};
+    const parkedOnBench=job?.operationIds.some(id=>(data?.paths[id]?.length??0)>2);
+    const removed = session && !parkedOnBench ? new Set(removedInstances(session.steps, history ?? session.confirmedCount, data?.movers ?? {})) : new Set<string>();
+    const activeOperation=model?.operations.find(o=>o.id===step?.operationId);
+    const activeMembers=activeOperation?.members;
     // A fitted replacement is still off its seat at the start of restoration,
     // but must be visible while the mechanic watches it travel back into place.
     if(step?.phase==='restore' && data) removed.delete(data.movers[step.operationId]!);
     const scene = data && sceneTarget && <StudScene assemblyName={dataset.noun} url={geometryUrl} target={(step && data.movers[step.operationId]) || sceneTarget} selectionActive={!!target} replacementPreview={step?.phase==='replace'} removed={removed} offsets={offsets} colors={colors} isolate={false} explode={0} idleAutoRotate={!session && history===null} highlight={hovered}
         xrStep={step ? {id:step.stepId,text:`${step.ordinal}. ${step.instruction}`,replay:()=>play(n=>n+1),confirm:()=>{if(history===null && !checkFailed)setSession(s=>s && confirmStep(s,step.stepId));}} : undefined}
-        start={path?.[0] ?? zero} end={path?.[1] ?? zero} focus={!!step}
+        start={path?.[0] ?? zero} end={path?.at(-1) ?? zero} waypoints={path} movingMembers={activeMembers} toolCue={step?.phase!=='replace' && activeOperation ? data.toolPlacements?.[activeOperation.toolId] : undefined} ghosted={ghosted} focus={!!step || !!ghosted}
         replay={replay} reset={reset} onPick={id => { if (!session && !checkpoint) {setJoint(false);select(id);} }} />;
     if (checkpoint && data && !session) {
         const saved=[...jobs,...(data.jointRepair?[data.jointRepair]:[])].find(r=>r.targetIds.join('+')===checkpoint.target);
@@ -206,15 +207,16 @@ export function StudPilot() {
             </details>
                 <h3 className="stud-picker__selection-title">Selected piece</h3>
                 {target ? <div className="stud-picker__selection">
-                    <strong>{label}</strong><code>{target}</code>
+                     <strong>{label}</strong><code>{target}</code>
+                     {stage==='candidate' && job && job.disturbedCount>0 && <button aria-pressed={revealed} onClick={()=>reveal(v=>!v)}>{revealed?'Show assembled scanner':'Reveal buried piece'}</button>}
                      {(job || dataset.id==='30465') && <button className="stud-picker__primary" onClick={()=>job ? begin(target) : setReplaceWarning(true)}>Replace {label}</button>}
                      {(replaceWarning || (!job && dataset.id==='4000041')) && <p role="alert">No repair procedure is available for this piece.</p>}
                 </div> : <div className="stud-picker__selection stud-picker__selection--empty"><p>[Please select a piece in the 3D view]</p></div>}
                 {stage==='candidate' && !target && <>
-                    <p>{jobs.length} modeled repair available · {data.inventory.length} pieces to inspect</p>
-                    <button className="stud-picker__primary" onClick={()=>select(data.target)}>
-                        Show available repair: {data.inventory.find(p=>p.id===data.target)?.name}
-                    </button>
+                    <p>{jobs.length} modeled repairs · {data.inventory.length} pieces to inspect</p>
+                    {jobs.map(r=><button key={r.procedureFingerprint} className="stud-picker__primary" onClick={()=>select(r.targetIds[0]!)}>
+                        {data.inventory.find(p=>p.id===r.targetIds[0])?.name} · {r.disturbedCount===0?'Direct exchange':`${r.disturbedCount} healthy pieces moved`}
+                    </button>)}
                 </>}
                 </> :
                 error ? <><p role="status">The repair inventory could not be loaded.</p><button onClick={() => retry(n => n+1)}>Retry loading repair</button></> : <p role="status">Loading repair…</p>}
